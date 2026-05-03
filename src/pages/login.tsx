@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase"; // Asegurate de que la ruta coincida con tu proyecto
+import { supabase } from "@/lib/supabase"; 
 import { Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function Login() {
