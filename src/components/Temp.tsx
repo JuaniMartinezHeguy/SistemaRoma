@@ -178,9 +178,9 @@ export default function Landing() {
               <div className="w-full lg:w-[60%] lg:pr-16 relative h-[600px] flex flex-col justify-center">
                 {SERVICIOS.map((srv, idx) => (
                   <div key={idx} className={`absolute inset-0 lg:right-16 flex flex-col justify-center transition-all duration-700 ${idx === activeService ? 'opacity-100 translate-y-0 z-10' : 'opacity-0 translate-y-8 pointer-events-none z-0'}`}>
-                    <div className="bg-[#2a3c2a] rounded-[2rem] p-8 md:p-10 shadow-2xl border border-white/10 w-full h-full max-h-[550px] flex flex-col">
+                    <div className="bg-[#2a3c2a] rounded-none p-8 md:p-10 shadow-2xl border border-white/10 w-full h-full max-h-[550px] flex flex-col">
                       <p className="text-roma-leaf text-[10px] font-bold uppercase tracking-[0.25em] mb-4">Nuestro Servicio</p>
-                      <img src="/fondoRoma.png" className="w-full flex-1 object-cover rounded-xl mb-6 min-h-[180px] border border-white/5" alt="Servicio" />
+                      <img src="/fondoRoma.png" className="w-full flex-1 object-cover rounded-none mb-6 min-h-[180px] border border-white/5" alt="Servicio" />
                       <h2 className="text-4xl md:text-5xl font-black text-white leading-tight mb-3 tracking-tight">{srv.title}</h2>
                       <p className="text-white/70 text-base leading-relaxed">{srv.desc}</p>
                     </div>
@@ -243,8 +243,8 @@ export default function Landing() {
               </motion.div>
 
               <motion.div variants={fadeRight} className="w-full lg:w-[40%]">
-                <div className="h-[450px] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl relative bg-black/20 p-2">
-                  <iframe src={SEDES[sedeActiva].url} className="w-full h-full rounded-2xl border-0 opacity-80 mix-blend-luminosity hover:mix-blend-normal hover:opacity-100 transition-all duration-500" loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Mapa de ${SEDES[sedeActiva].nombre}`} />
+                <div className="h-[450px] rounded-none overflow-hidden border border-white/10 shadow-2xl relative bg-black/20 p-2">
+                  <iframe src={SEDES[sedeActiva].url} className="w-full h-full rounded-none border-0 opacity-80 mix-blend-luminosity hover:mix-blend-normal hover:opacity-100 transition-all duration-500" loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Mapa de ${SEDES[sedeActiva].nombre}`} />
                 </div>
               </motion.div>
             </div>
@@ -258,15 +258,15 @@ export default function Landing() {
 
               {/* Izquierdo: Collage de fotos */}
               <motion.div variants={fadeLeft} className="w-full lg:w-[50%] grid grid-cols-2 grid-rows-2 gap-4 h-[500px]">
-                <div className="col-span-2 row-span-1 md:col-span-1 md:row-span-2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl relative">
+                <div className="col-span-2 row-span-1 md:col-span-1 md:row-span-2 rounded-none overflow-hidden border border-white/10 shadow-2xl relative">
                   <img src="/fondoRoma.png" alt="Roma Campo Principal" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10" />
                 </div>
-                <div className="rounded-[1.5rem] overflow-hidden border border-white/10 shadow-xl relative">
+                <div className="rounded-none overflow-hidden border border-white/10 shadow-xl relative">
                   <img src="/fondoRoma.png" alt="Roma Propiedades" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10" />
                 </div>
-                <div className="rounded-[1.5rem] overflow-hidden border border-white/10 shadow-xl relative">
+                <div className="rounded-none overflow-hidden border border-white/10 shadow-xl relative">
                   <img src="/fondoRoma.png" alt="Roma Equipo" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10" />
                 </div>
@@ -283,14 +283,14 @@ export default function Landing() {
                   Para nosotros, un campo o una propiedad no es solo un terreno; es el escenario donde construirás tu futuro. Por eso, acompañamos a cada cliente con la honestidad y el arraigo que solo nuestra tierra puede inspirar.
                 </p>
 
-                <div className="flex gap-10">
-                  <div>
-                    <h3 className="text-4xl font-black text-white">10+</h3>
-                    <p className="text-roma-leaf text-xs uppercase font-bold tracking-widest mt-1">Años en la región</p>
+                <div className="flex flex-col sm:flex-row gap-8 pt-4">
+                  <div className="flex-1">
+                    <h3 className="text-roma-leaf text-xs uppercase font-bold tracking-widest mb-2">Presencia Regional</h3>
+                    <p className="text-white/70 text-sm leading-relaxed">Conocimiento profundo del territorio y las necesidades de nuestra gente.</p>
                   </div>
-                  <div>
-                    <h3 className="text-4xl font-black text-white">500+</h3>
-                    <p className="text-roma-leaf text-xs uppercase font-bold tracking-widest mt-1">Operaciones de éxito</p>
+                  <div className="flex-1">
+                    <h3 className="text-roma-leaf text-xs uppercase font-bold tracking-widest mb-2">Compromiso Real</h3>
+                    <p className="text-white/70 text-sm leading-relaxed">Relaciones basadas en la confianza y la transparencia absoluta.</p>
                   </div>
                 </div>
               </motion.div>
