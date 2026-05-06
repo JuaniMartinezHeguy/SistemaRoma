@@ -37,16 +37,15 @@ export default function Landing() {
   const [sedeActiva, setSedeActiva] = useState(0);
 
   const [isScrolled, setIsScrolled] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const serviciosRef = useRef<HTMLElement>(null);
 
-  const { scrollY } = useScroll({ container: scrollRef });
+  const { scrollY } = useScroll();
+
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
   });
 
   const { scrollYProgress: srvProgress } = useScroll({
-    container: scrollRef,
     target: serviciosRef,
     offset: ["start center", "end center"]
   });
@@ -62,39 +61,75 @@ export default function Landing() {
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.3]);
   const watermarkOpacity = useTransform(scrollY, [80, 350], [0, 0.12]);
 
-  return (
-    <div ref={scrollRef} className="bg-black text-white font-['Inter',system-ui,sans-serif] overflow-x-hidden">
+  // Transición unificada para todo el navbar
+  const navTransition = { duration: 0.6, ease: [0.22, 1, 0.36, 1] };
 
-      {/* ── NAVBAR ── */}
+  return (
+    <div className="bg-black text-white font-['Inter',system-ui,sans-serif] overflow-x-hidden">
+
+      {/* ── NAVBAR (100% Animado por Framer Motion) ── */}
       <motion.header
-        className={`fixed z-50 transition-all duration-500 ${isScrolled
-          ? 'top-4 left-4 right-4 bg-black/20 backdrop-blur-md rounded-2xl shadow-glass'
-          : 'top-0 left-0 right-0 bg-transparent rounded-none'
-          }`}
-        initial={{ y: -80 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed z-[100] left-0 right-0 mx-auto border"
+        initial={{ y: -80, top: 16, width: "90%", maxWidth: "1152px", borderRadius: "40px", backgroundColor: "rgba(0,0,0,0)", borderColor: "rgba(255,255,255,0)", backdropFilter: "blur(0px)" }}
+        animate={{ 
+          y: 0,
+          top: 16,
+          width: "90%",
+          maxWidth: "1152px",
+          backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0)",
+          borderColor: isScrolled ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0)",
+          borderRadius: "40px",
+          backdropFilter: isScrolled ? "blur(24px)" : "blur(0px)",
+          boxShadow: isScrolled ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)" : "none"
+        }}
+        transition={navTransition}
       >
-        <div className={`mx-auto flex items-center justify-between transition-all duration-500 ${isScrolled ? 'max-w-7xl px-6 h-16' : 'w-full px-8 h-20'}`}>
-          <a href="#inicio" className="flex-shrink-0">
-            <img src="/logo-blanco.png" alt="Roma" className="w-28 h-auto brightness-0 invert" />
-          </a>
-          <nav className="hidden md:flex items-center gap-8">
+        <motion.div 
+          layout
+          className="flex items-center justify-between w-full"
+          animate={{
+            paddingLeft: isScrolled ? "2rem" : "3rem",
+            paddingRight: isScrolled ? "2rem" : "3rem",
+            height: isScrolled ? "4rem" : "5.5rem"
+          }}
+          transition={navTransition}
+        >
+          {/* Logo */}
+          <motion.a layout href="#inicio" className="flex-shrink-0">
+            <motion.img
+              src="/logo-blanco.png"
+              alt="Roma"
+              className="h-auto"
+              animate={{ width: isScrolled ? "6rem" : "7rem" }} /* w-24 vs w-28 */
+              transition={navTransition}
+            />
+          </motion.a>
+
+          {/* Links */}
+          <motion.nav layout className="hidden md:flex items-center gap-8">
             {[['#inicio', 'Inicio'], ['#servicios', 'Servicios'], ['#ubicaciones', 'Sedes'], ['#equipo', 'Equipo']].map(([href, label]) => (
-              <a key={href} href={href} className="text-sm font-medium text-white/80 hover:text-white transition-colors relative after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-white after:transition-all hover:after:w-full">{label}</a>
+              <a key={href} href={href} className="text-sm font-medium text-white/80 hover:text-white transition-colors relative after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-white after:transition-all hover:after:w-full">
+                {label}
+              </a>
             ))}
-          </nav>
-          <div className="hidden md:block">
+          </motion.nav>
+
+          {/* Botón CTA */}
+          <motion.div layout className="hidden md:block">
             <Link to="/propiedades" className="bg-roma-olive text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-roma-olive/90 hover:shadow-float transition-all duration-300 hover:scale-[1.03]">
               Ver Propiedades
             </Link>
-          </div>
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-white p-2">
+          </motion.div>
+
+          {/* Toggle Móvil */}
+          <motion.button layout onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-white p-2">
             <i className={mobileOpen ? "ph ph-x text-2xl" : "ph ph-list text-2xl"} />
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
+
+        {/* Desplegable Móvil */}
         {mobileOpen && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden mt-2 bg-black/40 backdrop-blur-xl border-t border-white/10 p-6 flex flex-col items-center gap-4 rounded-b-2xl shadow-glass-lg">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-black/40 backdrop-blur-xl border-t border-white/10 p-6 flex flex-col items-center gap-4 rounded-b-2xl shadow-glass-lg absolute left-0 right-0 top-full mt-2 w-[90%] mx-auto">
             {[['#inicio', 'Inicio'], ['#servicios', 'Servicios'], ['#ubicaciones', 'Sedes'], ['#equipo', 'Equipo']].map(([href, label]) => (
               <a key={href} href={href} onClick={() => setMobileOpen(false)} className="text-white/80 hover:text-white font-medium text-base">{label}</a>
             ))}
@@ -170,7 +205,7 @@ export default function Landing() {
       >
 
         {/* ═══ SERVICIOS ═══ */}
-        <section id="servicios" className="relative z-10 min-h-screen pt-40 pb-40 px-6 flex flex-col justify-center">
+        <section ref={serviciosRef} id="servicios" className="relative z-10 min-h-screen pt-40 pb-40 px-6 flex flex-col justify-center">
           <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
             <div className="flex flex-col lg:flex-row gap-12 items-center">
 
@@ -190,9 +225,7 @@ export default function Landing() {
 
               {/* Panel Derecho: Timeline estático (40%) */}
               <motion.div variants={fadeRight} className="w-full lg:w-[40%] relative py-8 pl-14">
-                {/* Track base */}
                 <div className="absolute left-4 top-[40px] bottom-[40px] w-[2px] bg-white/10 hidden lg:block rounded-full" />
-                {/* Línea progreso atada al índice activo */}
                 <div
                   className="absolute left-4 top-[40px] w-[2px] bg-roma-leaf hidden lg:block rounded-full transition-all duration-500"
                   style={{ height: `calc(${(activeService / (SERVICIOS.length - 1)) * 100}%)` }}
@@ -203,15 +236,12 @@ export default function Landing() {
                     const isActive = idx === activeService;
                     return (
                       <div key={idx} onMouseEnter={() => setActiveService(idx)} onClick={() => setActiveService(idx)} className="group flex items-center gap-5 cursor-pointer py-5 relative">
-                        {/* Punto en la línea */}
                         <div className="absolute left-[-26px] hidden lg:flex w-4 h-4 rounded-full items-center justify-center -translate-x-1/2">
                           <div className={`rounded-full transition-all duration-300 ${isActive ? 'w-4 h-4 bg-roma-leaf shadow-[0_0_14px_rgba(91,138,97,0.9)]' : 'w-2.5 h-2.5 bg-white/20 border border-white/20'}`} />
                         </div>
-                        {/* Icono */}
                         <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
                           <srv.icon size={18} className={`transition-colors duration-300 ${isActive ? 'text-roma-leaf' : 'text-white/30 group-hover:text-white/60'}`} />
                         </div>
-                        {/* Label */}
                         <div className={`flex-1 border-b pb-5 text-2xl md:text-3xl font-light tracking-tight transition-all duration-300 ${isActive ? 'text-white border-roma-leaf/30' : 'text-white/50 border-white/5 group-hover:text-white/80'}`}>
                           {srv.title}
                         </div>
