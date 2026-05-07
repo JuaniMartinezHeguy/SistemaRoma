@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { Home, Tractor, Map, Plane, Truck, Globe } from 'lucide-react';
+import PageLoader from './ui/PageLoader';
 
 const SERVICIOS = [
   { icon: Home, title: 'Propiedades', desc: 'Venta y alquiler de casas y departamentos urbanos, con acompañamiento profesional en cada etapa.' },
@@ -16,13 +17,6 @@ const SEDES = [
   { nombre: 'Villalonga', url: 'https://maps.google.com/maps?q=Villalonga,Buenos+Aires,Argentina&t=&z=14&ie=UTF8&iwloc=&output=embed' },
   { nombre: 'Pedro Luro', url: 'https://maps.google.com/maps?q=Pedro+Luro,Buenos+Aires,Argentina&t=&z=14&ie=UTF8&iwloc=&output=embed' },
   { nombre: 'San Blas', url: 'https://maps.google.com/maps?q=Bahia+San+Blas,Buenos+Aires,Argentina&t=&z=14&ie=UTF8&iwloc=&output=embed' },
-];
-
-const EQUIPO = [
-  { name: 'Rodrigo', role: 'Fundador y Jefe' },
-  { name: 'Marina', role: 'Secretaria' },
-  { name: 'Elena', role: 'Marketing' },
-  { name: 'Maira', role: 'Vendedora' },
 ];
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -62,17 +56,21 @@ export default function Landing() {
   const watermarkOpacity = useTransform(scrollY, [80, 350], [0, 0.12]);
 
   // Transición unificada para todo el navbar
-  const navTransition = { duration: 0.6, ease: [0.22, 1, 0.36, 1] };
+  const navTransition = { duration: 0.6, ease: EASE };
 
   return (
     <div className="bg-black text-white font-['Inter',system-ui,sans-serif] overflow-x-hidden">
 
+      {/* ── LOADER DE PÁGINA ── */}
+      <PageLoader />
+
       {/* ── NAVBAR (100% Animado por Framer Motion) ── */}
       <motion.header
         className="fixed z-[100] left-0 right-0 mx-auto border"
-        initial={{ y: -80, top: 16, width: "90%", maxWidth: "1152px", borderRadius: "40px", backgroundColor: "rgba(0,0,0,0)", borderColor: "rgba(255,255,255,0)", backdropFilter: "blur(0px)" }}
-        animate={{ 
+        initial={{ y: -120, opacity: 0, top: 16, width: "90%", maxWidth: "1152px", borderRadius: "40px", backgroundColor: "rgba(0,0,0,0)", borderColor: "rgba(255,255,255,0)", backdropFilter: "blur(0px)" }}
+        animate={{
           y: 0,
+          opacity: 1,
           top: 16,
           width: "90%",
           maxWidth: "1152px",
@@ -82,11 +80,16 @@ export default function Landing() {
           backdropFilter: isScrolled ? "blur(24px)" : "blur(0px)",
           boxShadow: isScrolled ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)" : "none"
         }}
-        transition={navTransition}
+        transition={{ ...navTransition, delay: 0.1 }}
       >
-        <motion.div 
+        <motion.div
           layout
           className="flex items-center justify-between w-full"
+          initial={{
+            paddingLeft: "3rem",
+            paddingRight: "3rem",
+            height: "5.5rem"
+          }}
           animate={{
             paddingLeft: isScrolled ? "2rem" : "3rem",
             paddingRight: isScrolled ? "2rem" : "3rem",
@@ -100,7 +103,8 @@ export default function Landing() {
               src="/logo-blanco.png"
               alt="Roma"
               className="h-auto"
-              animate={{ width: isScrolled ? "6rem" : "7rem" }} /* w-24 vs w-28 */
+              initial={{ width: "7rem" }}
+              animate={{ width: isScrolled ? "6rem" : "7rem" }}
               transition={navTransition}
             />
           </motion.a>
