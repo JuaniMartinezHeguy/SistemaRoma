@@ -42,7 +42,6 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.08 } },
 };
 
-// ─── Icono según tipo ─────────────────────────────────────────────────────────
 function IconoTipo({ tipo, size = 20 }: { tipo: string; size?: number }) {
   switch (tipo?.toLowerCase()) {
     case 'campo': return <Tree size={size} weight="light" />;
@@ -54,6 +53,9 @@ function IconoTipo({ tipo, size = 20 }: { tipo: string; size?: number }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Catalogo() {
+  const [showScreenLoader, setShowScreenLoader] = useState(true);
+  const [heroDismissed, setHeroDismissed] = useState(false); // ESTADO PARA EL SCROLL-JACK
+
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +69,7 @@ export default function Catalogo() {
   const [busqueda, setBusqueda] = useState('');
   const [ordenar, setOrdenar] = useState('recientes');
 
-  // Extras (toggles)
+  // Extras
   const [cochera, setCochera] = useState(false);
   const [piscina, setPiscina] = useState(false);
 
@@ -77,11 +79,49 @@ export default function Catalogo() {
   const [imagenIndex, setImagenIndex] = useState(0);
   const [destacadaIndex, setDestacadaIndex] = useState(0);
 
-  // Bloqueo de scroll para el Modal (ya no necesita el de carga, el PageLoader lo hace solo)
+  // ─── 1. EFECTO: Screen Loader Inicial ───
   useEffect(() => {
-    document.body.style.overflow = propiedadActiva ? 'hidden' : '';
+    const timer = setTimeout(() => {
+      setShowScreenLoader(false);
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // ─── 2. EFECTO: Scroll-Jack (Desaparece hero en el primer scroll) ───
+  useEffect(() => {
+    if (showScreenLoader || heroDismissed) return;
+
+    const handleUserScroll = (e: WheelEvent | TouchEvent | KeyboardEvent) => {
+      if (e.type === 'keydown') {
+        const key = (e as KeyboardEvent).key;
+        if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' '].includes(key)) {
+          setHeroDismissed(true);
+        }
+      } else {
+        setHeroDismissed(true);
+      }
+    };
+
+    window.addEventListener('wheel', handleUserScroll, { passive: false });
+    window.addEventListener('touchmove', handleUserScroll, { passive: false });
+    window.addEventListener('keydown', handleUserScroll);
+
+    return () => {
+      window.removeEventListener('wheel', handleUserScroll);
+      window.removeEventListener('touchmove', handleUserScroll);
+      window.removeEventListener('keydown', handleUserScroll);
+    };
+  }, [showScreenLoader, heroDismissed]);
+
+  // ─── 3. EFECTO: Bloqueo Maestro de Scroll ───
+  useEffect(() => {
+    if (showScreenLoader || !heroDismissed || propiedadActiva) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
     return () => { document.body.style.overflow = ''; };
-  }, [propiedadActiva]);
+  }, [showScreenLoader, heroDismissed, propiedadActiva]);
 
   // ─── Fetch ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -123,13 +163,16 @@ export default function Catalogo() {
   useEffect(() => {
     if (propiedadesDestacadas.length <= 1) return;
     const interval = setInterval(() => {
-      setDestacadaIndex(prev => (prev + 1) % propiedadesDestacadas.length);
+      if (heroDismissed && !propiedadActiva) {
+        setDestacadaIndex(prev => (prev + 1) % propiedadesDestacadas.length);
+      }
     }, 6000);
     return () => clearInterval(interval);
-  }, [propiedadesDestacadas.length]);
+  }, [propiedadesDestacadas.length, heroDismissed, propiedadActiva]);
 
   const abrirModal = (p: Propiedad) => { setPropiedadActiva(p); setImagenIndex(0); };
   const cerrarModal = () => setPropiedadActiva(null);
+  const activeDestacada = propiedadesDestacadas[destacadaIndex];
 
   const imagenesCarrusel = propiedadActiva?.imagenes?.length
     ? propiedadActiva.imagenes
@@ -349,9 +392,9 @@ export default function Catalogo() {
     <div className="min-h-screen font-['Inter',system-ui,sans-serif] text-white overflow-x-hidden relative">
 
       {/* ══ OVERLAY DE CARGA ══ */}
-      <PageLoader />
+      {showScreenLoader && <PageLoader />}
 
-      {/* Fondo */}
+      {/* Fondo Fijo */}
       <div
         className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/fondo-campo.png')", backgroundAttachment: 'fixed' }}
@@ -377,207 +420,247 @@ export default function Catalogo() {
             </button>
           </div>
 
-          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="h-10 w-auto object-contain opacity-90" />
+          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[7rem] h-auto object-contain opacity-90" />
         </div>
       </header>
 
-      {/* ── LAYOUT PRINCIPAL ── */}
-      <div className="max-w-screen-2xl mx-auto pt-32 pb-8 px-4 lg:px-6 flex flex-col relative z-10">
+      {/* ── SECCIÓN HERO (ANIMADA: Entra de izq a der y desaparece con Scroll-Jack) ── */}
+      <AnimatePresence>
+        {!heroDismissed && !showScreenLoader && (
+          <motion.div
+            key="hero-intro"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ y: "-50vh", opacity: 0 }}
+            transition={{ duration: 0.8, ease: EASE }}
+            className="fixed inset-0 z-30 flex flex-col items-center justify-center pointer-events-none"
+          >
+            {/* Animación de Revelado de Izquierda a Derecha para el Título */}
+            <motion.div
+              initial={{ clipPath: 'inset(0% 100% 0% 0%)' }}
+              animate={{ clipPath: 'inset(0% 0% 0% 0%)' }}
+              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            >
+              <motion.h1
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="text-4xl md:text-6xl lg:text-[80px] font-light text-white tracking-[0.15em] uppercase text-center drop-shadow-2xl"
+              >
+                Nuestras <br className="md:hidden" /> Propiedades
+              </motion.h1>
+            </motion.div>
 
-        {/* ── SECCIÓN SUPERIOR: TÍTULO Y DESTACADAS EN BLOQUE VERDE ── */}
-        <section className="w-full mb-8">
-          <h1 className="text-3xl md:text-5xl font-light text-white tracking-[0.15em] uppercase mb-10 text-center w-full opacity-95">
-            Nuestras Propiedades
-          </h1>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              transition={{ delay: 1.5, duration: 1 }}
+              className="absolute bottom-10 flex flex-col items-center animate-bounce"
+            >
+              <span className="text-[10px] tracking-widest uppercase mb-2 font-light">Deslizar</span>
+              <span className="material-icons">keyboard_arrow_down</span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {propiedadesDestacadas.length > 0 && (
-            <div className="w-full bg-roma-olive border border-white/10 rounded-[36px] p-6 md:p-10 shadow-2xl">
+      {/* ── LAYOUT PRINCIPAL (Sube desde abajo en el primer scroll) ── */}
+      <motion.div
+        initial={{ y: "100vh", opacity: 0 }}
+        animate={heroDismissed ? { y: 0, opacity: 1 } : { y: "100vh", opacity: 0 }}
+        transition={{ duration: 0.8, ease: EASE }}
+        className="max-w-screen-2xl mx-auto pt-32 pb-8 px-4 lg:px-6 flex flex-col relative z-40 bg-transparent min-h-screen"
+      >
 
-              <div className="flex items-center justify-center gap-3 mb-8">
-                <div className="w-1.5 h-1.5 rounded-full bg-white/80 animate-pulse" />
-                <span className="text-[16px] md:text-[18px] font-medium tracking-[0.2em] text-white/90 uppercase">
-                  Propiedades Destacadas
-                </span>
-              </div>
+        {propiedadesDestacadas.length > 0 && activeDestacada && (
+          <section className="w-full mb-16">
 
-              {/* ── CARD DESTACADA (Clon del Modal) ── */}
-              <div className="relative bg-black/10 backdrop-blur-md border border-white/10 rounded-[32px] overflow-hidden flex flex-col lg:flex-row min-h-[400px] shadow-lg transition-all duration-300">
-                {propiedadesDestacadas.map((prop, idx) => (
-                  <div
-                    key={prop.id}
-                    className={`absolute inset-0 flex flex-col lg:flex-row transition-opacity duration-700 ${idx === destacadaIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                      }`}
-                  >
-                    {/* Mitad Izquierda: IMAGEN */}
-                    <div className="relative w-full lg:w-1/2 overflow-hidden bg-[#0a0f0a] min-h-[250px] lg:min-h-full flex items-center justify-center">
-                      {prop.imagen_url ? (
-                        <img
-                          src={prop.imagen_url}
-                          alt={prop.titulo}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-white/20">
-                          <IconoTipo tipo={prop.tipo_propiedad} size={80} />
-                        </div>
-                      )}
-
-                      {/* Badges Flotantes */}
-                      <span className="absolute top-6 left-6 z-10 bg-white/90 text-roma-olive text-[10px] font-semibold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm">
-                        {prop.operacion}
-                      </span>
-                      <span className="absolute top-6 right-6 z-10 bg-amber-400/90 text-white text-[10px] font-medium uppercase tracking-[0.15em] px-4 py-1.5 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm">
-                        <Star size={12} weight="fill" /> Destacada
-                      </span>
-                    </div>
-
-                    {/* Mitad Derecha: INFO */}
-                    <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-12 border-t lg:border-t-0 lg:border-l border-white/10">
-
-                      <div>
-                        <span className="text-[10px] font-medium tracking-[0.3em] text-white/60 uppercase mb-3 block">
-                          {prop.tipo_propiedad}
-                        </span>
-                        <h3 className="text-3xl lg:text-4xl font-semibold text-white/95 leading-tight tracking-tight mb-4 pr-4">
-                          {prop.titulo}
-                        </h3>
-                        <div className="flex items-center gap-2 text-white/70 text-[13px] mb-8 font-light">
-                          <MapPin size={16} weight="light" className="text-white/60" />
-                          {prop.ubicacion}
-                        </div>
-
-                        {/* --- Lógica Dinámica de Datos (Igual al Modal) --- */}
-                        <div className="flex flex-wrap gap-3 mb-8">
-                          {['casa', 'departamento'].includes(prop.tipo_propiedad?.toLowerCase()) && (
-                            <>
-                              {prop.habitaciones && (
-                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
-                                  <Bed size={20} weight="light" className="text-white/70" />
-                                  <div>
-                                    <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Habitaciones</span>
-                                    <span className="text-white/90 font-medium text-[14px]">{prop.habitaciones}</span>
-                                  </div>
-                                </div>
-                              )}
-                              {prop.banos && (
-                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
-                                  <Bathtub size={20} weight="light" className="text-white/70" />
-                                  <div>
-                                    <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Baños</span>
-                                    <span className="text-white/90 font-medium text-[14px]">{prop.banos}</span>
-                                  </div>
-                                </div>
-                              )}
-                              {prop.dimensiones && (
-                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
-                                  <Ruler size={20} weight="light" className="text-white/70" />
-                                  <div>
-                                    <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
-                                    <span className="text-white/90 font-medium text-[14px]">{prop.dimensiones}</span>
-                                  </div>
-                                </div>
-                              )}
-                            </>
-                          )}
-
-                          {prop.tipo_propiedad?.toLowerCase() === 'campo' && prop.dimensiones && (
-                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
-                              <Tree size={20} weight="light" className="text-white/70" />
-                              <div>
-                                <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Hectáreas</span>
-                                <span className="text-white/90 font-medium text-[14px]">{prop.dimensiones}</span>
-                              </div>
-                            </div>
-                          )}
-
-                          {['lote', 'terreno', 'local'].includes(prop.tipo_propiedad?.toLowerCase()) && prop.dimensiones && (
-                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
-                              <Ruler size={20} weight="light" className="text-white/70" />
-                              <div>
-                                <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
-                                <span className="text-white/90 font-medium text-[14px]">{prop.dimensiones}</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="mt-auto pt-4">
-                        <span className="text-[10px] font-medium text-white/50 tracking-[0.2em] uppercase block mb-1">
-                          Precio
-                        </span>
-                        <div className="text-[38px] font-semibold text-white tracking-tight leading-none mb-8">
-                          USD {prop.precio.toLocaleString('es-AR')}
-                        </div>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => abrirModal(prop)}
-                            className="px-8 py-3.5 bg-white text-roma-olive rounded-xl text-[12px] font-semibold uppercase tracking-[0.15em] transition-all hover:bg-white/90 shadow-md hover:scale-105"
-                          >
-                            Ver detalles
-                          </button>
-                          <a
-                            href={`https://wa.me/5492920123456?text=Me interesa esta propiedad: *${prop.titulo}* (ID: ${prop.id})`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-12 h-12 flex items-center justify-center rounded-xl bg-green-500 hover:bg-green-400 text-white transition-all shadow-md hover:scale-105"
-                          >
-                            <WhatsappLogo size={22} weight="fill" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Fix estructural para la altura */}
-                <div className="invisible">
-                  <div className="p-8 lg:p-12 flex flex-col justify-between min-h-[400px]" />
-                </div>
-                <div className="invisible" />
-
-                {/* ── Controles Globales del Carrusel Destacado ── */}
-                {propiedadesDestacadas.length > 1 && (
-                  <div className="absolute top-0 left-0 bottom-0 w-full lg:w-1/2 z-20 pointer-events-none flex flex-col justify-end">
-
-                    {/* Flechas */}
-                    <div className="absolute inset-y-0 w-full flex items-center justify-between px-4 pointer-events-auto">
-                      <button
-                        onClick={() => setDestacadaIndex(p => (p - 1 + propiedadesDestacadas.length) % propiedadesDestacadas.length)}
-                        className="bg-black/30 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-                      >
-                        <CaretLeft size={20} weight="light" />
-                      </button>
-                      <button
-                        onClick={() => setDestacadaIndex(p => (p + 1) % propiedadesDestacadas.length)}
-                        className="bg-black/30 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-                      >
-                        <CaretRight size={20} weight="light" />
-                      </button>
-                    </div>
-
-                    {/* Dots (Puntitos pequeños en la imagen) */}
-                    <div className="w-full flex justify-center gap-2.5 pb-6 pointer-events-auto items-center">
-                      {propiedadesDestacadas.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setDestacadaIndex(idx)}
-                          className={`rounded-full transition-all duration-300 shadow-sm ${idx === destacadaIndex
-                            ? 'w-2 h-2 bg-white scale-125'
-                            : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
-                            }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Título Propiedades Destacadas FUERA */}
+            <div className="flex items-center justify-center gap-2 mb-8 px-2">
+              {/* Estrella sin movimiento y con bordes blancos */}
+              <Star size={22} weight="regular" className="text-white drop-shadow-md" />
+              <span className="text-[12px] md:text-[14px] font-medium tracking-[0.3em] text-white uppercase drop-shadow-sm">
+                Propiedades Destacadas
+              </span>
             </div>
-          )}
-        </section>
+
+            {/* ── CONTENEDOR 70/30 (Sin bordes curvos, fondo transparente) ── */}
+            <div className="relative w-full overflow-hidden mb-6">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeDestacada.id}
+                  className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full"
+                >
+                  {/* Mitad Izquierda: IMAGEN (70%) */}
+                  <motion.div
+                    initial={{ x: -50, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -50, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: EASE }}
+                    className="w-full lg:w-[70%] relative overflow-hidden bg-black/20 min-h-[300px] lg:min-h-[500px] rounded-none shadow-xl border border-white/10"
+                  >
+                    {activeDestacada.imagen_url ? (
+                      <img
+                        src={activeDestacada.imagen_url}
+                        alt={activeDestacada.titulo}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center opacity-30 text-white absolute inset-0">
+                        <IconoTipo tipo={activeDestacada.tipo_propiedad} size={80} />
+                      </div>
+                    )}
+
+                    <span className="absolute top-6 left-6 z-10 bg-white/95 text-roma-olive text-[10px] font-semibold uppercase tracking-[0.2em] px-4 py-2 rounded-none shadow-md">
+                      {activeDestacada.operacion}
+                    </span>
+                    <div className="absolute top-6 right-6 z-10 bg-amber-400 text-white w-9 h-9 flex items-center justify-center rounded-full shadow-lg">
+                      <Star size={16} weight="regular" />
+                    </div>
+
+                    {/* Flechas de Navegación del Carrusel en la Imagen */}
+                    {propiedadesDestacadas.length > 1 && (
+                      <div className="absolute inset-y-0 w-full flex items-center justify-between px-4 z-20">
+                        <button
+                          onClick={() => setDestacadaIndex(p => (p - 1 + propiedadesDestacadas.length) % propiedadesDestacadas.length)}
+                          className="bg-black/40 hover:bg-black/70 text-white p-3 rounded-none backdrop-blur-md border border-white/10 transition-all"
+                        >
+                          <CaretLeft size={20} weight="light" />
+                        </button>
+                        <button
+                          onClick={() => setDestacadaIndex(p => (p + 1) % propiedadesDestacadas.length)}
+                          className="bg-black/40 hover:bg-black/70 text-white p-3 rounded-none backdrop-blur-md border border-white/10 transition-all"
+                        >
+                          <CaretRight size={20} weight="light" />
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Mitad Derecha: INFO (30%) */}
+                  <motion.div
+                    initial={{ x: 50, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 50, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: EASE }}
+                    className="w-full lg:w-[30%] flex flex-col justify-center p-8 lg:p-10 bg-roma-olive border border-white/10 rounded-none shadow-xl"
+                  >
+                    <div>
+                      <span className="text-[10px] font-medium tracking-[0.3em] text-white/60 uppercase mb-3 block">
+                        {activeDestacada.tipo_propiedad}
+                      </span>
+                      <h3 className="text-3xl lg:text-4xl font-light text-white leading-tight tracking-tight mb-4">
+                        {activeDestacada.titulo}
+                      </h3>
+                      <div className="flex items-center gap-2 text-white/70 text-[13px] mb-8 font-light">
+                        <MapPin size={16} weight="light" className="text-white/60" />
+                        {activeDestacada.ubicacion}
+                      </div>
+
+                      {/* --- Lógica Dinámica de Datos --- */}
+                      <div className="flex flex-col gap-3 mb-8">
+                        {['casa', 'departamento'].includes(activeDestacada.tipo_propiedad?.toLowerCase()) && (
+                          <>
+                            {activeDestacada.habitaciones && (
+                              <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-none">
+                                <Bed size={20} weight="light" className="text-white/70" />
+                                <div>
+                                  <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Habitaciones</span>
+                                  <span className="text-white/90 font-medium text-[14px]">{activeDestacada.habitaciones}</span>
+                                </div>
+                              </div>
+                            )}
+                            {activeDestacada.banos && (
+                              <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-none">
+                                <Bathtub size={20} weight="light" className="text-white/70" />
+                                <div>
+                                  <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Baños</span>
+                                  <span className="text-white/90 font-medium text-[14px]">{activeDestacada.banos}</span>
+                                </div>
+                              </div>
+                            )}
+                            {activeDestacada.dimensiones && (
+                              <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-none">
+                                <Ruler size={20} weight="light" className="text-white/70" />
+                                <div>
+                                  <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
+                                  <span className="text-white/90 font-medium text-[14px]">{activeDestacada.dimensiones}</span>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {activeDestacada.tipo_propiedad?.toLowerCase() === 'campo' && activeDestacada.dimensiones && (
+                          <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-none">
+                            <Tree size={20} weight="light" className="text-white/70" />
+                            <div>
+                              <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Hectáreas</span>
+                              <span className="text-white/90 font-medium text-[14px]">{activeDestacada.dimensiones}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {['lote', 'terreno', 'local'].includes(activeDestacada.tipo_propiedad?.toLowerCase()) && activeDestacada.dimensiones && (
+                          <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-none">
+                            <Ruler size={20} weight="light" className="text-white/70" />
+                            <div>
+                              <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
+                              <span className="text-white/90 font-medium text-[14px]">{activeDestacada.dimensiones}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-4">
+                      <span className="text-[10px] font-medium text-white/50 tracking-[0.2em] uppercase block mb-1">
+                        Precio
+                      </span>
+                      <div className="text-[36px] font-light text-white tracking-tight leading-none mb-8">
+                        USD {activeDestacada.precio.toLocaleString('es-AR')}
+                      </div>
+                      <div className="flex gap-3 w-full">
+                        <button
+                          onClick={() => abrirModal(activeDestacada)}
+                          className="flex-1 py-3.5 bg-white text-roma-olive rounded-none text-[12px] font-semibold uppercase tracking-[0.15em] transition-all hover:bg-white/90 shadow-md text-center"
+                        >
+                          Ver detalles
+                        </button>
+                        <a
+                          href={`https://wa.me/5492920123456?text=Me interesa esta propiedad: *${activeDestacada.titulo}* (ID: ${activeDestacada.id})`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-12 h-12 flex items-center justify-center rounded-none bg-white/10 hover:bg-white/20 text-white transition-all shadow-md shrink-0 border border-white/20"
+                        >
+                          <WhatsappLogo size={22} weight="light" />
+                        </a>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Dots del Carrusel Centrados Debajo de todo */}
+            {propiedadesDestacadas.length > 1 && (
+              <div className="flex gap-3 justify-center items-center mt-6 w-full">
+                {propiedadesDestacadas.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setDestacadaIndex(idx)}
+                    className={`rounded-full transition-all duration-300 shadow-sm ${idx === destacadaIndex
+                      ? 'w-2.5 h-2.5 bg-white scale-125'
+                      : 'w-2 h-2 bg-white/40 hover:bg-white/80'
+                      }`}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* ── TÍTULO CATÁLOGO Y DIVISOR (Centrados y finos) ── */}
-        <div className="w-full mt-2 mb-10 pb-6 border-b border-white/10 flex flex-col items-center justify-center gap-4">
+        <div className="w-full mb-10 pb-6 border-b border-white/10 flex flex-col items-center justify-center gap-4">
           <HouseLine size={32} weight="light" className="text-white/80" />
           <h2 className="text-2xl md:text-4xl font-light text-white tracking-[0.15em] uppercase text-center">
             Catálogo de Propiedades
@@ -585,10 +668,10 @@ export default function Catalogo() {
         </div>
 
         {/* ── SECCIÓN INFERIOR: SIDEBAR Y GRILLA ── */}
-        <section className="flex gap-6 relative items-start">
+        <section className="flex gap-6 lg:gap-10 relative items-start">
 
           {/* SIDEBAR DESKTOP */}
-          <aside className="hidden lg:block w-[300px] shrink-0 sticky top-10 h-fit bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-[28px] shadow-2xl px-6 py-7">
+          <aside className="hidden lg:block w-[280px] shrink-0 sticky top-10 h-fit bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-7">
             <SidebarContent />
           </aside>
 
@@ -608,7 +691,7 @@ export default function Catalogo() {
                   animate={{ x: 0 }}
                   exit={{ x: '-100%' }}
                   transition={{ ease: EASE, duration: 0.4 }}
-                  className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-roma-olive border-r border-white/10 z-[70] overflow-y-auto px-6 pt-7 pb-4 lg:hidden shadow-2xl"
+                  className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-roma-olive border-r border-white/10 z-[70] overflow-y-auto px-6 pt-7 pb-4 lg:hidden shadow-2xl rounded-r-2xl"
                 >
                   <div className="flex items-center justify-between mb-6 sticky top-0 bg-roma-olive z-10 pb-2">
                     <span className="text-[11px] font-medium tracking-[0.2em] uppercase text-white/90">Filtros</span>
@@ -626,8 +709,8 @@ export default function Catalogo() {
           <main className="flex-1 min-w-0">
             {/* Controles */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div className="inline-flex items-center gap-1.5 text-white bg-black/20 px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[12px] font-light">
-                <strong className="font-medium">{propiedades.length}</strong> propiedades encontradas
+              <div className="inline-flex items-center gap-1.5 text-white/80 text-[13px] font-light">
+                <strong className="font-medium text-white">{propiedades.length}</strong> propiedades encontradas
               </div>
 
               <select
@@ -665,16 +748,16 @@ export default function Catalogo() {
               </div>
             )}
 
-            {/* Grilla */}
+            {/* Grilla (Estilo Editorial Minimalista en Verde con bordes curvos moderados) */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-[24px] h-[320px] animate-pulse border border-white/10" />
+                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-2xl h-[380px] animate-pulse border border-white/10" />
                 ))}
               </div>
             ) : propiedades.length > 0 ? (
               <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
                 variants={stagger}
                 initial="hidden"
                 animate="visible"
@@ -684,10 +767,10 @@ export default function Catalogo() {
                     key={prop.id}
                     variants={fadeUp}
                     onClick={() => abrirModal(prop)}
-                    className="group bg-roma-olive border border-white/10 rounded-[28px] overflow-hidden cursor-pointer hover:border-white/30 hover:-translate-y-1 transition-all duration-300 flex flex-col shadow-lg hover:shadow-2xl"
+                    className="group bg-roma-olive border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-white/30 hover:-translate-y-1 transition-all duration-300 flex flex-col shadow-lg hover:shadow-2xl"
                   >
                     {/* Imagen */}
-                    <div className="relative h-[200px] overflow-hidden bg-[#0a160a]">
+                    <div className="relative h-[250px] overflow-hidden bg-black/20">
                       {prop.imagen_url ? (
                         <img
                           src={prop.imagen_url}
@@ -700,69 +783,62 @@ export default function Catalogo() {
                         </div>
                       )}
 
-                      {/* Badges */}
+                      {/* Badge Venta/Alquiler */}
                       <div className="absolute top-4 left-4 flex gap-1.5">
-                        <span className="bg-white/90 text-roma-olive text-[9px] font-semibold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm backdrop-blur-md">
+                        <span className="bg-white/95 text-roma-olive text-[9px] font-semibold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm backdrop-blur-md">
                           {prop.operacion}
                         </span>
-                        {prop.destacada && (
-                          <span className="bg-amber-400/90 text-white text-[9px] font-medium w-[28px] h-[24px] rounded-full flex items-center justify-center shadow-sm backdrop-blur-md">
-                            <Star size={12} weight="fill" />
+                      </div>
+
+                      {/* Badge Estrella Circular (Medalla) */}
+                      {prop.destacada && (
+                        <div className="absolute top-4 right-4 z-10 bg-amber-400 text-white w-7 h-7 flex items-center justify-center rounded-full shadow-md">
+                          <Star size={14} weight="regular" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Contenido Minimalista */}
+                    <div className="p-6 flex-1 flex flex-col bg-black/10">
+
+                      <div className="flex justify-between items-start gap-4 mb-1">
+                        <h3 className="text-[17px] font-medium text-white/95 leading-snug tracking-tight">
+                          {prop.titulo}
+                        </h3>
+                        <span className="text-[17px] font-light text-white whitespace-nowrap">
+                          ${prop.precio.toLocaleString('es-AR')}
+                        </span>
+                      </div>
+
+                      <div className="text-[12px] text-white/60 font-light mb-5 flex items-center gap-1">
+                        <MapPin size={13} weight="light" />
+                        {prop.ubicacion}
+                      </div>
+
+                      {/* Características en línea sutil */}
+                      <div className="flex items-center gap-4 text-white/70 text-[11px] font-light border-t border-white/10 pt-4 mt-auto">
+                        {prop.dimensiones && (
+                          <span className="flex items-center gap-1.5">
+                            <Ruler size={13} weight="light" /> {prop.dimensiones}
+                          </span>
+                        )}
+                        {prop.habitaciones && (
+                          <span className="flex items-center gap-1.5">
+                            <Bed size={13} weight="light" /> {prop.habitaciones}
+                          </span>
+                        )}
+                        {prop.banos && (
+                          <span className="flex items-center gap-1.5">
+                            <Bathtub size={13} weight="light" /> {prop.banos}
                           </span>
                         )}
                       </div>
-
-                      {/* WhatsApp */}
-                      <a
-                        href={`https://wa.me/5492920123456?text=Hola Roma Inmobiliaria, quiero consultar por: ${prop.titulo} (ID: ${prop.id})`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        className="absolute bottom-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-green-500 text-white opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-green-400 transition-all duration-300 shadow-md"
-                      >
-                        <WhatsappLogo size={20} weight="fill" />
-                      </a>
-                    </div>
-
-                    {/* Cuerpo */}
-                    <div className="px-6 pt-5 pb-4 flex-1 flex flex-col gap-2">
-                      <span className="text-[9px] font-medium tracking-[0.25em] text-white/70 uppercase">
-                        {prop.tipo_propiedad}
-                      </span>
-                      <h3 className="text-[16px] font-semibold text-white/95 leading-snug tracking-tight">
-                        {prop.titulo}
-                      </h3>
-                      <div className="flex items-center gap-1.5 text-white/70 text-[12px] mt-auto font-light">
-                        <MapPin size={14} weight="light" />
-                        {prop.ubicacion}
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="px-6 py-4 border-t border-white/10 flex items-end justify-between bg-black/10">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-medium text-white/50 tracking-[0.15em] uppercase">USD</span>
-                        <span className="text-[20px] font-semibold text-white tracking-tight leading-none">
-                          {prop.precio.toLocaleString('es-AR')}
-                        </span>
-                      </div>
-                      {prop.habitaciones ? (
-                        <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
-                          <Bed size={15} weight="light" className="text-white/80" />
-                          <span className="text-[12px] font-light text-white/90">{prop.habitaciones} dorm.</span>
-                        </div>
-                      ) : prop.dimensiones ? (
-                        <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
-                          <Ruler size={15} weight="light" className="text-white/80" />
-                          <span className="text-[12px] font-light text-white/90">{prop.dimensiones}</span>
-                        </div>
-                      ) : null}
                     </div>
                   </motion.div>
                 ))}
               </motion.div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 border border-dashed border-white/10 rounded-[32px] bg-black/20 backdrop-blur-md text-center gap-4">
+              <div className="flex flex-col items-center justify-center py-24 border border-dashed border-white/10 rounded-2xl bg-black/20 backdrop-blur-md text-center gap-4">
                 <HouseLine size={48} weight="light" className="text-white/30" />
                 <h3 className="text-[18px] font-light text-white/80 tracking-wide">Sin coincidencias</h3>
                 <p className="text-white/50 text-[13px] font-light max-w-[280px] leading-relaxed">
@@ -778,7 +854,7 @@ export default function Catalogo() {
             )}
           </main>
         </section>
-      </div>
+      </motion.div>
 
       {/* ══ MODAL DE DETALLE ══ */}
       <AnimatePresence>
@@ -800,7 +876,7 @@ export default function Catalogo() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="relative w-full max-w-5xl bg-roma-olive rounded-[36px] overflow-hidden flex flex-col md:flex-row max-h-[90vh] shadow-2xl border border-white/10"
+              className="relative w-full max-w-5xl bg-roma-olive rounded-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] shadow-2xl border border-white/10"
             >
               <button
                 onClick={cerrarModal}
@@ -864,7 +940,7 @@ export default function Catalogo() {
                   {propiedadActiva.tipo_propiedad}
                 </span>
 
-                <h2 className="text-3xl md:text-4xl font-semibold text-white/95 leading-tight tracking-tight mb-4 pr-8">
+                <h2 className="text-3xl md:text-4xl font-light text-white/95 leading-tight tracking-tight mb-4 pr-8">
                   {propiedadActiva.titulo}
                 </h2>
 
@@ -873,7 +949,7 @@ export default function Catalogo() {
                   {propiedadActiva.ubicacion}
                 </div>
 
-                <div className="text-[38px] font-semibold text-white tracking-tight leading-none mb-10">
+                <div className="text-[38px] font-light text-white tracking-tight leading-none mb-10">
                   USD {propiedadActiva.precio.toLocaleString('es-AR')}
                 </div>
 
@@ -881,7 +957,7 @@ export default function Catalogo() {
                   {['casa', 'departamento'].includes(propiedadActiva.tipo_propiedad?.toLowerCase()) && (
                     <>
                       {propiedadActiva.habitaciones && (
-                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3.5 rounded-2xl">
+                        <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
                           <Bed size={20} weight="light" className="text-white/70" />
                           <div>
                             <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Habitaciones</span>
@@ -890,7 +966,7 @@ export default function Catalogo() {
                         </div>
                       )}
                       {propiedadActiva.banos && (
-                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3.5 rounded-2xl">
+                        <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
                           <Bathtub size={20} weight="light" className="text-white/70" />
                           <div>
                             <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Baños</span>
@@ -899,7 +975,7 @@ export default function Catalogo() {
                         </div>
                       )}
                       {propiedadActiva.dimensiones && (
-                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3.5 rounded-2xl">
+                        <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
                           <Ruler size={20} weight="light" className="text-white/70" />
                           <div>
                             <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
@@ -911,7 +987,7 @@ export default function Catalogo() {
                   )}
 
                   {propiedadActiva.tipo_propiedad?.toLowerCase() === 'campo' && propiedadActiva.dimensiones && (
-                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3.5 rounded-2xl">
+                    <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
                       <Tree size={20} weight="light" className="text-white/70" />
                       <div>
                         <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Hectáreas</span>
@@ -921,7 +997,7 @@ export default function Catalogo() {
                   )}
 
                   {['lote', 'terreno', 'local'].includes(propiedadActiva.tipo_propiedad?.toLowerCase()) && propiedadActiva.dimensiones && (
-                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3.5 rounded-2xl">
+                    <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
                       <Ruler size={20} weight="light" className="text-white/70" />
                       <div>
                         <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
@@ -945,9 +1021,9 @@ export default function Catalogo() {
                   href={`https://wa.me/5492920123456?text=Me interesa esta propiedad: *${propiedadActiva.titulo}* (ID: ${propiedadActiva.id})`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-white/90 text-roma-olive px-6 py-4 rounded-2xl font-semibold uppercase tracking-[0.15em] text-[12px] transition-all hover:scale-[1.02] shadow-md"
+                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-white/90 text-roma-olive px-6 py-4 rounded-xl font-semibold uppercase tracking-[0.15em] text-[12px] transition-all shadow-md"
                 >
-                  <WhatsappLogo size={22} weight="fill" /> Contactar Asesor
+                  <WhatsappLogo size={22} weight="light" /> Contactar Asesor
                 </a>
               </div>
             </motion.div>
