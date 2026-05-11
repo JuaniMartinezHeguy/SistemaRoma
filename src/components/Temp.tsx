@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence, useInView } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { Home, Tractor, Map, Camera, Globe, Instagram, User } from 'lucide-react';
 import { JeepIcon } from '@phosphor-icons/react';
 import PageLoader from './ui/PageLoader';
@@ -71,8 +71,6 @@ export default function Landing() {
   const { scrollY } = useScroll();
   const videoIgRef = useRef<HTMLVideoElement>(null);
   const videoTkRef = useRef<HTMLVideoElement>(null);
-  const redesRef = useRef<HTMLElement>(null);
-  const redesInView = useInView(redesRef, { once: true, margin: "-100px" });
 
   // Bloqueo de Scroll al cargar
   useEffect(() => {
@@ -457,7 +455,7 @@ export default function Landing() {
         </section>
 
         {/* ═══ NUESTRAS REDES (Videos Nativos Secuenciales) ═══ */}
-        <section ref={redesRef} className="relative z-10 pt-20 pb-32 px-6">
+        <section className="relative z-10 pt-20 pb-32 px-6">
           <motion.div className="max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
             <div className="text-center mb-14">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Comunidad</p>
