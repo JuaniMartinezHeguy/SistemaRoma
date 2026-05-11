@@ -53,6 +53,15 @@ function IconoTipo({ tipo, size = 20 }: { tipo: string; size?: number }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Catalogo() {
+  // 1. ESTO OBLIGA AL NAVEGADOR A IR AL TOPE DE LA PÁGINA AL ENTRAR
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant'
+    });
+  }, []);
+
   const [showScreenLoader, setShowScreenLoader] = useState(true);
   const [heroDismissed, setHeroDismissed] = useState(false); // ESTADO PARA EL SCROLL-JACK
 
@@ -440,6 +449,7 @@ export default function Catalogo() {
               initial={{ clipPath: 'inset(0% 100% 0% 0%)' }}
               animate={{ clipPath: 'inset(0% 0% 0% 0%)' }}
               transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              className="p-8" // <-- Este es el margen de seguridad que evita que se corte
             >
               <motion.h1
                 animate={{ y: [0, -12, 0] }}
@@ -476,7 +486,6 @@ export default function Catalogo() {
 
             {/* Título Propiedades Destacadas FUERA */}
             <div className="flex items-center justify-center gap-2 mb-8 px-2">
-              {/* Estrella sin movimiento y con bordes blancos */}
               <Star size={22} weight="regular" className="text-white drop-shadow-md" />
               <span className="text-[12px] md:text-[14px] font-medium tracking-[0.3em] text-white uppercase drop-shadow-sm">
                 Propiedades Destacadas
@@ -748,7 +757,7 @@ export default function Catalogo() {
               </div>
             )}
 
-            {/* Grilla (Estilo Editorial Minimalista en Verde con bordes curvos moderados) */}
+            {/* Grilla */}
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, i) => (
@@ -790,7 +799,7 @@ export default function Catalogo() {
                         </span>
                       </div>
 
-                      {/* Badge Estrella Circular (Medalla) */}
+                      {/* Badge Estrella Circular */}
                       {prop.destacada && (
                         <div className="absolute top-4 right-4 z-10 bg-amber-400 text-white w-7 h-7 flex items-center justify-center rounded-full shadow-md">
                           <Star size={14} weight="regular" />
