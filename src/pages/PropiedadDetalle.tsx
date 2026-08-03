@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
   MapPin, WhatsappLogo, HouseLine, Ruler,
-  Bed, Buildings, Tree, Storefront, ArrowLeft, Bathtub, Info,
+  Bed, Buildings, Tree, Storefront, ArrowLeft, Bathtub,
   CaretLeft, CaretRight
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';

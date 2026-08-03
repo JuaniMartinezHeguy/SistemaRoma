@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import useOpcionesFiltros from '../hooks/useOpcionesFiltros';
 import {
   MapPin, WhatsappLogo, HouseLine, Tag, MapTrifold, CaretLeft,
-  X, Ruler, CaretRight, Info, MagnifyingGlass,
+  X, Ruler, CaretRight, MagnifyingGlass,
   Bed, Star, Buildings, Tree, Storefront, ArrowLeft, SlidersHorizontal, Bathtub
 } from '@phosphor-icons/react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -84,8 +84,6 @@ export default function Catalogo() {
 
   // UI
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [propiedadActiva, setPropiedadActiva] = useState<Propiedad | null>(null);
-  const [imagenIndex, setImagenIndex] = useState(0);
   const [destacadaIndex, setDestacadaIndex] = useState(0);
 
   // ─── 1. EFECTO: Screen Loader Inicial ───
@@ -124,13 +122,13 @@ export default function Catalogo() {
 
   // ─── 3. EFECTO: Bloqueo Maestro de Scroll ───
   useEffect(() => {
-    if (showScreenLoader || !heroDismissed || propiedadActiva) {
+    if (showScreenLoader || !heroDismissed) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     return () => { document.body.style.overflow = ''; };
-  }, [showScreenLoader, heroDismissed, propiedadActiva]);
+  }, [showScreenLoader, heroDismissed]);
 
   // ─── Fetch ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -173,31 +171,15 @@ export default function Catalogo() {
   useEffect(() => {
     if (propiedadesDestacadas.length <= 1) return;
     const interval = setInterval(() => {
-      if (heroDismissed && !propiedadActiva) {
+      if (heroDismissed) {
         setDestacadaIndex(prev => (prev + 1) % propiedadesDestacadas.length);
       }
     }, 6000);
     return () => clearInterval(interval);
-  }, [propiedadesDestacadas.length, heroDismissed, propiedadActiva]);
+  }, [propiedadesDestacadas.length, heroDismissed]);
 
   const abrirModal = (p: Propiedad) => { navigate(`/propiedad/${p.id}`); };
-  const cerrarModal = () => setPropiedadActiva(null);
   const activeDestacada = propiedadesDestacadas[destacadaIndex];
-
-  const imagenesCarrusel = propiedadActiva?.media_urls?.length
-    ? propiedadActiva.media_urls
-    : propiedadActiva?.imagenes?.length
-      ? propiedadActiva.imagenes
-      : [propiedadActiva?.imagen_url].filter(Boolean) as string[];
-
-  const nextImagen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setImagenIndex(p => (p + 1) % imagenesCarrusel.length);
-  };
-  const prevImagen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setImagenIndex(p => (p - 1 + imagenesCarrusel.length) % imagenesCarrusel.length);
-  };
 
   const limpiarFiltros = () => {
     setFiltroTipo('Todos');
