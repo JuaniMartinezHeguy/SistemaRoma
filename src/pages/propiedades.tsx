@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import useOpcionesFiltros from '../hooks/useOpcionesFiltros';
 import {
   MapPin, WhatsappLogo, HouseLine, Tag, MapTrifold, CaretLeft,
   X, Ruler, CaretRight, Info, MagnifyingGlass,
   Bed, Star, Buildings, Tree, Storefront, ArrowLeft, SlidersHorizontal, Bathtub
 } from '@phosphor-icons/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/ui/PageLoader';
 
@@ -23,14 +24,11 @@ interface Propiedad {
   descripcion?: string;
   imagen_url?: string;
   imagenes?: string[];
+  media_urls?: string[];
+  atributos_especificos?: any;
   destacada?: boolean;
 }
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
-const TIPOS = ['Casa', 'Campo', 'Lote', 'Terreno', 'Departamento', 'Local'];
-const UBICACIONES = ['Villalonga', 'Pedro Luro', 'Stroeder', 'San Blas', 'Carmen de Patagones'];
-const OPERACIONES = ['Venta', 'Alquiler'];
-const HABITACIONES = [1, 2, 3, 4];
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const fadeUp = {
@@ -62,25 +60,27 @@ export default function Catalogo() {
     });
   }, []);
 
+  const navigate = useNavigate();
+
   const [showScreenLoader, setShowScreenLoader] = useState(true);
   const [heroDismissed, setHeroDismissed] = useState(false); // ESTADO PARA EL SCROLL-JACK
 
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Opciones dinámicas de filtros (leídas de propiedades publicadas)
+  const { tipos: TIPOS, ubicaciones: UBICACIONES, operaciones: OPERACIONES, habitaciones: HABITACIONES, tiposCampo: TIPOS_CAMPO } = useOpcionesFiltros();
+
   // Filtros
   const [filtroTipo, setFiltroTipo] = useState('Todos');
   const [filtroUbicacion, setFiltroUbicacion] = useState('Todas');
   const [filtroOperacion, setFiltroOperacion] = useState('Todas');
+  const [filtroTipoCampo, setFiltroTipoCampo] = useState('Todos');
   const [filtroHabs, setFiltroHabs] = useState<number | null>(null);
   const [filtroPrecioMin, setFiltroPrecioMin] = useState('');
   const [filtroPrecioMax, setFiltroPrecioMax] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [ordenar, setOrdenar] = useState('recientes');
-
-  // Extras
-  const [cochera, setCochera] = useState(false);
-  const [piscina, setPiscina] = useState(false);
 
   // UI
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -136,10 +136,11 @@ export default function Catalogo() {
   useEffect(() => {
     const fetchPropiedades = async () => {
       setLoading(true);
-      let query = supabase.from('propiedades').select('*');
+      let query = supabase.from('propiedades').select('*').eq('estado', 'publicado');
       if (filtroTipo !== 'Todos') query = query.eq('tipo_propiedad', filtroTipo);
       if (filtroUbicacion !== 'Todas') query = query.eq('ubicacion', filtroUbicacion);
       if (filtroOperacion !== 'Todas') query = query.eq('operacion', filtroOperacion);
+      if (filtroTipoCampo !== 'Todos') query = query.contains('atributos_especificos', { tipo_campo: filtroTipoCampo });
       if (filtroHabs !== null) {
         if (filtroHabs === 4) query = query.gte('habitaciones', 4);
         else query = query.eq('habitaciones', filtroHabs);
@@ -165,7 +166,7 @@ export default function Catalogo() {
       setLoading(false);
     };
     fetchPropiedades();
-  }, [filtroTipo, filtroUbicacion, filtroOperacion, filtroHabs, filtroPrecioMin, filtroPrecioMax, busqueda, ordenar]);
+  }, [filtroTipo, filtroUbicacion, filtroOperacion, filtroTipoCampo, filtroHabs, filtroPrecioMin, filtroPrecioMax, busqueda, ordenar]);
 
   const propiedadesDestacadas = propiedades.filter(p => p.destacada);
 
@@ -179,13 +180,15 @@ export default function Catalogo() {
     return () => clearInterval(interval);
   }, [propiedadesDestacadas.length, heroDismissed, propiedadActiva]);
 
-  const abrirModal = (p: Propiedad) => { setPropiedadActiva(p); setImagenIndex(0); };
+  const abrirModal = (p: Propiedad) => { navigate(`/propiedad/${p.id}`); };
   const cerrarModal = () => setPropiedadActiva(null);
   const activeDestacada = propiedadesDestacadas[destacadaIndex];
 
-  const imagenesCarrusel = propiedadActiva?.imagenes?.length
-    ? propiedadActiva.imagenes
-    : [propiedadActiva?.imagen_url].filter(Boolean) as string[];
+  const imagenesCarrusel = propiedadActiva?.media_urls?.length
+    ? propiedadActiva.media_urls
+    : propiedadActiva?.imagenes?.length
+      ? propiedadActiva.imagenes
+      : [propiedadActiva?.imagen_url].filter(Boolean) as string[];
 
   const nextImagen = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -200,24 +203,24 @@ export default function Catalogo() {
     setFiltroTipo('Todos');
     setFiltroUbicacion('Todas');
     setFiltroOperacion('Todas');
+    setFiltroTipoCampo('Todos');
     setFiltroHabs(null);
     setFiltroPrecioMin('');
     setFiltroPrecioMax('');
     setBusqueda('');
-    setCochera(false);
-    setPiscina(false);
   };
 
   const filtrosActivos = [
     filtroTipo !== 'Todos' && { label: filtroTipo, clear: () => setFiltroTipo('Todos') },
     filtroUbicacion !== 'Todas' && { label: filtroUbicacion, clear: () => setFiltroUbicacion('Todas') },
     filtroOperacion !== 'Todas' && { label: filtroOperacion, clear: () => setFiltroOperacion('Todas') },
+    filtroTipoCampo !== 'Todos' && { label: filtroTipoCampo, clear: () => setFiltroTipoCampo('Todos') },
     filtroHabs !== null && { label: `${filtroHabs}${filtroHabs === 4 ? '+' : ''} hab.`, clear: () => setFiltroHabs(null) },
-    cochera && { label: 'Cochera', clear: () => setCochera(false) },
-    piscina && { label: 'Piscina', clear: () => setPiscina(false) },
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
   const hayFiltros = filtrosActivos.length > 0 || busqueda.trim() !== '';
+
+  const precioMinimoCargado = propiedades.length > 0 ? Math.min(...propiedades.map(p => p.precio || 0)) : 0;
 
   // ─── Sidebar content ────────────────────────────────────────────────────────
   const SidebarContent = () => (
@@ -249,7 +252,7 @@ export default function Catalogo() {
           {['Todos', ...TIPOS].map(t => (
             <button
               key={t}
-              onClick={() => setFiltroTipo(t)}
+              onClick={() => { setFiltroTipo(t); if (t !== 'Campo') setFiltroTipoCampo('Todos'); }}
               className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${filtroTipo === t
                 ? 'bg-white border-white text-roma-olive shadow-sm'
                 : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
@@ -260,6 +263,28 @@ export default function Catalogo() {
           ))}
         </div>
       </div>
+
+      {filtroTipo === 'Campo' && TIPOS_CAMPO.length > 0 && (
+        <div className="border-b border-white/10 py-5 px-1">
+          <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
+            <Tree size={14} weight="light" /> Tipo de Campo
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {['Todos', ...TIPOS_CAMPO].map(tc => (
+              <button
+                key={tc}
+                onClick={() => setFiltroTipoCampo(tc)}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${filtroTipoCampo === tc
+                  ? 'bg-white border-white text-roma-olive shadow-sm'
+                  : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  }`}
+              >
+                {tc}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="border-b border-white/10 py-5 px-1">
         <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
@@ -338,51 +363,40 @@ export default function Catalogo() {
           <div>
             <label className="text-[10px] font-light text-white/70 block mb-1">Mínimo</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={filtroPrecioMin}
-              onChange={e => setFiltroPrecioMin(e.target.value)}
-              placeholder="0"
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '') {
+                  setFiltroPrecioMin('');
+                  return;
+                }
+                if (/^\d+$/.test(val)) setFiltroPrecioMin(val);
+              }}
+              placeholder={precioMinimoCargado > 0 ? precioMinimoCargado.toString() : "0"}
               className="w-full bg-black/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
             />
           </div>
           <div>
             <label className="text-[10px] font-light text-white/70 block mb-1">Máximo</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={filtroPrecioMax}
-              onChange={e => setFiltroPrecioMax(e.target.value)}
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '') {
+                  setFiltroPrecioMax('');
+                  return;
+                }
+                if (/^\d+$/.test(val)) setFiltroPrecioMax(val);
+              }}
               placeholder="Sin límite"
               className="w-full bg-black/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
             />
           </div>
         </div>
-      </div>
-
-      <div className="py-5 px-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 opacity-90">
-          Características
-        </p>
-        {[
-          { label: 'Cochera / Garage', val: cochera, set: setCochera },
-          { label: 'Piscina', val: piscina, set: setPiscina },
-        ].map(({ label, val, set }) => (
-          <div
-            key={label}
-            onClick={() => set(!val)}
-            className="flex items-center justify-between py-2.5 cursor-pointer border-b border-white/5 last:border-0"
-          >
-            <span className="text-[12px] font-light text-white/90">{label}</span>
-            <div
-              className={`w-[36px] h-[20px] rounded-full border relative transition-all duration-300 ${val ? 'bg-white border-white' : 'bg-black/10 border-white/30'
-                }`}
-            >
-              <div
-                className={`absolute top-[1px] w-[16px] h-[16px] rounded-full transition-all duration-300 shadow-sm ${val ? 'left-[17px] bg-roma-olive' : 'left-[2px] bg-white'
-                  }`}
-              />
-            </div>
-          </div>
-        ))}
       </div>
 
       {hayFiltros && (
@@ -507,9 +521,9 @@ export default function Catalogo() {
                     transition={{ duration: 0.6, ease: EASE }}
                     className="w-full lg:w-[70%] relative overflow-hidden bg-black/20 min-h-[300px] lg:min-h-[500px] rounded-none shadow-xl border border-white/10"
                   >
-                    {activeDestacada.imagen_url ? (
+                    {activeDestacada.imagen_url || (activeDestacada.media_urls && activeDestacada.media_urls.length > 0) ? (
                       <img
-                        src={activeDestacada.imagen_url}
+                        src={(activeDestacada.media_urls && activeDestacada.media_urls[0]) || activeDestacada.imagen_url}
                         alt={activeDestacada.titulo}
                         className="absolute inset-0 w-full h-full object-cover"
                       />
@@ -681,7 +695,7 @@ export default function Catalogo() {
 
           {/* SIDEBAR DESKTOP */}
           <aside className="hidden lg:block w-[280px] shrink-0 sticky top-10 h-fit bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-7">
-            <SidebarContent />
+            {SidebarContent()}
           </aside>
 
           {/* SIDEBAR MOBILE */}
@@ -708,7 +722,7 @@ export default function Catalogo() {
                       <X size={20} weight="light" />
                     </button>
                   </div>
-                  <SidebarContent />
+                  {SidebarContent()}
                 </motion.aside>
               </>
             )}
@@ -759,14 +773,14 @@ export default function Catalogo() {
 
             {/* Grilla */}
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-2xl h-[380px] animate-pulse border border-white/10" />
+                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-2xl h-[220px] animate-pulse border border-white/10" />
                 ))}
               </div>
             ) : propiedades.length > 0 ? (
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+                className="grid grid-cols-1 xl:grid-cols-2 gap-6"
                 variants={stagger}
                 initial="hidden"
                 animate="visible"
@@ -776,13 +790,13 @@ export default function Catalogo() {
                     key={prop.id}
                     variants={fadeUp}
                     onClick={() => abrirModal(prop)}
-                    className="group bg-roma-olive border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-white/30 hover:-translate-y-1 transition-all duration-300 flex flex-col shadow-lg hover:shadow-2xl"
+                    className="group bg-roma-olive border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-white/30 hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row shadow-lg hover:shadow-2xl h-auto sm:h-[220px]"
                   >
                     {/* Imagen */}
-                    <div className="relative h-[250px] overflow-hidden bg-black/20">
-                      {prop.imagen_url ? (
+                    <div className="relative w-full sm:w-[40%] h-[200px] sm:h-full overflow-hidden bg-black/20 shrink-0">
+                      {prop.imagen_url || (prop.media_urls && prop.media_urls.length > 0) ? (
                         <img
-                          src={prop.imagen_url}
+                          src={(prop.media_urls && prop.media_urls[0]) || prop.imagen_url}
                           alt={prop.titulo}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                         />
@@ -808,7 +822,11 @@ export default function Catalogo() {
                     </div>
 
                     {/* Contenido Minimalista */}
-                    <div className="p-6 flex-1 flex flex-col bg-black/10">
+                    <div className="p-6 flex-1 flex flex-col bg-black/10 justify-center">
+
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1">
+                        {prop.tipo_propiedad}
+                      </span>
 
                       <div className="flex justify-between items-start gap-4 mb-1">
                         <h3 className="text-[17px] font-medium text-white/95 leading-snug tracking-tight">
@@ -819,26 +837,35 @@ export default function Catalogo() {
                         </span>
                       </div>
 
-                      <div className="text-[12px] text-white/60 font-light mb-5 flex items-center gap-1">
+                      <div className="text-[12px] text-white/60 font-light mb-3 flex items-center gap-1">
                         <MapPin size={13} weight="light" />
                         {prop.ubicacion}
                       </div>
 
+                      <p className="text-[11px] text-white/50 line-clamp-2 mb-4 leading-relaxed">
+                        {prop.descripcion}
+                      </p>
+
                       {/* Características en línea sutil */}
                       <div className="flex items-center gap-4 text-white/70 text-[11px] font-light border-t border-white/10 pt-4 mt-auto">
-                        {prop.dimensiones && (
+                        {(prop.dimensiones || prop.atributos_especificos?.dimensiones) && (
                           <span className="flex items-center gap-1.5">
-                            <Ruler size={13} weight="light" /> {prop.dimensiones}
+                            <Ruler size={13} weight="light" /> {prop.dimensiones || prop.atributos_especificos?.dimensiones}
                           </span>
                         )}
-                        {prop.habitaciones && (
+                        {(prop.habitaciones || prop.atributos_especificos?.habitaciones) && (
                           <span className="flex items-center gap-1.5">
-                            <Bed size={13} weight="light" /> {prop.habitaciones}
+                            <Bed size={13} weight="light" /> {prop.habitaciones || prop.atributos_especificos?.habitaciones}
                           </span>
                         )}
-                        {prop.banos && (
+                        {(prop.banos || prop.atributos_especificos?.banos) && (
                           <span className="flex items-center gap-1.5">
-                            <Bathtub size={13} weight="light" /> {prop.banos}
+                            <Bathtub size={13} weight="light" /> {prop.banos || prop.atributos_especificos?.banos}
+                          </span>
+                        )}
+                        {prop.atributos_especificos?.tipo_campo && (
+                          <span className="flex items-center gap-1.5">
+                            <Tree size={13} weight="light" /> {prop.atributos_especificos.tipo_campo}
                           </span>
                         )}
                       </div>
@@ -864,181 +891,6 @@ export default function Catalogo() {
           </main>
         </section>
       </motion.div>
-
-      {/* ══ MODAL DE DETALLE ══ */}
-      <AnimatePresence>
-        {propiedadActiva && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
-          >
-            <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
-              onClick={cerrarModal}
-            />
-
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              transition={{ duration: 0.3, ease: EASE }}
-              className="relative w-full max-w-5xl bg-roma-olive rounded-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] shadow-2xl border border-white/10"
-            >
-              <button
-                onClick={cerrarModal}
-                className="absolute top-5 right-5 z-50 bg-black/20 hover:bg-black/40 text-white p-2.5 rounded-full backdrop-blur-md border border-white/10 transition-all"
-              >
-                <X size={18} weight="light" />
-              </button>
-
-              <div className="w-full md:w-1/2 relative min-h-[300px] md:min-h-full bg-black/20 flex items-center justify-center">
-                <span className="absolute top-6 left-6 z-10 bg-white/90 text-roma-olive text-[10px] font-semibold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm">
-                  {propiedadActiva.operacion}
-                </span>
-
-                {imagenesCarrusel.length > 0 && imagenesCarrusel[0] ? (
-                  <img
-                    src={imagenesCarrusel[imagenIndex]}
-                    alt={propiedadActiva.titulo}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-white/20">
-                    <IconoTipo tipo={propiedadActiva.tipo_propiedad} size={80} />
-                  </div>
-                )}
-
-                {imagenesCarrusel.length > 1 && (
-                  <div className="absolute inset-y-0 w-full flex items-center justify-between px-4 z-10 opacity-0 hover:opacity-100 transition-opacity duration-300">
-                    <button
-                      onClick={prevImagen}
-                      className="bg-black/30 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-                    >
-                      <CaretLeft size={20} weight="light" />
-                    </button>
-                    <button
-                      onClick={nextImagen}
-                      className="bg-black/30 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-                    >
-                      <CaretRight size={20} weight="light" />
-                    </button>
-                  </div>
-                )}
-
-                {imagenesCarrusel.length > 1 && (
-                  <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2.5 z-10 h-3 items-center">
-                    {imagenesCarrusel.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={(e) => { e.stopPropagation(); setImagenIndex(idx); }}
-                        className={`rounded-full transition-all duration-300 shadow-sm ${idx === imagenIndex
-                          ? 'w-2 h-2 bg-white scale-125'
-                          : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'
-                          }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="w-full md:w-1/2 flex flex-col overflow-y-auto bg-roma-olive p-8 md:p-12 border-l border-white/5">
-                <span className="text-[10px] font-medium tracking-[0.3em] text-white/60 uppercase mb-3 block">
-                  {propiedadActiva.tipo_propiedad}
-                </span>
-
-                <h2 className="text-3xl md:text-4xl font-light text-white/95 leading-tight tracking-tight mb-4 pr-8">
-                  {propiedadActiva.titulo}
-                </h2>
-
-                <div className="flex items-center gap-2 text-white/70 text-[13px] mb-8 font-light">
-                  <MapPin size={16} weight="light" className="text-white/60" />
-                  {propiedadActiva.ubicacion}
-                </div>
-
-                <div className="text-[38px] font-light text-white tracking-tight leading-none mb-10">
-                  USD {propiedadActiva.precio.toLocaleString('es-AR')}
-                </div>
-
-                <div className="flex flex-wrap gap-3 mb-10">
-                  {['casa', 'departamento'].includes(propiedadActiva.tipo_propiedad?.toLowerCase()) && (
-                    <>
-                      {propiedadActiva.habitaciones && (
-                        <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
-                          <Bed size={20} weight="light" className="text-white/70" />
-                          <div>
-                            <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Habitaciones</span>
-                            <span className="text-white/90 font-medium text-[14px]">{propiedadActiva.habitaciones}</span>
-                          </div>
-                        </div>
-                      )}
-                      {propiedadActiva.banos && (
-                        <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
-                          <Bathtub size={20} weight="light" className="text-white/70" />
-                          <div>
-                            <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Baños</span>
-                            <span className="text-white/90 font-medium text-[14px]">{propiedadActiva.banos}</span>
-                          </div>
-                        </div>
-                      )}
-                      {propiedadActiva.dimensiones && (
-                        <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
-                          <Ruler size={20} weight="light" className="text-white/70" />
-                          <div>
-                            <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
-                            <span className="text-white/90 font-medium text-[14px]">{propiedadActiva.dimensiones}</span>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {propiedadActiva.tipo_propiedad?.toLowerCase() === 'campo' && propiedadActiva.dimensiones && (
-                    <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
-                      <Tree size={20} weight="light" className="text-white/70" />
-                      <div>
-                        <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Hectáreas</span>
-                        <span className="text-white/90 font-medium text-[14px]">{propiedadActiva.dimensiones}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {['lote', 'terreno', 'local'].includes(propiedadActiva.tipo_propiedad?.toLowerCase()) && propiedadActiva.dimensiones && (
-                    <div className="flex items-center gap-3 bg-black/10 border border-white/10 px-5 py-3.5 rounded-xl">
-                      <Ruler size={20} weight="light" className="text-white/70" />
-                      <div>
-                        <span className="block text-white/50 text-[9px] uppercase font-medium tracking-[0.15em]">Superficie</span>
-                        <span className="text-white/90 font-medium text-[14px]">{propiedadActiva.dimensiones}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-10 flex-1">
-                  <h4 className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/60 flex items-center gap-2 mb-5 pb-3 border-b border-white/10">
-                    <Info size={16} weight="light" /> Descripción
-                  </h4>
-                  <p className="text-white/70 leading-relaxed text-[14px] font-light whitespace-pre-wrap">
-                    {propiedadActiva.descripcion ||
-                      'Consultanos para recibir la ficha técnica completa y detalles específicos de esta propiedad.'}
-                  </p>
-                </div>
-
-                <a
-                  href={`https://wa.me/5492920123456?text=Me interesa esta propiedad: *${propiedadActiva.titulo}* (ID: ${propiedadActiva.id})`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-white/90 text-roma-olive px-6 py-4 rounded-xl font-semibold uppercase tracking-[0.15em] text-[12px] transition-all shadow-md"
-                >
-                  <WhatsappLogo size={22} weight="light" /> Contactar Asesor
-                </a>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

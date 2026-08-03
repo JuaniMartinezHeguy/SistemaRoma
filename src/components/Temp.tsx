@@ -1,19 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { Home, Tractor, Map, Camera, Globe, Instagram, User } from 'lucide-react';
+import { Home, Tractor, Map, Camera, Globe, Instagram, User, Gavel } from 'lucide-react';
 import { JeepIcon } from '@phosphor-icons/react';
 import PageLoader from './ui/PageLoader';
 
 // ─── CONSTANTES DE DATOS ────────────────────────────────────────────────────────
 
 const SERVICIOS = [
-  { icon: Home, title: 'Propiedades', desc: 'Venta y alquiler de casas y departamentos urbanos, con acompañamiento profesional en cada etapa.' },
-  { icon: Tractor, title: 'Campos', desc: 'Comercialización de extensiones agrícolas y ganaderas de alto rendimiento productivo.' },
-  { icon: Map, title: 'Terrenos', desc: 'Lotes estratégicos, listos para escriturar, invertir y construir tu futuro desde cero.' },
-  { icon: Camera, title: 'Vista Aérea', desc: 'Relevamiento con drones para visualizar y evaluar campos o terrenos desde el aire.' },
-  { icon: JeepIcon, title: 'Visitas en Campo', desc: 'Te llevamos en nuestros vehículos a recorrer y conocer tu próxima propiedad en persona.' },
-  { icon: Globe, title: 'Catálogo Digital', desc: 'Explorá nuestro catálogo completo de propiedades actualizado en tiempo real desde la web.' },
+  { icon: Home, image: '/casas.webp', title: 'Propiedades', desc: 'Venta y alquiler de casas y departamentos urbanos, con acompañamiento profesional en cada etapa.' },
+  { icon: Tractor, image: '/campos.webp', title: 'Campos', desc: 'Comercialización de extensiones agrícolas y ganaderas de alto rendimiento productivo.' },
+  { icon: Map, image: '/lotes.webp', title: 'Terrenos', desc: 'Lotes estratégicos, listos para escriturar, invertir y construir tu futuro desde cero.' },
+  { icon: Camera, image: '/vistas.webp', title: 'Vista Aérea', desc: 'Relevamiento con drones para visualizar y evaluar campos o terrenos desde el aire.' },
+  { icon: JeepIcon, image: '/camioneta.webp', title: 'Visitas en Campo', desc: 'Te llevamos en nuestros vehículos a recorrer y conocer tu próxima propiedad en persona.' },
+  { icon: Gavel, image: '/remate.webp', imageClass: 'object-top', title: 'Remates', desc: 'Gestión y organización de remates ganaderos. Contamos con una sólida trayectoria de más de 10 remates exitosos, brindando las mejores oportunidades del mercado.' },
+  { icon: Globe, image: undefined, title: 'Catálogo Digital', desc: 'Explorá nuestro catálogo completo de propiedades actualizado en tiempo real desde la web.', isCatalog: true },
 ];
 
 const SEDES = [
@@ -219,27 +220,26 @@ export default function Landing() {
       {/* ═══ HERO ═══ */}
       <section id="inicio" className="relative min-h-screen flex flex-col justify-center pb-32 pt-32 px-8 md:px-16 overflow-hidden">
         <motion.div className="absolute inset-0 z-0 bg-roma-dark" style={{ y: heroImgY, opacity: heroOpacity }}>
-          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondoRoma.png')" }} />
+          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondoRoma.jpg')" }} />
         </motion.div>
-        <div className="absolute inset-0 bg-black/40 z-[1]" />
 
         <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1] select-none" style={{ opacity: watermarkOpacity }}>
-          <span className="text-[clamp(80px,18vw,240px)] font-bold uppercase leading-none tracking-tighter text-white/10">ROMA</span>
+          <span className="text-[clamp(80px,18vw,240px)] font-bold uppercase leading-none tracking-tighter text-white/10 drop-shadow-xl">ROMA</span>
         </motion.div>
 
         <motion.div className="relative z-[2] max-w-7xl mx-auto w-full flex flex-col items-center text-center" variants={stagger} initial="hidden" animate="visible">
           <motion.h1 variants={fadeUp} className="w-full flex justify-center mb-8">
-            <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-full max-w-[280px] md:max-w-[500px] h-auto object-contain" />
+            <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-full max-w-[280px] md:max-w-[500px] h-auto object-contain drop-shadow-[0_4px_15px_rgba(0,0,0,0.8)]" />
           </motion.h1>
 
-          <motion.div variants={fadeUp} className="w-full max-w-3xl overflow-hidden mt-4 pt-6 border-t border-white/10 relative flex">
+          <motion.div variants={fadeUp} className="w-full max-w-3xl overflow-hidden mt-4 pt-6 border-t border-white/20 relative flex">
             <motion.div animate={{ x: ["0%", "-50%"] }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} className="flex items-center whitespace-nowrap">
               {[...Array(2)].map((_, i) => (
                 <div key={i} className="flex items-center">
                   {['10+ Años de experiencia', '3 Sedes en la región', '500+ Propiedades', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
                     <div key={idx} className="flex items-center">
-                      <span className="text-[11px] md:text-[12px] text-white/80 font-medium uppercase tracking-[0.2em] px-8">{text}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/50" />
+                      <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.2em] px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/80 shadow-[0_0_5px_rgba(0,0,0,0.8)]" />
                     </div>
                   ))}
                 </div>
@@ -248,7 +248,7 @@ export default function Landing() {
           </motion.div>
         </motion.div>
 
-        <motion.a href="#servicios" className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[2] text-white/60 hover:text-white transition-colors duration-300" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
+        <motion.a href="#servicios" className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[2] text-white/80 hover:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] transition-colors duration-300" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
           <span className="material-icons text-[60px] md:text-[80px] font-light">keyboard_arrow_down</span>
         </motion.a>
       </section>
@@ -268,36 +268,56 @@ export default function Landing() {
         <section id="servicios" className="relative z-10 min-h-screen pt-40 pb-40 px-6 flex flex-col justify-center">
           <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
 
-            <div className="text-center mb-16">
+            <motion.div variants={fadeUp} className="text-center mb-16">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Lo que hacemos</p>
               <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestros Servicios</h2>
-            </div>
+            </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-12 items-center">
 
               {/* Panel Izquierdo: Tarjeta verde oscura */}
-              <div className="w-full lg:w-[60%] lg:pr-16 relative h-[600px] flex flex-col justify-center">
+              <motion.div variants={fadeLeft} className="w-full lg:w-[60%] lg:pr-16 relative h-[600px] flex flex-col justify-center">
                 {SERVICIOS.map((srv, idx) => (
-                  <div key={idx} className={`absolute inset-0 lg:right-16 flex flex-col justify-center transition-all duration-700 ${idx === activeService ? 'opacity-100 translate-y-0 z-10' : 'opacity-0 translate-y-8 pointer-events-none z-0'}`}>
-                    <div className="bg-[#2a3c2a] rounded-[2rem] p-8 md:p-12 shadow-2xl border border-white/10 w-full h-full max-h-[550px] flex flex-col text-center items-center">
-                      <div className="w-full flex-1 bg-black/20 flex items-center justify-center rounded-[1.5rem] mb-8 min-h-[180px] border border-white/5">
-                        {/* Se renderiza el ícono dinámicamente. JeepIcon de Phosphor o los de Lucide */}
-                        <srv.icon size={80} strokeWidth={1} className="text-white/20" />
-                      </div>
-                      <h2 className="text-3xl md:text-5xl font-semibold text-white leading-tight mb-4 tracking-tight">{srv.title}</h2>
-                      <p className="text-white/70 text-[15px] leading-relaxed font-light">{srv.desc}</p>
+                  <div key={idx} className={`absolute inset-0 lg:right-16 flex flex-col justify-center transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${idx === activeService ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-16 pointer-events-none z-0'}`}>
+                    <div className="bg-[#2a3c2a] rounded-[2rem] shadow-2xl border border-white/10 w-full h-full max-h-[550px] flex flex-col text-center items-center overflow-hidden">
+                      {srv.isCatalog ? (
+                        <div className="flex flex-col items-center justify-center w-full h-full p-8 md:p-12">
+                          <h2 className="text-3xl md:text-5xl font-semibold text-white leading-tight mb-6 tracking-tight">{srv.title}</h2>
+                          <p className="text-white/70 text-[16px] leading-relaxed font-light mb-10 max-w-sm">{srv.desc}</p>
+                          <Link to="/propiedades" className="bg-roma-olive text-white px-10 py-4 rounded-full font-semibold shadow-xl hover:bg-roma-olive/90 transition-all hover:scale-105 text-[14px] uppercase tracking-widest border border-white/10">
+                            Ver catálogo
+                          </Link>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-full h-[320px] md:h-[380px] flex-shrink-0 bg-black/20">
+                            {srv.image ? (
+                              <img src={srv.image} alt={srv.title} className={`w-full h-full object-cover ${srv.imageClass || ''}`} />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <srv.icon size={80} strokeWidth={1} className="text-white/20" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-center justify-center flex-1 p-5 md:p-6">
+                            <h2 className="text-2xl md:text-3xl font-semibold text-white leading-tight mb-2 tracking-tight">{srv.title}</h2>
+                            <p className="text-white/70 text-[13px] md:text-[14px] leading-relaxed font-light">{srv.desc}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Panel Derecho: Timeline estático controlado por Hover */}
               <motion.div variants={fadeRight} className="w-full lg:w-[40%] relative py-8 pl-14">
-                <div className="absolute left-4 top-[40px] bottom-[40px] w-[2px] bg-white/10 hidden lg:block rounded-full" />
-                <div
-                  className="absolute left-4 top-[40px] w-[2px] bg-roma-leaf hidden lg:block rounded-full transition-all duration-500"
-                  style={{ height: `calc(${(activeService / (SERVICIOS.length - 1)) * 100}%)` }}
-                />
+                <div className="absolute left-4 top-[40px] bottom-[40px] w-[2px] bg-white/10 hidden lg:block rounded-full overflow-hidden">
+                  <div
+                    className="w-full bg-roma-leaf rounded-full transition-all duration-500"
+                    style={{ height: `${(activeService / (SERVICIOS.length - 1)) * 100}%` }}
+                  />
+                </div>
 
                 <div className="flex flex-col relative z-10">
                   {SERVICIOS.map((srv, idx) => {
@@ -326,10 +346,10 @@ export default function Landing() {
         <section id="ubicaciones" className="relative z-10 pt-32 pb-40 px-6">
           <motion.div className="relative z-10 max-w-7xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
 
-            <div className="text-center mb-16">
+            <motion.div variants={fadeUp} className="text-center mb-16">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Ubicaciones</p>
               <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">Nuestras Sedes</h2>
-            </div>
+            </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[500px] items-center lg:items-stretch">
 
@@ -371,7 +391,7 @@ export default function Landing() {
                         initial={false}
                         animate={{
                           opacity: isActive ? 1 : 0,
-                          scale: isActive ? 1 : 1.05,
+                          x: isActive ? 0 : 150,
                           zIndex: isActive ? 10 : 0,
                           pointerEvents: isActive ? "auto" : "none"
                         }}
@@ -416,10 +436,10 @@ export default function Landing() {
         <section id="equipo" className="relative z-10 pt-20 pb-20 px-6">
           <motion.div className="max-w-7xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
 
-            <div className="text-center mb-14">
+            <motion.div variants={fadeUp} className="text-center mb-14">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Conocenos</p>
               <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestro equipo</h2>
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
               {EQUIPO.map((persona) => (
@@ -457,10 +477,10 @@ export default function Landing() {
         {/* ═══ NUESTRAS REDES (Videos Nativos Secuenciales) ═══ */}
         <section className="relative z-10 pt-20 pb-32 px-6">
           <motion.div className="max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <div className="text-center mb-14">
+            <motion.div variants={fadeUp} className="text-center mb-14">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Comunidad</p>
               <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestras Redes</h2>
-            </div>
+            </motion.div>
 
             <div className="grid md:grid-cols-2 gap-10 justify-items-center">
 
@@ -570,24 +590,24 @@ export default function Landing() {
         <section className="relative z-10 pt-16 pb-32 px-6 min-h-screen flex flex-col justify-center">
           <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
 
-            <div className="text-center mb-16">
+            <motion.div variants={fadeUp} className="text-center mb-16">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Nuestros cimientos</p>
               <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Raíces que <span className="text-roma-leaf">trascienden</span></h2>
-            </div>
+            </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-16 items-center">
 
               <motion.div variants={fadeLeft} className="w-full lg:w-[50%] grid grid-cols-2 grid-rows-2 gap-4 h-[500px]">
                 <div className="col-span-2 row-span-1 md:col-span-1 md:row-span-2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl relative">
-                  <img src="/fondoRoma.png" alt="Roma Campo Principal" className="w-full h-full object-cover" />
+                  <img src="/fondoRoma.jpg" alt="Roma Campo Principal" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10" />
                 </div>
                 <div className="rounded-[2rem] overflow-hidden border border-white/10 shadow-xl relative">
-                  <img src="/fondoRoma.png" alt="Roma Propiedades" className="w-full h-full object-cover" />
+                  <img src="/fondoRoma.jpg" alt="Roma Propiedades" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10" />
                 </div>
                 <div className="rounded-[2rem] overflow-hidden border border-white/10 shadow-xl relative">
-                  <img src="/fondoRoma.png" alt="Roma Equipo" className="w-full h-full object-cover" />
+                  <img src="/fondoRoma.jpg" alt="Roma Equipo" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10" />
                 </div>
               </motion.div>
@@ -656,8 +676,8 @@ export default function Landing() {
           <div>
             <h5 className="font-semibold mb-4 text-roma-leaf text-[11px] uppercase tracking-wider">Contacto</h5>
             <ul className="space-y-3 text-white/50 text-[13px] font-light">
-              <li className="flex items-center gap-2"><span className="material-icons text-[16px]">call</span> +54 9 2920 123456</li>
-              <li className="flex items-center gap-2"><span className="material-icons text-[16px]">mail</span> info@romainmo.com.ar</li>
+              <li className="flex items-center gap-2"><span className="material-icons text-[16px]">call</span> +54 9 291 4136535 (Rodrigo) <br></br> +54 9 29 (Maira)</li>
+              <li className="flex items-center gap-2"><span className="material-icons text-[16px]">mail</span> </li>
               <li className="flex items-center gap-2"><span className="material-icons text-[16px]">location_on</span> Villalonga, Buenos Aires</li>
             </ul>
           </div>
