@@ -220,7 +220,16 @@ export default function Landing() {
       {/* ═══ HERO ═══ */}
       <section id="inicio" className="relative min-h-screen flex flex-col justify-center pb-32 pt-32 px-8 md:px-16 overflow-hidden">
         <motion.div className="absolute inset-0 z-0 bg-roma-dark" style={{ y: heroImgY, opacity: heroOpacity }}>
-          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondoRoma.jpg')" }} />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src="/video_final.webm" type="video/webm" />
+          </video>
+          <div className="absolute inset-0 bg-black/15 pointer-events-none" />
         </motion.div>
 
         <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1] select-none" style={{ opacity: watermarkOpacity }}>
@@ -231,21 +240,6 @@ export default function Landing() {
           <motion.h1 variants={fadeUp} className="w-full flex justify-center mb-8">
             <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-full max-w-[280px] md:max-w-[500px] h-auto object-contain drop-shadow-[0_4px_15px_rgba(0,0,0,0.8)]" />
           </motion.h1>
-
-          <motion.div variants={fadeUp} className="w-full max-w-3xl overflow-hidden mt-4 pt-6 border-t border-white/20 relative flex">
-            <motion.div animate={{ x: ["0%", "-50%"] }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} className="flex items-center whitespace-nowrap">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="flex items-center">
-                  {['10+ Años de experiencia', '3 Sedes en la región', '500+ Propiedades', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
-                    <div key={idx} className="flex items-center">
-                      <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.2em] px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/80 shadow-[0_0_5px_rgba(0,0,0,0.8)]" />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </motion.div>
-          </motion.div>
         </motion.div>
 
         <motion.a href="#servicios" className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[2] text-white/80 hover:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] transition-colors duration-300" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
@@ -264,8 +258,28 @@ export default function Landing() {
         }}
       >
 
+        {/* ═══ CARRUSEL DE MARCAS/DATOS ═══ */}
+        <div className="relative z-10 w-full overflow-hidden py-5 bg-black/60 backdrop-blur-md border-y border-white/10">
+          <motion.div
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+            className="flex items-center whitespace-nowrap"
+          >
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="flex items-center">
+                {['10+ Años de experiencia', '3 Sedes en la región', '500+ Propiedades', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
+                  <div key={idx} className="flex items-center">
+                    <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.2em] px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/80 shadow-[0_0_5px_rgba(0,0,0,0.8)]" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
         {/* ═══ SERVICIOS ═══ */}
-        <section id="servicios" className="relative z-10 min-h-screen pt-40 pb-40 px-6 flex flex-col justify-center">
+        <section id="servicios" className="relative z-10 min-h-screen pt-28 pb-40 px-6 flex flex-col justify-center">
           <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
 
             <motion.div variants={fadeUp} className="text-center mb-16">
