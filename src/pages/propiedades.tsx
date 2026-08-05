@@ -6,7 +6,7 @@ import {
   X, Ruler, CaretRight, MagnifyingGlass,
   Bed, Star, Buildings, Tree, Storefront, ArrowLeft, SlidersHorizontal, Bathtub
 } from '@phosphor-icons/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/ui/PageLoader';
 
@@ -86,6 +86,17 @@ export default function Catalogo() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [destacadaIndex, setDestacadaIndex] = useState(0);
 
+  const [searchParams] = useSearchParams();
+
+  // Sincronizar filtro desde parámetros de la URL (?tipo=Campo, ?tipo=Terreno, etc.)
+  useEffect(() => {
+    const tipoQuery = searchParams.get('tipo');
+    if (tipoQuery) {
+      setFiltroTipo(tipoQuery);
+      setHeroDismissed(true);
+    }
+  }, [searchParams]);
+
   // ─── 1. EFECTO: Screen Loader Inicial ───
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -134,35 +145,93 @@ export default function Catalogo() {
   useEffect(() => {
     const fetchPropiedades = async () => {
       setLoading(true);
-      let query = supabase.from('propiedades').select('*').eq('estado', 'publicado');
-      if (filtroTipo !== 'Todos') query = query.eq('tipo_propiedad', filtroTipo);
-      if (filtroUbicacion !== 'Todas') query = query.eq('ubicacion', filtroUbicacion);
-      if (filtroOperacion !== 'Todas') query = query.eq('operacion', filtroOperacion);
-      if (filtroTipoCampo !== 'Todos') query = query.contains('atributos_especificos', { tipo_campo: filtroTipoCampo });
-      if (filtroHabs !== null) {
-        if (filtroHabs === 4) query = query.gte('habitaciones', 4);
-        else query = query.eq('habitaciones', filtroHabs);
-      }
-      if (filtroPrecioMin) query = query.gte('precio', parseFloat(filtroPrecioMin));
-      if (filtroPrecioMax) query = query.lte('precio', parseFloat(filtroPrecioMax));
 
-      const { data } = await query;
+      const { data, error } = await supabase
+        .from('propiedades')
+        .select('*')
+        .eq('estado', 'publicado');
+
+      if (error) {
+        console.error('Error fetching propiedades:', error);
+        setLoading(false);
+        return;
+      }
+
       let result: Propiedad[] = data ?? [];
 
-      if (busqueda.trim()) {
-        const q = busqueda.toLowerCase();
-        result = result.filter(
-          p => p.titulo?.toLowerCase().includes(q) || p.ubicacion?.toLowerCase().includes(q)
+      // 1. Filtro por Tipo de Propiedad
+      if (filtroTipo !== 'Todos') {
+        const fLower = filtroTipo.toLowerCase();
+        result = result.filter(p => {
+          if (!p.tipo_propiedad) return false;
+          const pType = p.tipo_propiedad.toLowerCase();
+          if (fLower.includes('campo')) {
+            return pType.includes('campo');
+          }
+          if (fLower.includes('terreno') || fLower.includes('lote')) {
+            return pType.includes('terreno') || pType.includes('lote');
+          }
+          if (fLower.includes('propiedad') || fLower.includes('casa') || fLower.includes('depto') || fLower.includes('departamento')) {
+            return pType.includes('casa') || pType.includes('depto') || pType.includes('departamento') || pType.includes('propiedad') || pType.includes('local');
+          }
+          return pType.includes(fLower);
+        });
+      }
+
+      // 2. Filtro por Ubicación
+      if (filtroUbicacion !== 'Todas') {
+        result = result.filter(p => p.ubicacion?.toLowerCase() === filtroUbicacion.toLowerCase());
+      }
+
+      // 3. Filtro por Operación (Venta / Alquiler)
+      if (filtroOperacion !== 'Todas') {
+        result = result.filter(p => p.operacion?.toLowerCase() === filtroOperacion.toLowerCase());
+      }
+
+      // 4. Filtro por Tipo de Campo
+      if (filtroTipoCampo !== 'Todos') {
+        result = result.filter(p => 
+          p.atributos_especificos && 
+          p.atributos_especificos.tipo_campo?.toLowerCase() === filtroTipoCampo.toLowerCase()
         );
       }
 
-      if (ordenar === 'asc') result.sort((a, b) => a.precio - b.precio);
-      else if (ordenar === 'desc') result.sort((a, b) => b.precio - a.precio);
+      // 5. Filtro por Habitaciones
+      if (filtroHabs !== null) {
+        result = result.filter(p => {
+          const habs = p.habitaciones ?? p.atributos_especificos?.habitaciones ?? 0;
+          if (filtroHabs === 4) return habs >= 4;
+          return habs === filtroHabs;
+        });
+      }
+
+      // 6. Filtro por Rango de Precios
+      if (filtroPrecioMin) {
+        const min = parseFloat(filtroPrecioMin);
+        if (!isNaN(min)) result = result.filter(p => (p.precio || 0) >= min);
+      }
+      if (filtroPrecioMax) {
+        const max = parseFloat(filtroPrecioMax);
+        if (!isNaN(max)) result = result.filter(p => (p.precio || 0) <= max);
+      }
+
+      // 7. Búsqueda libre
+      if (busqueda.trim()) {
+        const q = busqueda.toLowerCase();
+        result = result.filter(
+          p => p.titulo?.toLowerCase().includes(q) || p.ubicacion?.toLowerCase().includes(q) || p.descripcion?.toLowerCase().includes(q)
+        );
+      }
+
+      // 8. Ordenamiento
+      if (ordenar === 'asc') result.sort((a, b) => (a.precio || 0) - (b.precio || 0));
+      else if (ordenar === 'desc') result.sort((a, b) => (b.precio || 0) - (a.precio || 0));
       else if (ordenar === 'destacadas') result.sort((a, b) => (b.destacada ? 1 : 0) - (a.destacada ? 1 : 0));
 
       setPropiedades(result);
       setLoading(false);
     };
+
     fetchPropiedades();
   }, [filtroTipo, filtroUbicacion, filtroOperacion, filtroTipoCampo, filtroHabs, filtroPrecioMin, filtroPrecioMax, busqueda, ordenar]);
 
@@ -231,22 +300,32 @@ export default function Catalogo() {
           <HouseLine size={14} weight="light" /> Tipo de propiedad
         </p>
         <div className="flex flex-wrap gap-2">
-          {['Todos', ...TIPOS].map(t => (
-            <button
-              key={t}
-              onClick={() => { setFiltroTipo(t); if (t !== 'Campo') setFiltroTipoCampo('Todos'); }}
-              className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${filtroTipo === t
-                ? 'bg-white border-white text-roma-olive shadow-sm'
-                : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                }`}
-            >
-              {t}
-            </button>
-          ))}
+          {['Todos', ...TIPOS].map(t => {
+            const isSelected = filtroTipo === t || (
+              filtroTipo !== 'Todos' &&
+              t !== 'Todos' &&
+              (
+                (t.toLowerCase().includes('campo') && filtroTipo.toLowerCase().includes('campo')) ||
+                ((t.toLowerCase().includes('terreno') || t.toLowerCase().includes('lote')) && (filtroTipo.toLowerCase().includes('terreno') || filtroTipo.toLowerCase().includes('lote')))
+              )
+            );
+            return (
+              <button
+                key={t}
+                onClick={() => { setFiltroTipo(t); if (!t.toLowerCase().includes('campo')) setFiltroTipoCampo('Todos'); }}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${isSelected
+                  ? 'bg-white border-white text-roma-olive shadow-sm'
+                  : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  }`}
+              >
+                {t}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {filtroTipo === 'Campo' && TIPOS_CAMPO.length > 0 && (
+      {filtroTipo.toLowerCase().includes('campo') && TIPOS_CAMPO.length > 0 && (
         <div className="border-b border-white/10 py-5 px-1">
           <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
             <Tree size={14} weight="light" /> Tipo de Campo

@@ -1,20 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { Home, Tractor, Map, Camera, Globe, Instagram, User, Gavel } from 'lucide-react';
+import { Home, Tractor, Map, Camera, Instagram, User, Gavel } from 'lucide-react';
 import { JeepIcon } from '@phosphor-icons/react';
 import PageLoader from './ui/PageLoader';
+import AccordionGallery from './ui/AccordionGallery';
 
 // ─── CONSTANTES DE DATOS ────────────────────────────────────────────────────────
 
 const SERVICIOS = [
-  { icon: Home, image: '/casas.webp', title: 'Propiedades', desc: 'Venta y alquiler de casas y departamentos urbanos, con acompañamiento profesional en cada etapa.' },
-  { icon: Tractor, image: '/campos.webp', title: 'Campos', desc: 'Comercialización de extensiones agrícolas y ganaderas de alto rendimiento productivo.' },
-  { icon: Map, image: '/lotes.webp', title: 'Terrenos', desc: 'Lotes estratégicos, listos para escriturar, invertir y construir tu futuro desde cero.' },
+  { icon: Home, image: '/casas.webp', title: 'Propiedades', desc: 'Venta y alquiler de casas y departamentos urbanos, con acompañamiento profesional integral en cada etapa de tu operación.', link: '/propiedades' },
+  { icon: Tractor, image: '/campos.webp', title: 'Campos', desc: 'Comercialización de extensiones agrícolas y ganaderas de alto rendimiento productivo.', link: '/propiedades?tipo=Campo' },
+  { icon: Map, image: '/lotes.webp', title: 'Terrenos', desc: 'Lotes estratégicos, listos para escriturar, invertir y construir tu futuro desde cero.', link: '/propiedades?tipo=Terreno' },
   { icon: Camera, image: '/vistas.webp', title: 'Vista Aérea', desc: 'Relevamiento con drones para visualizar y evaluar campos o terrenos desde el aire.' },
-  { icon: JeepIcon, image: '/camioneta.webp', title: 'Visitas en Campo', desc: 'Te llevamos en nuestros vehículos a recorrer y conocer tu próxima propiedad en persona.' },
-  { icon: Gavel, image: '/remate.webp', imageClass: 'object-top', title: 'Remates', desc: 'Gestión y organización de remates ganaderos. Contamos con una sólida trayectoria de más de 10 remates exitosos, brindando las mejores oportunidades del mercado.' },
-  { icon: Globe, image: undefined, title: 'Catálogo Digital', desc: 'Explorá nuestro catálogo completo de propiedades actualizado en tiempo real desde la web.', isCatalog: true },
+  { icon: JeepIcon, image: '/camioneta.webp', title: 'Asesoramiento', desc: 'Te asesoramos estratégicamente en la selección de tu próximo campo o propiedad, analizando su verdadero potencial e inversión.' },
+  { icon: Gavel, image: '/remate.webp', imageClass: 'object-top', title: 'Remates', desc: 'Gestión y organización de remates ganaderos con más de 10 remates exitosos, brindando las mejores oportunidades.' },
 ];
 
 const SEDES = [
@@ -62,11 +62,12 @@ const fadeRight = { hidden: { opacity: 0, x: 50 }, visible: { opacity: 1, x: 0, 
 
 export default function Landing() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeService, setActiveService] = useState(0);
   const [sedeActiva, setSedeActiva] = useState(0);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>('inicio');
+  const [hoveredSection, setHoveredSection] = useState<string | null>(null);
 
   // Referencias para animaciones y videos
   const { scrollY } = useScroll();
@@ -87,6 +88,42 @@ export default function Landing() {
       clearTimeout(timer);
       document.body.style.overflow = '';
     };
+  }, []);
+
+  // ScrollSpy preciso basado en la posición en pantalla (getBoundingClientRect)
+  useEffect(() => {
+    const handleScroll = () => {
+      const sectionIds = ['inicio', 'servicios', 'ubicaciones', 'equipo'];
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+
+      // Si el usuario está muy cerca del top de la página (Hero)
+      if (scrollPosition < 200) {
+        setActiveSection('inicio');
+        return;
+      }
+
+      const viewportThreshold = windowHeight * 0.70;
+      let currentSection: string | null = null;
+
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          // La sección se activa si está dentro de la zona de lectura de la pantalla
+          if (rect.top <= viewportThreshold && rect.bottom > 100) {
+            currentSection = id;
+          }
+        }
+      }
+
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Hover play handlers - siempre reproduce (muted), el usuario activa sonido con un click
@@ -123,6 +160,13 @@ export default function Landing() {
   const watermarkOpacity = useTransform(scrollY, [80, 350], [0, 0.12]);
 
   const navTransition = { duration: 0.6, ease: EASE };
+
+  const NAV_ITEMS = [
+    { id: 'inicio', href: '#inicio', label: 'Inicio' },
+    { id: 'servicios', href: '#servicios', label: 'Servicios' },
+    { id: 'ubicaciones', href: '#ubicaciones', label: 'Sedes' },
+    { id: 'equipo', href: '#equipo', label: 'Equipo' },
+  ];
 
   return (
     <div className="bg-black text-white font-['Inter',system-ui,sans-serif] overflow-x-hidden">
@@ -166,12 +210,41 @@ export default function Landing() {
             />
           </motion.a>
 
-          <motion.nav layout className="hidden md:flex items-center gap-8">
-            {[['#inicio', 'Inicio'], ['#servicios', 'Servicios'], ['#ubicaciones', 'Sedes'], ['#equipo', 'Equipo']].map(([href, label]) => (
-              <a key={href} href={href} className="text-[13px] font-medium text-white/80 hover:text-white transition-colors relative after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-white after:transition-all hover:after:w-full">
-                {label}
-              </a>
-            ))}
+          <motion.nav
+            layout
+            className="hidden md:flex items-center gap-2 relative"
+            onMouseLeave={() => setHoveredSection(null)}
+          >
+            {NAV_ITEMS.map((item) => {
+              const isActive = activeSection === item.id;
+              const isHovered = hoveredSection === item.id;
+              const showPill = isHovered || (isActive && !hoveredSection && (item.id !== 'inicio' || isScrolled));
+
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  onMouseEnter={() => setHoveredSection(item.id)}
+                  className="relative px-5 py-2 text-[13px] font-semibold transition-colors duration-300 rounded-full select-none"
+                >
+                  <AnimatePresence>
+                    {showPill && (
+                      <motion.div
+                        layoutId="activeNavPill"
+                        className="absolute inset-0 bg-roma-olive rounded-full shadow-lg"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </AnimatePresence>
+                  <span className={`relative z-10 transition-colors duration-300 ${showPill ? 'text-white drop-shadow-sm' : 'text-white/70 hover:text-white'}`}>
+                    {item.label}
+                  </span>
+                </a>
+              );
+            })}
           </motion.nav>
 
           <motion.div layout className="hidden md:block">
@@ -188,10 +261,21 @@ export default function Landing() {
         {/* Desplegable Móvil */}
         <AnimatePresence>
           {mobileOpen && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden bg-black/80 backdrop-blur-xl border-t border-white/10 p-6 flex flex-col items-center gap-5 rounded-b-3xl shadow-2xl absolute left-0 right-0 top-full mt-2 w-[90%] mx-auto">
-              {[['#inicio', 'Inicio'], ['#servicios', 'Servicios'], ['#ubicaciones', 'Sedes'], ['#equipo', 'Equipo']].map(([href, label]) => (
-                <a key={href} href={href} onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white font-medium text-[15px]">{label}</a>
-              ))}
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden bg-black/80 backdrop-blur-xl border-t border-white/10 p-6 flex flex-col items-center gap-3 rounded-b-3xl shadow-2xl absolute left-0 right-0 top-full mt-2 w-[90%] mx-auto">
+              {NAV_ITEMS.map((item) => {
+                const isActive = activeSection === item.id;
+                return (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`w-full text-center py-2.5 rounded-full font-medium text-[15px] transition-all duration-300 ${isActive ? 'bg-roma-olive text-white font-semibold shadow-md' : 'text-white/80 hover:text-white'
+                      }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
               <Link to="/propiedades" className="bg-roma-olive text-white px-8 py-3 rounded-full font-semibold mt-2 text-[14px]" onClick={() => setMobileOpen(false)}>Ver Propiedades</Link>
             </motion.div>
           )}
@@ -267,7 +351,7 @@ export default function Landing() {
           >
             {[...Array(2)].map((_, i) => (
               <div key={i} className="flex items-center">
-                {['10+ Años de experiencia', '3 Sedes en la región', '500+ Propiedades', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
+                {['10+ Años de experiencia', '3 Sedes en la región', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
                   <div key={idx} className="flex items-center">
                     <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.2em] px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/80 shadow-[0_0_5px_rgba(0,0,0,0.8)]" />
@@ -283,76 +367,28 @@ export default function Landing() {
           <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
 
             <motion.div variants={fadeUp} className="text-center mb-16">
-              <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Lo que hacemos</p>
-              <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestros Servicios</h2>
+              <p className="text-roma-leaf text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.25em] mb-4">Lo que hacemos</p>
+              <h2 className="text-5xl md:text-6xl font-bold text-white tracking-tight drop-shadow-md">Nuestros Servicios</h2>
             </motion.div>
 
-            <div className="flex flex-col lg:flex-row gap-12 items-center">
-
-              {/* Panel Izquierdo: Tarjeta verde oscura */}
-              <motion.div variants={fadeLeft} className="w-full lg:w-[60%] lg:pr-16 relative h-[600px] flex flex-col justify-center">
-                {SERVICIOS.map((srv, idx) => (
-                  <div key={idx} className={`absolute inset-0 lg:right-16 flex flex-col justify-center transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${idx === activeService ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-16 pointer-events-none z-0'}`}>
-                    <div className="bg-[#2a3c2a] rounded-[2rem] shadow-2xl border border-white/10 w-full h-full max-h-[550px] flex flex-col text-center items-center overflow-hidden">
-                      {srv.isCatalog ? (
-                        <div className="flex flex-col items-center justify-center w-full h-full p-8 md:p-12">
-                          <h2 className="text-3xl md:text-5xl font-semibold text-white leading-tight mb-6 tracking-tight">{srv.title}</h2>
-                          <p className="text-white/70 text-[16px] leading-relaxed font-light mb-10 max-w-sm">{srv.desc}</p>
-                          <Link to="/propiedades" className="bg-roma-olive text-white px-10 py-4 rounded-full font-semibold shadow-xl hover:bg-roma-olive/90 transition-all hover:scale-105 text-[14px] uppercase tracking-widest border border-white/10">
-                            Ver catálogo
-                          </Link>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="w-full h-[320px] md:h-[380px] flex-shrink-0 bg-black/20">
-                            {srv.image ? (
-                              <img src={srv.image} alt={srv.title} className={`w-full h-full object-cover ${srv.imageClass || ''}`} />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <srv.icon size={80} strokeWidth={1} className="text-white/20" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-center justify-center flex-1 p-5 md:p-6">
-                            <h2 className="text-2xl md:text-3xl font-semibold text-white leading-tight mb-2 tracking-tight">{srv.title}</h2>
-                            <p className="text-white/70 text-[13px] md:text-[14px] leading-relaxed font-light">{srv.desc}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-
-              {/* Panel Derecho: Timeline estático controlado por Hover */}
-              <motion.div variants={fadeRight} className="w-full lg:w-[40%] relative py-8 pl-14">
-                <div className="absolute left-4 top-[40px] bottom-[40px] w-[2px] bg-white/10 hidden lg:block rounded-full overflow-hidden">
-                  <div
-                    className="w-full bg-roma-leaf rounded-full transition-all duration-500"
-                    style={{ height: `${(activeService / (SERVICIOS.length - 1)) * 100}%` }}
-                  />
-                </div>
-
-                <div className="flex flex-col relative z-10">
-                  {SERVICIOS.map((srv, idx) => {
-                    const isActive = idx === activeService;
-                    return (
-                      <div key={idx} onMouseEnter={() => setActiveService(idx)} onClick={() => setActiveService(idx)} className="group flex items-center gap-5 cursor-pointer py-5 relative">
-                        <div className="absolute left-[-26px] hidden lg:flex w-4 h-4 rounded-full items-center justify-center -translate-x-1/2">
-                          <div className={`rounded-full transition-all duration-300 ${isActive ? 'w-4 h-4 bg-roma-leaf shadow-[0_0_14px_rgba(91,138,97,0.9)]' : 'w-2.5 h-2.5 bg-white/20 border border-white/20'}`} />
-                        </div>
-                        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                          <srv.icon size={20} strokeWidth={isActive ? 2 : 1.5} className={`transition-colors duration-300 ${isActive ? 'text-roma-leaf' : 'text-white/30 group-hover:text-white/60'}`} />
-                        </div>
-                        <div className={`flex-1 border-b pb-5 text-[22px] md:text-[26px] font-light tracking-tight transition-all duration-300 ${isActive ? 'text-white border-roma-leaf/30' : 'text-white/50 border-white/5 group-hover:text-white/80'}`}>
-                          {srv.title}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </div>
+            <motion.div variants={fadeUp} className="w-full">
+              <AccordionGallery
+                items={SERVICIOS}
+                defaultIndex={0}
+                accentColor="var(--color-roma-leaf, #5B8A61)"
+                overlayColor="var(--color-roma-dark, #1A241A)"
+                textColor="#ffffff"
+                grayscale={false}
+                showLabels={true}
+                duration={0.6}
+                ease="power3.out"
+                trigger="hover"
+                height={540}
+                gap={12}
+                radius={24}
+                expandRatio={0.45}
+              />
+            </motion.div>
           </motion.div>
         </section>
 
@@ -627,21 +663,21 @@ export default function Landing() {
               </motion.div>
 
               <motion.div variants={fadeRight} className="w-full lg:w-[50%] lg:pl-10 text-left">
-                <p className="text-white/80 text-[16px] md:text-[18px] mb-6 font-light leading-relaxed">
-                  Roma surge de la necesidad de devolver la confianza al mercado inmobiliario. Nacimos en la Patagonia con una visión clara: transformar cada operación en una relación a largo plazo.
+                <p className="text-white/90 text-[17px] md:text-[19px] mb-6 font-light leading-relaxed">
+                  En Roma combinamos una visión inmobiliaria moderna con un entendimiento integral de la actividad agropecuaria. Nuestra propuesta nace de la fusión entre el conocimiento técnico del mercado y el análisis preciso de la capacidad productiva de cada establecimiento.
                 </p>
-                <p className="text-white/60 text-[14px] md:text-[16px] mb-10 font-light leading-relaxed">
-                  Para nosotros, un campo o una propiedad no es solo un terreno; es el escenario donde construirás tu futuro. Por eso, acompañamos a cada cliente con la honestidad y el arraigo que solo nuestra tierra puede inspirar.
+                <p className="text-white/70 text-[15px] md:text-[17px] mb-10 font-light leading-relaxed">
+                  Comprendemos la dinámica de los suelos, los ciclos de producción y la estructura de costos de la región. Esto nos permite evaluar cada campo o propiedad no solo por su valor de mercado, sino por su verdadero potencial de rentabilidad y trascendencia patrimonial.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-8 pt-4">
                   <div className="flex-1">
-                    <h3 className="text-roma-leaf text-[11px] uppercase font-semibold tracking-widest mb-2">Presencia Regional</h3>
-                    <p className="text-white/70 text-[13px] font-light leading-relaxed">Conocimiento profundo del territorio y las necesidades de nuestra gente.</p>
+                    <h3 className="text-roma-leaf text-[11px] uppercase font-semibold tracking-widest mb-2">Saber Agroinmobiliario</h3>
+                    <p className="text-white/70 text-[13px] font-light leading-relaxed">Especialización en la tasación y desarrollo de establecimientos rurales y activos de valor.</p>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-roma-leaf text-[11px] uppercase font-semibold tracking-widest mb-2">Compromiso Real</h3>
-                    <p className="text-white/70 text-[13px] font-light leading-relaxed">Relaciones basadas en la confianza y la transparencia absoluta.</p>
+                    <h3 className="text-roma-leaf text-[11px] uppercase font-semibold tracking-widest mb-2">Visión Estratégica</h3>
+                    <p className="text-white/70 text-[13px] font-light leading-relaxed">Asesoramiento fundamentado en proyecciones productivas, análisis financiero y solvencia profesional.</p>
                   </div>
                 </div>
               </motion.div>
@@ -650,29 +686,33 @@ export default function Landing() {
           </motion.div>
         </section>
 
-        {/* ═══ CTA OVALADO MARKETINERO ═══ */}
-        <section className="relative z-10 pb-40 px-6">
+        {/* ═══ CTA SECCIÓN PRINCIPAL ═══ */}
+        <section className="relative z-10 pt-10 pb-40 px-6 flex flex-col justify-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: EASE }}
-            className="max-w-3xl mx-auto bg-gradient-to-br from-roma-olive to-[#1a2c1a] border border-white/20 rounded-[2rem] sm:rounded-[3rem] p-8 md:p-12 text-center shadow-2xl relative overflow-hidden"
+            className="max-w-4xl mx-auto w-full text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={stagger}
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-white/5 blur-3xl rounded-full pointer-events-none" />
-
-            <h2 className="text-2xl md:text-3xl font-semibold text-white mb-3 tracking-tight relative z-10">
-              El momento de asegurar tu futuro es hoy.
-            </h2>
-            <p className="text-white/80 text-[14px] md:text-[15px] mb-8 max-w-lg mx-auto font-light relative z-10">
-              Descubrí propiedades exclusivas y oportunidades de inversión únicas en la Patagonia.
-            </p>
-            <Link
-              to="/propiedades"
-              className="relative z-10 inline-block bg-white text-roma-olive px-8 py-3.5 rounded-full font-semibold text-[12px] uppercase tracking-widest shadow-lg hover:scale-105 transition-transform duration-300"
-            >
-              Elegí tu próxima inversión
-            </Link>
+            <motion.div variants={fadeUp}>
+              <p className="text-roma-leaf text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.25em] mb-4">
+                Inversión Patrimonial
+              </p>
+              <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-md mb-6 max-w-3xl mx-auto leading-tight">
+                El momento de asegurar tu futuro es hoy
+              </h2>
+              <p className="text-white/80 text-base md:text-lg font-light leading-relaxed max-w-2xl mx-auto mb-10">
+                Descubrí propiedades exclusivas y oportunidades de inversión únicas en la Patagonia con nuestro acompañamiento estratégico.
+              </p>
+              <Link
+                to="/propiedades"
+                className="inline-flex items-center gap-3 bg-roma-olive hover:bg-roma-olive/90 text-white px-9 py-4 rounded-full font-semibold text-xs uppercase tracking-widest shadow-2xl transition-all duration-300 hover:scale-105 border border-white/10"
+              >
+                <span>Elegí tu próxima inversión</span>
+                <span className="material-icons text-sm">arrow_forward</span>
+              </Link>
+            </motion.div>
           </motion.div>
         </section>
 
