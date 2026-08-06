@@ -1,11 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 
-const clean = (val?: string) => {
-  if (!val || typeof val !== 'string') return '';
-  return val.trim().replace(/^["']|["']$/g, '');
+const clean = (val?: any): string => {
+  if (!val) return '';
+  const str = String(val).trim();
+  return str.replace(/^["']|["']$/g, '').trim();
 };
 
-const supabaseUrl = clean(import.meta.env.VITE_SUPABASE_URL) || 'https://jeznwwmynpozkjruuzcr.supabase.co';
-const supabaseKey = clean(import.meta.env.VITE_SUPABASE_ANON_KEY) || 'sb_publishable_Ppf8yVnmYIaAiDuMxKCe0Q_s6l3Gw4Y';
+const urlFromEnv = clean(import.meta.env.VITE_SUPABASE_URL);
+const keyFromEnv = clean(import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = urlFromEnv || 'https://jeznwwmynpozkjruuzcr.supabase.co';
+const supabaseKey = keyFromEnv || 'sb_publishable_Ppf8yVnmYIaAiDuMxKCe0Q_s6l3Gw4Y';
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      'apikey': supabaseKey,
+    },
+  },
+});
