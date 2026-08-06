@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
   MapPin, WhatsappLogo, HouseLine, Ruler,
   Bed, Buildings, Tree, Storefront, ArrowLeft, Bathtub,
-  CaretLeft, CaretRight
+  CaretLeft, CaretRight, X,
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/ui/PageLoader';
@@ -36,6 +36,23 @@ function IconoTipo({ tipo, size = 20 }: { tipo: string; size?: number }) {
   }
 }
 
+function KeyboardLightbox({ active, total, onClose, onNext, onPrev }: {
+  active: boolean; total: number;
+  onClose: () => void; onNext: () => void; onPrev: () => void;
+}) {
+  useEffect(() => {
+    if (!active || total === 0) return;
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') onNext();
+      if (e.key === 'ArrowLeft') onPrev();
+    };
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, [active, total, onClose, onNext, onPrev]);
+  return null;
+}
+
 export default function PropiedadDetalle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -45,34 +62,8 @@ export default function PropiedadDetalle() {
   const [showScreenLoader, setShowScreenLoader] = useState(true);
   const [imagenIndex, setImagenIndex] = useState(0);
 
-  const nextImagen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setImagenIndex((prev) => (prev + 1) % imagenes.length);
-  };
-
-  const prevImagen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setImagenIndex((prev) => (prev - 1 + imagenes.length) % imagenes.length);
-  };
-
-  const nextImagenModal = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (imagenModalIndex !== null) {
-      setImagenModalIndex((prev) => (prev! + 1) % imagenes.length);
-    }
-  };
-
-  const prevImagenModal = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (imagenModalIndex !== null) {
-      setImagenModalIndex((prev) => (prev! - 1 + imagenes.length) % imagenes.length);
-    }
-  };
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowScreenLoader(false);
-    }, 2000);
+    const timer = setTimeout(() => setShowScreenLoader(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -85,20 +76,14 @@ export default function PropiedadDetalle() {
         .select('*')
         .eq('id', id)
         .single();
-        
-      if (error) {
-        console.error("Error fetching property:", error);
-      } else {
-        setPropiedad(data);
-      }
+      if (error) console.error('Error fetching property:', error);
+      else setPropiedad(data);
       setLoading(false);
     };
     if (id) fetchPropiedad();
   }, [id]);
 
-  if (loading || showScreenLoader) {
-    return <PageLoader />;
-  }
+  if (loading || showScreenLoader) return <PageLoader />;
 
   if (!propiedad) {
     return (
@@ -111,289 +96,240 @@ export default function PropiedadDetalle() {
     );
   }
 
-  const imagenes = propiedad.media_urls?.length 
-    ? propiedad.media_urls 
-    : propiedad.imagenes?.length 
-      ? propiedad.imagenes 
-      : [propiedad.imagen_url].filter(Boolean) as string[];
+  const imagenes: string[] = propiedad.media_urls?.length
+    ? propiedad.media_urls
+    : propiedad.imagenes?.length
+      ? propiedad.imagenes
+      : ([propiedad.imagen_url].filter(Boolean) as string[]);
+
+  const esCasaDepto = ['casa', 'departamento'].includes(propiedad.tipo_propiedad?.toLowerCase());
+  const esCampo = propiedad.tipo_propiedad?.toLowerCase() === 'campo';
+  const esLote = ['lote', 'terreno', 'local'].includes(propiedad.tipo_propiedad?.toLowerCase());
+
+  const dims = propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones;
+  const habs = propiedad.habitaciones || propiedad.atributos_especificos?.habitaciones;
+  const bns  = propiedad.banos || propiedad.atributos_especificos?.banos;
+  const tipoCampo = propiedad.atributos_especificos?.tipo_campo;
+
+  const nextImagen = (e: React.MouseEvent) => { e.stopPropagation(); setImagenIndex((p) => (p + 1) % imagenes.length); };
+  const prevImagen = (e: React.MouseEvent) => { e.stopPropagation(); setImagenIndex((p) => (p - 1 + imagenes.length) % imagenes.length); };
+  const nextModal  = (e: React.MouseEvent) => { e.stopPropagation(); setImagenModalIndex((p) => (p! + 1) % imagenes.length); };
+  const prevModal  = (e: React.MouseEvent) => { e.stopPropagation(); setImagenModalIndex((p) => (p! - 1 + imagenes.length) % imagenes.length); };
 
   return (
     <div className="min-h-screen font-['Inter',system-ui,sans-serif] text-white relative overflow-x-hidden">
-      
-      {/* Fondo Fijo */}
-      <div
-        className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/fondo-campo.png')", backgroundAttachment: 'fixed' }}
-      />
 
-      {/* HEADER */}
+      {/* Fondo fijo */}
+      <div className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondo-campo.png')", backgroundAttachment: 'fixed' }} />
+      <div className="fixed inset-0 z-[-1] bg-black/30" />
+
+      {/* Header */}
       <header className="absolute top-0 left-0 w-full z-50 h-24 bg-transparent flex items-center px-6">
-        <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-between">
-          <Link
-            to="/propiedades"
-            className="flex items-center gap-2 text-white bg-black/20 hover:bg-black/40 px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[12px] font-light tracking-wide transition-colors"
-          >
-            <ArrowLeft size={16} weight="light" /> <span>Volver al catálogo</span>
+        <div className="max-w-screen-xl mx-auto w-full flex items-center justify-between">
+          <Link to="/propiedades" className="flex items-center gap-2 text-white bg-black/20 hover:bg-black/40 px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[12px] font-light tracking-wide transition-colors">
+            <ArrowLeft size={16} weight="light" /><span>Volver al catálogo</span>
           </Link>
           <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[7rem] h-auto object-contain opacity-90" />
         </div>
       </header>
 
-      <main className="pt-28 pb-20 px-4 lg:px-8 max-w-screen-2xl mx-auto flex flex-col gap-6 relative z-10">
-        
-        {/* TÍTULO PRINCIPAL Y UBICACIÓN */}
-        <section className="w-full">
-          <span className="bg-white/20 text-white px-4 py-1.5 rounded-full text-[10px] font-medium tracking-widest uppercase mb-4 inline-block">
+      <main className="pt-28 pb-24 px-4 lg:px-8 max-w-screen-xl mx-auto flex flex-col gap-8 relative z-10">
+
+        {/* ══ BLOQUE 1: Título + Ubicación ══ */}
+        <section>
+          <span className="bg-white/15 backdrop-blur-sm text-white/90 px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-widest uppercase mb-4 inline-block border border-white/10">
             {propiedad.operacion}
           </span>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight mb-4 drop-shadow-md">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight tracking-tight mb-3 drop-shadow-md">
             {propiedad.titulo}
           </h1>
-          <div className="flex items-center gap-2 text-white/70 text-[14px] md:text-[16px] font-light">
-            <MapPin size={20} weight="light" className="text-white/60" />
-            {propiedad.ubicacion}
+          <div className="flex items-center gap-2 text-white/60 text-[14px] font-light">
+            <MapPin size={16} weight="light" />{propiedad.ubicacion}
           </div>
         </section>
 
-        {/* SECCIÓN DE IMÁGENES (FULL WIDTH) */}
-        <section className="w-full h-[45vh] lg:h-[70vh] rounded-[2rem] overflow-hidden flex gap-2 md:gap-3 shrink-0 shadow-2xl mb-4">
-          {imagenes.length === 0 ? (
-            <div className="w-full h-full bg-black/30 backdrop-blur-md flex flex-col items-center justify-center text-white/40">
-               <IconoTipo tipo={propiedad.tipo_propiedad} size={100} />
-               <p className="mt-4 uppercase tracking-[0.2em] text-xs">Sin imágenes</p>
+        {/* ══ BLOQUE 2: Galería + Precio ══ */}
+        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 lg:gap-8 items-start">
+
+          {/* Galería: miniaturas verticales a la izquierda + imagen principal */}
+          <div className="flex flex-col-reverse lg:flex-row gap-3 items-start">
+
+            {/* Miniaturas verticales a la izquierda con scroll suave, sin scrollbar visual y con mask fade */}
+            {imagenes.length > 1 && (
+              <ThumbnailList
+                imagenes={imagenes}
+                imagenIndex={imagenIndex}
+                onSelect={setImagenIndex}
+              />
+            )}
+
+            {/* Imagen principal — altura fija de 440px en desktop */}
+            <div
+              className="flex-1 w-full h-[260px] sm:h-[360px] lg:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer bg-black/30 border border-white/10 backdrop-blur-xl shadow-2xl"
+              onClick={() => setImagenModalIndex(imagenIndex)}
+            >
+              {imagenes.length === 0 ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-white/40">
+                  <IconoTipo tipo={propiedad.tipo_propiedad} size={72} />
+                  <p className="mt-4 uppercase tracking-[0.2em] text-xs font-medium">Sin imágenes</p>
+                </div>
+              ) : (
+                <>
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={imagenIndex}
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      src={imagenes[imagenIndex]}
+                      alt={propiedad.titulo}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </AnimatePresence>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
+
+                  {imagenes.length > 1 && (
+                    <div className="absolute inset-y-0 w-full flex items-center justify-between px-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                      <button onClick={prevImagen} className="pointer-events-auto bg-black/40 hover:bg-black/70 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all" aria-label="Anterior">
+                        <CaretLeft size={18} weight="light" />
+                      </button>
+                      <button onClick={nextImagen} className="pointer-events-auto bg-black/40 hover:bg-black/70 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all" aria-label="Siguiente">
+                        <CaretRight size={18} weight="light" />
+                      </button>
+                    </div>
+                  )}
+
+                  {imagenes.length > 1 && (
+                    <div className="absolute bottom-3 right-3 z-20 bg-black/55 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-white/75 text-[11px] font-mono pointer-events-none">
+                      {imagenIndex + 1}/{imagenes.length}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          ) : imagenes.length === 1 ? (
-             <div 
-               className="w-full h-full cursor-pointer relative group overflow-hidden bg-black/30"
-               onClick={() => setImagenModalIndex(0)}
-             >
-               <img src={imagenes[0]} alt={propiedad.titulo} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-             </div>
-          ) : (
-            <>
-              {/* Imagen principal */}
-              <div 
-                className="w-[70%] md:w-[75%] h-full cursor-pointer relative group overflow-hidden bg-black/30 flex items-center justify-center"
-                onClick={() => setImagenModalIndex(imagenIndex)}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.img 
-                    key={imagenIndex}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    src={imagenes[imagenIndex]} 
-                    alt={propiedad.titulo} 
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                  />
-                </AnimatePresence>
-                
-                <div className="absolute inset-y-0 w-full flex items-center justify-between px-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button
-                    onClick={prevImagen}
-                    className="bg-black/40 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-md border border-white/20 transition-all"
-                  >
-                    <CaretLeft size={20} weight="light" />
-                  </button>
-                  <button
-                    onClick={nextImagen}
-                    className="bg-black/40 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-md border border-white/20 transition-all"
-                  >
-                    <CaretRight size={20} weight="light" />
-                  </button>
+          </div>
+
+          {/* Precio y datos — altura fija igual a la imagen */}
+          <div className="w-full h-auto lg:h-[440px] flex flex-col">
+            <div className="bg-black/35 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full justify-between">
+
+              <div className="p-7 pb-5">
+                <div className="flex items-center gap-2 text-white/45 text-[11px] font-light mb-3 uppercase tracking-wider">
+                  <IconoTipo tipo={propiedad.tipo_propiedad} size={13} />
+                  <span className="capitalize">{propiedad.tipo_propiedad}</span>
+                  <span className="text-white/20">·</span>
+                  <span className="capitalize">{propiedad.operacion}</span>
+                </div>
+                <div className="text-[32px] lg:text-[36px] font-light text-white tracking-tight leading-none">
+                  USD {propiedad.precio.toLocaleString('es-AR')}
                 </div>
               </div>
-              
-              {/* Imágenes secundarias */}
-              <div className="w-[30%] md:w-[25%] h-full flex flex-col gap-2 md:gap-3">
-                {imagenes.slice(1, 3).map((img, idx) => (
-                  <div 
-                    key={idx} 
-                    className="flex-1 cursor-pointer relative group overflow-hidden bg-black/30 rounded-lg md:rounded-xl"
-                    onClick={() => setImagenModalIndex(idx + 1)}
-                  >
-                    <img src={img} alt={`${propiedad.titulo} ${idx + 2}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                    {idx === 1 && imagenes.length > 3 && (
-                      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="text-white text-lg md:text-2xl font-light tracking-widest uppercase">
-                          +{imagenes.length - 3}
-                        </span>
+
+              {(esCasaDepto || esCampo || esLote) && (habs || bns || dims || tipoCampo) && (
+                <>
+                  <div className="h-[1px] bg-white/10 mx-7" />
+                  <div className="px-7 py-5 flex flex-col gap-3.5">
+                    {esCasaDepto && habs && (
+                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                        <Bed size={18} weight="light" className="text-white/40 shrink-0" />
+                        <span>{habs} habitaciones</span>
+                      </div>
+                    )}
+                    {esCasaDepto && bns && (
+                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                        <Bathtub size={18} weight="light" className="text-white/40 shrink-0" />
+                        <span>{bns} baños</span>
+                      </div>
+                    )}
+                    {dims && (
+                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                        <Ruler size={18} weight="light" className="text-white/40 shrink-0" />
+                        <span>{dims}{esCampo ? ' Ha' : ''}</span>
+                      </div>
+                    )}
+                    {esCampo && tipoCampo && (
+                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                        <Tree size={18} weight="light" className="text-white/40 shrink-0" />
+                        <span className="capitalize">{tipoCampo}</span>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            </>
-          )}
-        </section>
+                </>
+              )}
 
-        {/* SECCIÓN INFERIOR: Descripción + Detalles y Precio */}
-        <section className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full items-stretch">
-          
-          {/* Izquierda: Detalles */}
-          <div className="lg:w-[65%] flex flex-col gap-8">
-            <div className="flex flex-col bg-black/30 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl h-full">
-              <div className="border-b border-white/10 px-8 py-5">
-                <h3 className="text-[13px] font-bold tracking-widest uppercase text-white">
-                  Descripción
-                </h3>
-              </div>
-
-              <div className="p-8">
-                <p className="text-white leading-relaxed text-[15px] font-bold whitespace-pre-wrap mb-8">
-                  {propiedad.descripcion || 'Consultanos para recibir la ficha técnica completa y detalles específicos de esta propiedad.'}
-                </p>
-
-                <div className="w-full h-[1px] bg-white/10 my-6" />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2">
-                  {['casa', 'departamento'].includes(propiedad.tipo_propiedad?.toLowerCase()) && (
-                    <>
-                      {(propiedad.habitaciones || propiedad.atributos_especificos?.habitaciones) && (
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">Habitaciones</span>
-                          <div className="flex items-center gap-2 text-white text-[15px] font-bold">
-                            <Bed size={20} weight="light" className="text-white/70" />
-                            <span>{propiedad.habitaciones || propiedad.atributos_especificos?.habitaciones} habitaciones</span>
-                          </div>
-                        </div>
-                      )}
-                      {(propiedad.banos || propiedad.atributos_especificos?.banos) && (
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">Baños</span>
-                          <div className="flex items-center gap-2 text-white text-[15px] font-bold">
-                            <Bathtub size={20} weight="light" className="text-white/70" />
-                            <span>{propiedad.banos || propiedad.atributos_especificos?.banos} baños</span>
-                          </div>
-                        </div>
-                      )}
-                      {(propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones) && (
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">Superficie</span>
-                          <div className="flex items-center gap-2 text-white text-[15px] font-bold">
-                            <Ruler size={20} weight="light" className="text-white/70" />
-                            <span>{propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones}</span>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {propiedad.tipo_propiedad?.toLowerCase() === 'campo' && (
-                    <>
-                      {(propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones) && (
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">Hectáreas</span>
-                          <div className="flex items-center gap-2 text-white text-[15px] font-bold">
-                            <Ruler size={20} weight="light" className="text-white/70" />
-                            <span>{propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones} Ha</span>
-                          </div>
-                        </div>
-                      )}
-                      {propiedad.atributos_especificos?.tipo_campo && (
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">Tipo de Campo</span>
-                          <div className="flex items-center gap-2 text-white text-[15px] font-bold">
-                            <Tree size={20} weight="light" className="text-white/70" />
-                            <span className="capitalize">{propiedad.atributos_especificos.tipo_campo}</span>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {['lote', 'terreno', 'local'].includes(propiedad.tipo_propiedad?.toLowerCase()) && (propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones) && (
-                    <div className="flex flex-col gap-1.5">
-                      <span className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">Superficie</span>
-                      <div className="flex items-center gap-2 text-white text-[15px] font-bold">
-                        <Ruler size={20} weight="light" className="text-white/70" />
-                        <span>{propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="px-7 pb-7 mt-auto">
+                <div className="h-[1px] bg-white/10 mb-5" />
+                <a
+                  href={`https://wa.me/5492920123456?text=Hola, me interesa la propiedad: *${propiedad.titulo}* (ID: ${propiedad.id}). ¿Podrían darme más información?`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-white/90 text-roma-olive px-6 py-4 rounded-xl font-bold uppercase tracking-[0.1em] text-[13px] transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                >
+                  <WhatsappLogo size={22} weight="light" />Contactar Asesor
+                </a>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Derecha: Precio y Contacto (Sticky Sidebar) */}
-          <div className="lg:w-[35%] flex flex-col">
-            <div className="bg-black/30 backdrop-blur-xl border border-white/10 p-8 rounded-3xl flex flex-col gap-8 shadow-2xl sticky top-28 h-full">
-              <div>
-                <span className="text-[10px] font-medium tracking-[0.3em] text-white/60 uppercase mb-3 block">
-                  Valor
-                </span>
-                <div className="text-[38px] lg:text-[42px] font-light text-white tracking-tight leading-none mb-4">
-                  USD {propiedad.precio.toLocaleString('es-AR')}
-                </div>
-                <div className="flex items-center gap-2 text-white/50 text-[12px] font-light">
-                  <IconoTipo tipo={propiedad.tipo_propiedad} size={14} />
-                  <span className="capitalize">{propiedad.tipo_propiedad}</span>
-                </div>
-              </div>
-
-              <div className="w-full h-[1px] bg-white/10" />
-
-              <a
-                href={`https://wa.me/5492920123456?text=Hola, me interesa la propiedad: *${propiedad.titulo}* (ID: ${propiedad.id}). ¿Podrían darme más información?`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-3 bg-white hover:bg-white/90 text-roma-olive px-6 py-4 rounded-xl font-bold uppercase tracking-[0.1em] text-[13px] transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-              >
-                <WhatsappLogo size={22} weight="light" /> Contactar Asesor
-              </a>
+        {/* ══ BLOQUE 3: Descripción ══ */}
+        <section className="w-full">
+          <div className="bg-black/30 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+            <div className="border-b border-white/10 px-8 py-5">
+              <h2 className="text-[12px] font-semibold tracking-widest uppercase text-white/55">Descripción</h2>
+            </div>
+            <div className="p-8 lg:p-10">
+              <p className="text-white/85 leading-[1.9] text-[15px] lg:text-[16px] font-normal whitespace-pre-wrap max-w-4xl">
+                {propiedad.descripcion || 'Consultanos para recibir la ficha técnica completa y detalles específicos de esta propiedad.'}
+              </p>
             </div>
           </div>
         </section>
+
       </main>
 
-      {/* LIGHTBOX DE IMÁGENES COMPLETO */}
+      {/* Lightbox */}
       <AnimatePresence>
         {imagenModalIndex !== null && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center"
+            onClick={() => setImagenModalIndex(null)}
           >
-            <button 
-              onClick={() => setImagenModalIndex(null)}
-              className="absolute top-6 right-6 text-white/70 hover:text-white p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-50"
-            >
-              <ArrowLeft size={24} weight="light" className="rotate-180" />
+            <button onClick={() => setImagenModalIndex(null)} className="absolute top-5 right-5 text-white/70 hover:text-white p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-50" aria-label="Cerrar">
+              <X size={22} weight="light" />
             </button>
-            
+
+            <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-md text-white/55 text-[12px] font-mono px-3 py-1.5 rounded-full border border-white/10 z-50">
+              {imagenModalIndex + 1} / {imagenes.length}
+            </div>
+
             {imagenes.length > 1 && (
-              <div className="absolute inset-y-0 w-full flex items-center justify-between px-6 z-10">
-                <button
-                  onClick={prevImagenModal}
-                  className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all"
-                >
+              <div className="absolute inset-y-0 w-full flex items-center justify-between px-5 z-10 pointer-events-none">
+                <button onClick={prevModal} className="pointer-events-auto bg-white/10 hover:bg-white/25 text-white p-3 rounded-full transition-all" aria-label="Anterior">
                   <CaretLeft size={24} weight="light" />
                 </button>
-                <button
-                  onClick={nextImagenModal}
-                  className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all"
-                >
+                <button onClick={nextModal} className="pointer-events-auto bg-white/10 hover:bg-white/25 text-white p-3 rounded-full transition-all" aria-label="Siguiente">
                   <CaretRight size={24} weight="light" />
                 </button>
               </div>
             )}
-            
-            <img 
-              src={imagenes[imagenModalIndex]} 
-              alt="Propiedad" 
-              className="max-w-[85vw] max-h-[85vh] object-contain z-0"
+
+            <img
+              src={imagenes[imagenModalIndex]}
+              alt={propiedad.titulo}
+              className="max-w-[88vw] max-h-[88vh] object-contain z-0 rounded-xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             />
-            
+
             {imagenes.length > 1 && (
-              <div className="absolute bottom-10 left-0 right-0 flex justify-center gap-2 z-10">
+              <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-10">
                 {imagenes.map((_, idx) => (
-                  <button 
+                  <button
                     key={idx}
-                    onClick={() => setImagenModalIndex(idx)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all ${idx === imagenModalIndex ? 'bg-white scale-125' : 'bg-white/30 hover:bg-white/50'}`}
+                    onClick={(e) => { e.stopPropagation(); setImagenModalIndex(idx); }}
+                    className={`w-2 h-2 rounded-full transition-all ${idx === imagenModalIndex ? 'bg-white scale-125' : 'bg-white/30 hover:bg-white/60'}`}
+                    aria-label={`Foto ${idx + 1}`}
                   />
                 ))}
               </div>
@@ -401,6 +337,120 @@ export default function PropiedadDetalle() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <KeyboardLightbox
+        active={imagenModalIndex !== null}
+        total={imagenes.length}
+        onClose={() => setImagenModalIndex(null)}
+        onNext={() => setImagenModalIndex((p) => p !== null ? (p + 1) % imagenes.length : 0)}
+        onPrev={() => setImagenModalIndex((p) => p !== null ? (p - 1 + imagenes.length) % imagenes.length : 0)}
+      />
     </div>
   );
 }
+
+/** Componente de lista de miniaturas con scroll automático, scrollbar oculto y mask fade */
+function ThumbnailList({
+  imagenes,
+  imagenIndex,
+  onSelect,
+}: {
+  imagenes: string[];
+  imagenIndex: number;
+  onSelect: (idx: number) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    const el = itemsRef.current[imagenIndex];
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+  }, [imagenIndex]);
+
+  // Aislar 100% los eventos de wheel y touch en el contenedor para que NUNCA scroollee la página estando encima de las miniaturas
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      if (window.innerWidth >= 1024) {
+        container.scrollTop += e.deltaY;
+      } else {
+        container.scrollLeft += (e.deltaX || e.deltaY);
+      }
+    };
+
+    let startY = 0;
+    let startX = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.stopPropagation();
+      if (window.innerWidth >= 1024) {
+        const deltaY = startY - e.touches[0].clientY;
+        container.scrollTop += deltaY;
+        startY = e.touches[0].clientY;
+        e.preventDefault();
+      } else {
+        const deltaX = startX - e.touches[0].clientX;
+        container.scrollLeft += deltaX;
+        startX = e.touches[0].clientX;
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="shrink-0 w-full lg:w-[76px] h-auto lg:h-[440px] overflow-x-auto lg:overflow-y-auto py-2 no-scrollbar overscroll-contain touch-pan-y"
+      style={{
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
+        maskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
+      }}
+    >
+      <div className="flex flex-row lg:flex-col gap-2">
+        {imagenes.map((img, idx) => (
+          <button
+            key={idx}
+            ref={(el) => { itemsRef.current[idx] = el; }}
+            onClick={() => onSelect(idx)}
+            className={`relative shrink-0 w-16 h-16 lg:w-[76px] lg:h-[76px] rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+              idx === imagenIndex
+                ? 'border-white shadow-lg opacity-100 scale-[1.02]'
+                : 'border-white/10 opacity-50 hover:opacity-80 hover:border-white/40'
+            }`}
+            aria-label={`Foto ${idx + 1}`}
+          >
+            <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
