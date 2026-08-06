@@ -148,8 +148,7 @@ export default function Catalogo() {
 
       const { data, error } = await supabase
         .from('propiedades')
-        .select('*')
-        .eq('estado', 'publicado');
+        .select('*');
 
       if (error) {
         console.error('Error fetching propiedades:', error);
@@ -157,7 +156,7 @@ export default function Catalogo() {
         return;
       }
 
-      let result: Propiedad[] = data ?? [];
+      let result: Propiedad[] = (data ?? []).filter(p => !p.estado || p.estado === 'publicado');
 
       // 1. Filtro por Tipo de Propiedad
       if (filtroTipo !== 'Todos') {
