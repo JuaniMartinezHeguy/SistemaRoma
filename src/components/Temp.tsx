@@ -1,22 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { Home, Tractor, Map, Camera, Instagram, User, Gavel } from 'lucide-react';
-import { JeepIcon } from '@phosphor-icons/react';
+import { Instagram, User } from 'lucide-react';
 import PageLoader from './ui/PageLoader';
 import HeroServicesMenu from './HeroServicesMenu';
 import TasacionesSection from './TasacionesSection';
 
 // ─── CONSTANTES DE DATOS ────────────────────────────────────────────────────────
-
-const SERVICIOS = [
-  { icon: Home, image: '/casas.webp', title: 'Propiedades', desc: 'Venta y alquiler de casas y departamentos urbanos, con acompañamiento profesional integral en cada etapa de tu operación.', link: '/propiedades' },
-  { icon: Tractor, image: '/campos.webp', title: 'Campos', desc: 'Comercialización de extensiones agrícolas y ganaderas de alto rendimiento productivo.', link: '/propiedades?tipo=Campo' },
-  { icon: Map, image: '/lotes.webp', title: 'Terrenos', desc: 'Lotes estratégicos, listos para escriturar, invertir y construir tu futuro desde cero.', link: '/propiedades?tipo=Terreno' },
-  { icon: Camera, image: '/vistas.webp', title: 'Vista Aérea', desc: 'Relevamiento con drones para visualizar y evaluar campos o terrenos desde el aire.' },
-  { icon: JeepIcon, image: '/camioneta.webp', title: 'Asesoramiento', desc: 'Te asesoramos estratégicamente en la selección de tu próximo campo o propiedad, analizando su verdadero potencial e inversión.' },
-  { icon: Gavel, image: '/remate.webp', imageClass: 'object-top', title: 'Remates', desc: 'Gestión y organización de remates ganaderos con más de 10 remates exitosos, brindando las mejores oportunidades.' },
-];
 
 const SEDES = [
   { nombre: 'Villalonga', direccion: 'Los Pozos 31', url: 'https://maps.google.com/maps?q=-39.9161537,-62.6215767&t=k&z=18&ie=UTF8&iwloc=&output=embed' },
