@@ -4,7 +4,8 @@ import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence }
 import { Home, Tractor, Map, Camera, Instagram, User, Gavel } from 'lucide-react';
 import { JeepIcon } from '@phosphor-icons/react';
 import PageLoader from './ui/PageLoader';
-import AccordionGallery from './ui/AccordionGallery';
+import HeroServicesMenu from './HeroServicesMenu';
+import TasacionesSection from './TasacionesSection';
 
 // ─── CONSTANTES DE DATOS ────────────────────────────────────────────────────────
 
@@ -93,7 +94,7 @@ export default function Landing() {
   // ScrollSpy preciso basado en la posición en pantalla (getBoundingClientRect)
   useEffect(() => {
     const handleScroll = () => {
-      const sectionIds = ['inicio', 'servicios', 'ubicaciones', 'equipo'];
+      const sectionIds = ['inicio', 'servicios', 'tasaciones', 'ubicaciones', 'equipo'];
       const scrollPosition = window.scrollY;
       const windowHeight = window.innerHeight;
 
@@ -164,6 +165,7 @@ export default function Landing() {
   const NAV_ITEMS = [
     { id: 'inicio', href: '#inicio', label: 'Inicio' },
     { id: 'servicios', href: '#servicios', label: 'Servicios' },
+    { id: 'tasaciones', href: '#tasaciones', label: 'Tasaciones' },
     { id: 'ubicaciones', href: '#ubicaciones', label: 'Sedes' },
     { id: 'equipo', href: '#equipo', label: 'Equipo' },
   ];
@@ -362,35 +364,11 @@ export default function Landing() {
           </motion.div>
         </div>
 
-        {/* ═══ SERVICIOS ═══ */}
-        <section id="servicios" className="relative z-10 min-h-screen pt-28 pb-40 px-6 flex flex-col justify-center">
-          <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
+        {/* ═══ SERVICIOS (MENÚ HERO 4 PANELES 100VH) ═══ */}
+        <HeroServicesMenu />
 
-            <motion.div variants={fadeUp} className="text-center mb-16">
-              <p className="text-roma-leaf text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.25em] mb-4">Lo que hacemos</p>
-              <h2 className="text-5xl md:text-6xl font-bold text-white tracking-tight drop-shadow-md">Nuestros Servicios</h2>
-            </motion.div>
-
-            <motion.div variants={fadeUp} className="w-full">
-              <AccordionGallery
-                items={SERVICIOS}
-                defaultIndex={0}
-                accentColor="var(--color-roma-leaf, #5B8A61)"
-                overlayColor="var(--color-roma-dark, #1A241A)"
-                textColor="#ffffff"
-                grayscale={false}
-                showLabels={true}
-                duration={0.6}
-                ease="power3.out"
-                trigger="hover"
-                height={540}
-                gap={12}
-                radius={24}
-                expandRatio={0.45}
-              />
-            </motion.div>
-          </motion.div>
-        </section>
+        {/* ═══ SECCIÓN DE TASACIONES ═══ */}
+        <TasacionesSection />
 
         {/* ═══ SEDES ═══ */}
         <section id="ubicaciones" className="relative z-10 pt-32 pb-40 px-6">
@@ -398,7 +376,7 @@ export default function Landing() {
 
             <motion.div variants={fadeUp} className="text-center mb-16">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Ubicaciones</p>
-              <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">Nuestras Sedes</h2>
+              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">Nuestras Sedes</h2>
             </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[500px] items-center lg:items-stretch">
@@ -488,7 +466,7 @@ export default function Landing() {
 
             <motion.div variants={fadeUp} className="text-center mb-14">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Conocenos</p>
-              <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestro equipo</h2>
+              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestro equipo</h2>
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
@@ -529,7 +507,7 @@ export default function Landing() {
           <motion.div className="max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
             <motion.div variants={fadeUp} className="text-center mb-14">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Comunidad</p>
-              <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestras Redes</h2>
+              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestras Redes</h2>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-10 justify-items-center">
@@ -642,7 +620,7 @@ export default function Landing() {
 
             <motion.div variants={fadeUp} className="text-center mb-16">
               <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Nuestros cimientos</p>
-              <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Raíces que <span className="text-roma-leaf">trascienden</span></h2>
+              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white tracking-tight">Raíces que <span className="text-roma-leaf">trascienden</span></h2>
             </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-16 items-center">
@@ -672,11 +650,11 @@ export default function Landing() {
 
                 <div className="flex flex-col sm:flex-row gap-8 pt-4">
                   <div className="flex-1">
-                    <h3 className="text-roma-leaf text-[11px] uppercase font-semibold tracking-widest mb-2">Saber Agroinmobiliario</h3>
+                    <h3 className="font-['Cinzel',serif] text-roma-leaf text-[13px] uppercase font-semibold tracking-widest mb-2">Saber Agroinmobiliario</h3>
                     <p className="text-white/70 text-[13px] font-light leading-relaxed">Especialización en la tasación y desarrollo de establecimientos rurales y activos de valor.</p>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-roma-leaf text-[11px] uppercase font-semibold tracking-widest mb-2">Visión Estratégica</h3>
+                    <h3 className="font-['Cinzel',serif] text-roma-leaf text-[13px] uppercase font-semibold tracking-widest mb-2">Visión Estratégica</h3>
                     <p className="text-white/70 text-[13px] font-light leading-relaxed">Asesoramiento fundamentado en proyecciones productivas, análisis financiero y solvencia profesional.</p>
                   </div>
                 </div>
@@ -699,7 +677,7 @@ export default function Landing() {
               <p className="text-roma-leaf text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.25em] mb-4">
                 Inversión Patrimonial
               </p>
-              <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-md mb-6 max-w-3xl mx-auto leading-tight">
+              <h2 className="font-['Cinzel',serif] text-4xl md:text-6xl font-semibold text-white tracking-tight drop-shadow-md mb-6 max-w-3xl mx-auto leading-tight">
                 El momento de asegurar tu futuro es hoy
               </h2>
               <p className="text-white/80 text-base md:text-lg font-light leading-relaxed max-w-2xl mx-auto mb-10">
