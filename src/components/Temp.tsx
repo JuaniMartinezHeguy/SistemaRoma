@@ -5,14 +5,8 @@ import { Instagram, User } from 'lucide-react';
 import PageLoader from './ui/PageLoader';
 import HeroServicesMenu from './HeroServicesMenu';
 import TasacionesSection from './TasacionesSection';
-
-// ─── CONSTANTES DE DATOS ────────────────────────────────────────────────────────
-
-const SEDES = [
-  { nombre: 'Villalonga', direccion: 'Los Pozos 31', url: 'https://maps.google.com/maps?q=-39.9161537,-62.6215767&t=k&z=18&ie=UTF8&iwloc=&output=embed' },
-  { nombre: 'Pedro Luro', direccion: 'C. 5 N°1146', url: 'https://maps.google.com/maps?q=-39.5033084,-62.6847163&t=k&z=18&ie=UTF8&iwloc=&output=embed' },
-  { nombre: 'San Blas', direccion: 'Blvr. Wasserman 426', url: 'https://maps.google.com/maps?q=-40.555102,-62.236987&t=k&z=18&ie=UTF8&iwloc=&output=embed' },
-];
+import SedesSection from './SedesSection';
+import NuestrosCimientos from './NuestrosCimientos';
 
 const EQUIPO = [
   {
@@ -53,7 +47,6 @@ const fadeRight = { hidden: { opacity: 0, x: 50 }, visible: { opacity: 1, x: 0, 
 
 export default function Landing() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sedeActiva, setSedeActiva] = useState(0);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -360,95 +353,8 @@ export default function Landing() {
         {/* ═══ SECCIÓN DE TASACIONES ═══ */}
         <TasacionesSection />
 
-        {/* ═══ SEDES ═══ */}
-        <section id="ubicaciones" className="relative z-10 pt-32 pb-40 px-6">
-          <motion.div className="relative z-10 max-w-7xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
-
-            <motion.div variants={fadeUp} className="text-center mb-16">
-              <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Ubicaciones</p>
-              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">Nuestras Sedes</h2>
-            </motion.div>
-
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[500px] items-center lg:items-stretch">
-
-              <motion.div variants={fadeLeft} className="w-full lg:w-[35%] flex flex-col justify-center gap-3">
-                {SEDES.map((sede, index) => {
-                  const isActive = sedeActiva === index;
-                  return (
-                    <div
-                      key={index}
-                      onMouseEnter={() => setSedeActiva(index)}
-                      onClick={() => setSedeActiva(index)}
-                      className={`group p-5 rounded-[2rem] cursor-pointer transition-all duration-500 border ${isActive ? 'bg-roma-olive border-white/20 shadow-xl shadow-black/30' : 'bg-roma-olive/30 border-transparent hover:bg-roma-olive/50'}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`mt-0.5 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-500 ${isActive ? 'bg-white text-roma-olive shadow-lg' : 'bg-white/20 text-white/80 group-hover:bg-white/30 group-hover:text-white'}`}>
-                          <span className="material-icons text-[20px]">location_on</span>
-                        </div>
-                        <div>
-                          <h3 className={`text-[20px] font-medium tracking-tight mb-1 transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/90 group-hover:text-white'}`}>
-                            {sede.nombre}
-                          </h3>
-                          <p className={`text-[13px] font-light leading-relaxed transition-colors duration-500 ${isActive ? 'text-white/90' : 'text-white/70 group-hover:text-white/90'}`}>
-                            {sede.direccion}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </motion.div>
-
-              <motion.div variants={fadeRight} className="w-full lg:w-[65%]">
-                <div className="h-full min-h-[400px] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl relative bg-black/20 p-2 group">
-                  {SEDES.map((sede, index) => {
-                    const isActive = sedeActiva === index;
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={false}
-                        animate={{
-                          opacity: isActive ? 1 : 0,
-                          x: isActive ? 0 : 150,
-                          zIndex: isActive ? 10 : 0,
-                          pointerEvents: isActive ? "auto" : "none"
-                        }}
-                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute inset-2"
-                      >
-                        <iframe
-                          src={sede.url}
-                          className="w-full h-full rounded-[1.5rem] border-0 opacity-80 mix-blend-luminosity group-hover:mix-blend-normal group-hover:opacity-100 transition-all duration-700"
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          title={`Mapa de ${sede.nombre}`}
-                        />
-                      </motion.div>
-                    );
-                  })}
-
-                  {/* Etiqueta flotante del mapa animada */}
-                  <div className="absolute top-6 left-6 z-20 pointer-events-none group-hover:opacity-0 transition-opacity duration-500">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={sedeActiva}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        transition={{ duration: 0.3 }}
-                        className="bg-black/60 backdrop-blur-md border border-white/10 px-5 py-2.5 rounded-full text-white text-sm font-medium flex items-center gap-2 shadow-xl"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-roma-leaf animate-pulse"></span>
-                        Sede {SEDES[sedeActiva].nombre}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </motion.div>
-
-            </div>
-          </motion.div>
-        </section>
+        {/* ═══ SEDES Y COBERTURA TERRITORIAL ═══ */}
+        <SedesSection />
 
         {/* ═══ NUESTRO EQUIPO ═══ */}
         <section id="equipo" className="relative z-10 pt-20 pb-20 px-6">
@@ -604,55 +510,8 @@ export default function Landing() {
           </motion.div>
         </section>
 
-        {/* ═══ NUESTRAS RAÍCES ═══ */}
-        <section className="relative z-10 pt-16 pb-32 px-6 min-h-screen flex flex-col justify-center">
-          <motion.div className="relative z-10 max-w-7xl mx-auto w-full" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
-
-            <motion.div variants={fadeUp} className="text-center mb-16">
-              <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Nuestros cimientos</p>
-              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white tracking-tight">Raíces que <span className="text-roma-leaf">trascienden</span></h2>
-            </motion.div>
-
-            <div className="flex flex-col lg:flex-row gap-16 items-center">
-
-              <motion.div variants={fadeLeft} className="w-full lg:w-[50%] grid grid-cols-2 grid-rows-2 gap-4 h-[500px]">
-                <div className="col-span-2 row-span-1 md:col-span-1 md:row-span-2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl relative">
-                  <img src="/fondoRoma.jpg" alt="Roma Campo Principal" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/10" />
-                </div>
-                <div className="rounded-[2rem] overflow-hidden border border-white/10 shadow-xl relative">
-                  <img src="/fondoRoma.jpg" alt="Roma Propiedades" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/10" />
-                </div>
-                <div className="rounded-[2rem] overflow-hidden border border-white/10 shadow-xl relative">
-                  <img src="/fondoRoma.jpg" alt="Roma Equipo" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/10" />
-                </div>
-              </motion.div>
-
-              <motion.div variants={fadeRight} className="w-full lg:w-[50%] lg:pl-10 text-left">
-                <p className="text-white/90 text-[17px] md:text-[19px] mb-6 font-light leading-relaxed">
-                  En Roma combinamos una visión inmobiliaria moderna con un entendimiento integral de la actividad agropecuaria. Nuestra propuesta nace de la fusión entre el conocimiento técnico del mercado y el análisis preciso de la capacidad productiva de cada establecimiento.
-                </p>
-                <p className="text-white/70 text-[15px] md:text-[17px] mb-10 font-light leading-relaxed">
-                  Comprendemos la dinámica de los suelos, los ciclos de producción y la estructura de costos de la región. Esto nos permite evaluar cada campo o propiedad no solo por su valor de mercado, sino por su verdadero potencial de rentabilidad y trascendencia patrimonial.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-8 pt-4">
-                  <div className="flex-1">
-                    <h3 className="font-['Cinzel',serif] text-roma-leaf text-[13px] uppercase font-semibold tracking-widest mb-2">Saber Agroinmobiliario</h3>
-                    <p className="text-white/70 text-[13px] font-light leading-relaxed">Especialización en la tasación y desarrollo de establecimientos rurales y activos de valor.</p>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-['Cinzel',serif] text-roma-leaf text-[13px] uppercase font-semibold tracking-widest mb-2">Visión Estratégica</h3>
-                    <p className="text-white/70 text-[13px] font-light leading-relaxed">Asesoramiento fundamentado en proyecciones productivas, análisis financiero y solvencia profesional.</p>
-                  </div>
-                </div>
-              </motion.div>
-
-            </div>
-          </motion.div>
-        </section>
+        {/* ═══ NUESTROS CIMIENTOS ═══ */}
+        <NuestrosCimientos />
 
         {/* ═══ CTA SECCIÓN PRINCIPAL ═══ */}
         <section className="relative z-10 pt-10 pb-40 px-6 flex flex-col justify-center">
