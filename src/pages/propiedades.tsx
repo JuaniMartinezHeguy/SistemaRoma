@@ -17,6 +17,7 @@ interface Propiedad {
   tipo_propiedad: string;
   operacion: string;
   ubicacion: string;
+  coordenadas?: string;
   precio: number;
   habitaciones?: number;
   banos?: number;
@@ -261,14 +262,19 @@ export default function Catalogo() {
   };
 
   const filtrosActivos = [
-    filtroTipo !== 'Todos' && { label: filtroTipo, clear: () => setFiltroTipo('Todos') },
+    filtroTipo !== 'Todos' && { label: filtroTipo, clear: () => { setFiltroTipo('Todos'); setFiltroTipoCampo('Todos'); } },
     filtroUbicacion !== 'Todas' && { label: filtroUbicacion, clear: () => setFiltroUbicacion('Todas') },
     filtroOperacion !== 'Todas' && { label: filtroOperacion, clear: () => setFiltroOperacion('Todas') },
-    filtroTipoCampo !== 'Todos' && { label: filtroTipoCampo, clear: () => setFiltroTipoCampo('Todos') },
+    filtroTipoCampo !== 'Todos' && { label: `Campo: ${filtroTipoCampo}`, clear: () => setFiltroTipoCampo('Todos') },
     filtroHabs !== null && { label: `${filtroHabs}${filtroHabs === 4 ? '+' : ''} hab.`, clear: () => setFiltroHabs(null) },
+    busqueda.trim() !== '' && { label: `"${busqueda}"`, clear: () => setBusqueda('') },
+    (filtroPrecioMin !== '' || filtroPrecioMax !== '') && {
+      label: `USD ${filtroPrecioMin || '0'} - ${filtroPrecioMax || '∞'}`,
+      clear: () => { setFiltroPrecioMin(''); setFiltroPrecioMax(''); }
+    },
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
-  const hayFiltros = filtrosActivos.length > 0 || busqueda.trim() !== '';
+  const hayFiltros = filtrosActivos.length > 0;
 
   const precioMinimoCargado = propiedades.length > 0 ? Math.min(...propiedades.map(p => p.precio || 0)) : 0;
 
@@ -484,26 +490,26 @@ export default function Catalogo() {
       />
 
       {/* ── HEADER ABSOLUTE ── */}
-      <header className="absolute top-0 left-0 w-full z-50 h-24 bg-transparent flex items-center px-6">
+      <header className={`absolute top-0 left-0 w-full z-50 h-20 sm:h-24 bg-transparent flex items-center px-4 sm:px-6 transition-opacity duration-200 ${sidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-between">
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/"
-              className="flex items-center gap-2 text-white bg-black/20 hover:bg-black/40 px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[12px] font-light tracking-wide transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 text-white bg-black/20 hover:bg-black/40 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[11px] sm:text-[12px] font-light tracking-wide transition-colors"
             >
-              <ArrowLeft size={16} weight="light" /> <span className="hidden sm:inline">Volver al inicio</span>
+              <ArrowLeft size={14} weight="light" /> <span className="hidden sm:inline">Volver al inicio</span>
             </Link>
 
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center gap-2 text-white bg-roma-olive hover:bg-roma-olive/90 text-[12px] font-light tracking-wide border border-white/20 px-5 py-2.5 rounded-full shadow-lg transition-all"
+              className="lg:hidden flex items-center gap-1.5 sm:gap-2 text-white bg-roma-olive hover:bg-roma-olive/90 text-[11px] sm:text-[12px] font-light tracking-wide border border-white/20 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg transition-all"
             >
-              <SlidersHorizontal size={15} weight="light" /> Filtros
+              <SlidersHorizontal size={14} weight="light" /> Filtros
             </button>
           </div>
 
-          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[7rem] h-auto object-contain opacity-90" />
+          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[5.5rem] sm:w-[7rem] h-auto object-contain opacity-90" />
         </div>
       </header>
 
@@ -528,7 +534,7 @@ export default function Catalogo() {
               <motion.h1
                 animate={{ y: [0, -12, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="text-4xl md:text-6xl lg:text-[80px] font-light text-white tracking-[0.15em] uppercase text-center drop-shadow-2xl"
+                className="text-3xl sm:text-4xl md:text-6xl lg:text-[80px] font-light text-white tracking-[0.1em] sm:tracking-[0.15em] uppercase text-center drop-shadow-2xl"
               >
                 Nuestras <br className="md:hidden" /> Propiedades
               </motion.h1>
@@ -552,7 +558,7 @@ export default function Catalogo() {
         initial={{ y: "100vh", opacity: 0 }}
         animate={heroDismissed ? { y: 0, opacity: 1 } : { y: "100vh", opacity: 0 }}
         transition={{ duration: 0.8, ease: EASE }}
-        className="max-w-screen-2xl mx-auto pt-32 pb-8 px-4 lg:px-6 flex flex-col relative z-40 bg-transparent min-h-screen"
+        className="max-w-screen-2xl mx-auto pt-24 sm:pt-32 pb-8 px-3 sm:px-4 lg:px-6 flex flex-col relative z-40 bg-transparent min-h-screen"
       >
 
         {propiedadesDestacadas.length > 0 && activeDestacada && (
@@ -743,9 +749,10 @@ export default function Catalogo() {
         )}
 
         {/* ── TÍTULO CATÁLOGO Y DIVISOR (Centrados y finos) ── */}
-        <div className="w-full mb-10 pb-6 border-b border-white/10 flex flex-col items-center justify-center gap-4">
-          <HouseLine size={32} weight="light" className="text-white/80" />
-          <h2 className="text-2xl md:text-4xl font-light text-white tracking-[0.15em] uppercase text-center">
+        <div className="w-full mb-8 sm:mb-10 pb-5 sm:pb-6 border-b border-white/10 flex flex-col items-center justify-center gap-3 sm:gap-4">
+          <HouseLine size={28} weight="light" className="text-white/80 sm:hidden" />
+          <HouseLine size={32} weight="light" className="text-white/80 hidden sm:block" />
+          <h2 className="text-xl sm:text-2xl md:text-4xl font-light text-white tracking-[0.1em] sm:tracking-[0.15em] uppercase text-center">
             Catálogo de Propiedades
           </h2>
         </div>
@@ -767,19 +774,31 @@ export default function Catalogo() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setSidebarOpen(false)}
-                  className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] lg:hidden"
+                  className="fixed inset-0 z-[80] lg:hidden"
                 />
                 <motion.aside
                   initial={{ x: '-100%' }}
                   animate={{ x: 0 }}
                   exit={{ x: '-100%' }}
-                  transition={{ ease: EASE, duration: 0.4 }}
-                  className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-roma-olive border-r border-white/10 z-[70] overflow-y-auto px-6 pt-7 pb-4 lg:hidden shadow-2xl rounded-r-2xl"
+                  transition={{ ease: EASE, duration: 0.35 }}
+                  className="fixed top-0 left-0 bottom-0 w-[88%] max-w-[340px] bg-roma-olive border-r border-white/10 z-[90] overflow-y-auto px-5 sm:px-6 pt-6 pb-6 lg:hidden shadow-2xl rounded-r-3xl"
                 >
-                  <div className="flex items-center justify-between mb-6 sticky top-0 bg-roma-olive z-10 pb-2">
-                    <span className="text-[11px] font-medium tracking-[0.2em] uppercase text-white/90">Filtros</span>
-                    <button onClick={() => setSidebarOpen(false)} className="text-white hover:bg-white/10 p-2 rounded-full transition-colors">
-                      <X size={20} weight="light" />
+                  <div className="flex items-center justify-between mb-5 sticky top-0 bg-roma-olive z-20 pb-3 border-b border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setSidebarOpen(false)}
+                      className="flex items-center gap-2.5 text-white bg-black/20 hover:bg-black/30 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all shadow-md cursor-pointer"
+                    >
+                      <ArrowLeft size={16} weight="bold" />
+                      <span>Filtros</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSidebarOpen(false)}
+                      className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer border border-white/10"
+                      title="Volver"
+                    >
+                      <ArrowLeft size={16} weight="bold" />
                     </button>
                   </div>
                   {SidebarContent()}
@@ -810,21 +829,32 @@ export default function Catalogo() {
 
             {/* Pills de filtros activos */}
             {filtrosActivos.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap items-center gap-2 mb-6">
                 {filtrosActivos.map(({ label, clear }) => (
-                  <div
+                  <button
                     key={label}
-                    className="flex items-center gap-1.5 bg-white/90 text-roma-olive px-3.5 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-[0.1em]"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      clear();
+                    }}
+                    className="group inline-flex items-center gap-2 bg-white text-roma-olive hover:bg-white/90 px-3.5 py-1.5 rounded-full text-[11px] font-medium tracking-wide shadow-md transition-all hover:scale-105 cursor-pointer"
                   >
-                    {label}
-                    <button onClick={clear} className="opacity-70 hover:opacity-100 transition-opacity">
-                      <X size={12} weight="bold" />
-                    </button>
-                  </div>
+                    <span>{label}</span>
+                    <span className="w-4 h-4 rounded-full bg-roma-olive/15 group-hover:bg-roma-olive/30 flex items-center justify-center transition-colors">
+                      <X size={10} weight="bold" className="text-roma-olive" />
+                    </span>
+                  </button>
                 ))}
                 <button
-                  onClick={limpiarFiltros}
-                  className="text-white/70 hover:text-white text-[10px] font-medium uppercase tracking-[0.1em] underline underline-offset-4 transition-colors"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    limpiarFiltros();
+                  }}
+                  className="text-white/70 hover:text-white text-[11px] font-medium tracking-wide underline underline-offset-4 transition-colors cursor-pointer ml-2"
                 >
                   Limpiar todo
                 </button>
@@ -833,14 +863,14 @@ export default function Catalogo() {
 
             {/* Grilla */}
             {loading ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-2xl h-[220px] animate-pulse border border-white/10" />
+                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-[20px] sm:rounded-[24px] h-[400px] sm:h-[480px] animate-pulse border border-white/10" />
                 ))}
               </div>
             ) : propiedades.length > 0 ? (
               <motion.div
-                className="grid grid-cols-1 xl:grid-cols-2 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
                 variants={stagger}
                 initial="hidden"
                 animate="visible"
@@ -850,10 +880,10 @@ export default function Catalogo() {
                     key={prop.id}
                     variants={fadeUp}
                     onClick={() => abrirModal(prop)}
-                    className="group bg-roma-olive border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-white/30 hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row shadow-lg hover:shadow-2xl h-auto sm:h-[220px]"
+                    className="group bg-[#141d15] border border-white/10 hover:border-roma-leaf/40 rounded-[20px] sm:rounded-[24px] overflow-hidden cursor-pointer transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between"
                   >
                     {/* Imagen */}
-                    <div className="relative w-full sm:w-[40%] h-[200px] sm:h-full overflow-hidden bg-black/20 shrink-0">
+                    <div className="relative w-full h-[200px] sm:h-[250px] md:h-[260px] overflow-hidden bg-black/40 shrink-0">
                       {prop.imagen_url || (prop.media_urls && prop.media_urls.length > 0) ? (
                         <img
                           src={(prop.media_urls && prop.media_urls[0]) || prop.imagen_url}
@@ -866,69 +896,149 @@ export default function Catalogo() {
                         </div>
                       )}
 
-                      {/* Badge Venta/Alquiler */}
-                      <div className="absolute top-4 left-4 flex gap-1.5">
-                        <span className="bg-white/95 text-roma-olive text-[9px] font-semibold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm backdrop-blur-md">
-                          {prop.operacion}
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/20 pointer-events-none" />
+
+                      {/* Badges superiores izquierda */}
+                      <div className="absolute top-3.5 left-3.5 flex items-center gap-2 z-10 flex-wrap max-w-[70%]">
+                        <span className="bg-[#2a2a2a]/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl border border-white/10 shadow-sm">
+                          {prop.operacion || 'COMPRAR'}
+                        </span>
+                        {prop.destacada && (
+                          <span className="bg-roma-leaf/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border border-roma-leaf/40 shadow-sm flex items-center gap-1">
+                            <Star size={11} weight="fill" className="text-amber-300" /> DESTACADA
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Badge tipo propiedad superior derecha */}
+                      <div className="absolute top-3.5 right-3.5 z-10">
+                        <span className="bg-white/90 backdrop-blur-md text-roma-dark text-[11px] font-semibold tracking-wide px-3.5 py-1.5 rounded-xl shadow-md capitalize">
+                          {prop.tipo_propiedad}
                         </span>
                       </div>
 
-                      {/* Badge Estrella Circular */}
-                      {prop.destacada && (
-                        <div className="absolute top-4 right-4 z-10 bg-amber-400 text-white w-7 h-7 flex items-center justify-center rounded-full shadow-md">
-                          <Star size={14} weight="regular" />
+                      {/* Badge contador de fotos inferior derecha */}
+                      {((prop.media_urls && prop.media_urls.length > 0) || (prop.imagenes && prop.imagenes.length > 0)) && (
+                        <div className="absolute bottom-3.5 right-3.5 z-10 bg-black/60 backdrop-blur-md text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-xl flex items-center gap-1.5 border border-white/15 shadow-sm">
+                          <svg className="w-3.5 h-3.5 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                          </svg>
+                          <span>{prop.media_urls?.length || prop.imagenes?.length || 1}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Contenido Minimalista */}
-                    <div className="p-6 flex-1 flex flex-col bg-black/10 justify-center">
+                    {/* Contenido del Card */}
+                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-[#141d15]">
+                      <div>
+                        {/* Precio en la fuente principal limpia */}
+                        <div className="text-xl md:text-2xl font-bold text-white tracking-tight mb-1.5">
+                          US$ {prop.precio ? prop.precio.toLocaleString('es-AR') : 'Consultar'}
+                        </div>
 
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1">
-                        {prop.tipo_propiedad}
-                      </span>
-
-                      <div className="flex justify-between items-start gap-4 mb-1">
-                        <h3 className="text-[17px] font-medium text-white/95 leading-snug tracking-tight">
+                        {/* Título de la propiedad */}
+                        <h3 className="text-sm md:text-base font-medium text-white/90 leading-snug tracking-tight mb-1">
                           {prop.titulo}
                         </h3>
-                        <span className="text-[17px] font-light text-white whitespace-nowrap">
-                          ${prop.precio.toLocaleString('es-AR')}
-                        </span>
+
+                        {/* Ubicación con punto */}
+                        {prop.ubicacion && (
+                          <div className="text-xs text-white/50 font-light flex items-center gap-1.5">
+                            <span className="text-[6px] text-white/40">⚪</span>
+                            <span>{prop.ubicacion}</span>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="text-[12px] text-white/60 font-light mb-3 flex items-center gap-1">
-                        <MapPin size={13} weight="light" />
-                        {prop.ubicacion}
-                      </div>
+                      {/* Línea de separación */}
+                      <div className="my-4 border-t border-white/10" />
 
-                      <p className="text-[11px] text-white/50 line-clamp-2 mb-4 leading-relaxed">
-                        {prop.descripcion}
-                      </p>
+                      {/* 3 Especificaciones en la parte inferior con íconos limpios y tamaño ajustado */}
+                      {(() => {
+                        const tipoLower = prop.tipo_propiedad?.toLowerCase() || '';
+                        const isCampo = tipoLower === 'campo';
+                        const isCasaODepto = ['casa', 'departamento', 'depto', 'duplex'].some(t => tipoLower.includes(t));
 
-                      {/* Características en línea sutil */}
-                      <div className="flex items-center gap-4 text-white/70 text-[11px] font-light border-t border-white/10 pt-4 mt-auto">
-                        {(prop.dimensiones || prop.atributos_especificos?.dimensiones) && (
-                          <span className="flex items-center gap-1.5">
-                            <Ruler size={13} weight="light" /> {prop.dimensiones || prop.atributos_especificos?.dimensiones}
-                          </span>
-                        )}
-                        {(prop.habitaciones || prop.atributos_especificos?.habitaciones) && (
-                          <span className="flex items-center gap-1.5">
-                            <Bed size={13} weight="light" /> {prop.habitaciones || prop.atributos_especificos?.habitaciones}
-                          </span>
-                        )}
-                        {(prop.banos || prop.atributos_especificos?.banos) && (
-                          <span className="flex items-center gap-1.5">
-                            <Bathtub size={13} weight="light" /> {prop.banos || prop.atributos_especificos?.banos}
-                          </span>
-                        )}
-                        {prop.atributos_especificos?.tipo_campo && (
-                          <span className="flex items-center gap-1.5">
-                            <Tree size={13} weight="light" /> {prop.atributos_especificos.tipo_campo}
-                          </span>
-                        )}
-                      </div>
+                        if (isCampo) {
+                          return (
+                            <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
+                              <div className="flex items-center gap-1.5">
+                                <Ruler size={16} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs md:text-sm font-medium text-white/90 truncate">
+                                  {prop.dimensiones || prop.atributos_especificos?.dimensiones || '-'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <Tree size={16} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs md:text-sm font-medium text-white/90 truncate capitalize">
+                                  {prop.atributos_especificos?.tipo_campo || 'Rural'}
+                                </span>
+                              </div>
+
+                              <div className="text-right sm:text-left">
+                                <span className="text-xs md:text-sm font-medium text-white/60 capitalize truncate block">
+                                  Campo
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        if (isCasaODepto) {
+                          return (
+                            <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
+                              <div className="flex items-center gap-1.5">
+                                <Bed size={16} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs md:text-sm font-medium text-white/90">
+                                  {prop.habitaciones || prop.atributos_especificos?.habitaciones || '-'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <Bathtub size={16} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs md:text-sm font-medium text-white/90">
+                                  {prop.banos || prop.atributos_especificos?.banos || '-'}
+                                </span>
+                              </div>
+
+                              <div className="text-right sm:text-left">
+                                <span className="text-xs md:text-sm font-medium text-white/60 capitalize truncate block">
+                                  {prop.tipo_propiedad || '-'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
+                            <div className="flex items-center gap-1.5">
+                              <Ruler size={16} weight="light" className="text-roma-leaf shrink-0" />
+                              <span className="text-xs md:text-sm font-medium text-white/90 truncate">
+                                {prop.dimensiones || prop.atributos_especificos?.dimensiones || '-'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <HouseLine size={16} weight="light" className="text-roma-leaf shrink-0" />
+                              <span className="text-xs md:text-sm font-medium text-white/90 truncate">
+                                {prop.habitaciones || prop.banos || '-'}
+                              </span>
+                            </div>
+
+                            <div className="text-right sm:text-left">
+                              <span className="text-xs md:text-sm font-medium text-white/60 capitalize truncate block">
+                                {prop.tipo_propiedad || '-'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </motion.div>
                 ))}

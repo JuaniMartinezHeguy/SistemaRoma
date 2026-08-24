@@ -15,6 +15,7 @@ const ESTADO_INICIAL = {
   moneda: 'USD',
   operacion: 'Venta',
   ubicacion: '',
+  coordenadas: '',
   habitaciones: '',
   banos: '',
   dimensiones: '',
@@ -40,6 +41,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
         moneda: propiedadInicial.moneda || 'USD',
         operacion: propiedadInicial.operacion || 'Venta',
         ubicacion: propiedadInicial.ubicacion || '',
+        coordenadas: propiedadInicial.coordenadas || propiedadInicial.atributos_especificos?.coordenadas || '',
         habitaciones: propiedadInicial.atributos_especificos?.habitaciones || propiedadInicial.habitaciones || '',
         banos: propiedadInicial.atributos_especificos?.banos || propiedadInicial.banos || '',
         dimensiones: propiedadInicial.atributos_especificos?.dimensiones || propiedadInicial.dimensiones || '',
@@ -81,6 +83,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
       tipo_propiedad,
       operacion: form.operacion,
       ubicacion: form.ubicacion,
+      coordenadas: form.coordenadas,
       atributos_especificos,
       media_urls: mediaUrls,
       estado: form.estado,
@@ -173,6 +176,41 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                     </div>
                   </div>
                 </div>
+
+                {/* Dirección para casas/deptos o Coordenadas GPS para campos/terrenos */}
+                {esCasaDeptoLocal ? (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center justify-between">
+                      <span>Dirección exacta para el mapa</span>
+                      <span className="text-[10px] text-white/40 normal-case font-normal">Calle y número</span>
+                    </Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-roma-leaf" />
+                      <Input
+                        value={form.coordenadas}
+                        onChange={(e) => setField('coordenadas', e.target.value)}
+                        className="h-10 pl-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30"
+                        placeholder={`Ej: San Martín 450, ${form.ubicacion || 'Villalonga'}`}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center justify-between">
+                      <span>Coordenadas GPS exactas (Mapa)</span>
+                      <span className="text-[10px] text-white/40 normal-case font-normal">Latitud, Longitud</span>
+                    </Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-roma-leaf" />
+                      <Input
+                        value={form.coordenadas}
+                        onChange={(e) => setField('coordenadas', e.target.value)}
+                        className="h-10 pl-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30"
+                        placeholder="Ej: -39.9234, -62.7123"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Fila 3: Precio + Moneda */}
                 <div className="grid grid-cols-2 gap-4">

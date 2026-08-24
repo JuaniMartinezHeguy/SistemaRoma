@@ -60,7 +60,7 @@
 
   body {
     @apply bg-roma-cream text-roma-dark;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Geist Variable', 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 

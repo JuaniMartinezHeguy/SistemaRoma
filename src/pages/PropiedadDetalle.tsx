@@ -15,6 +15,7 @@ interface Propiedad {
   tipo_propiedad: string;
   operacion: string;
   ubicacion: string;
+  coordenadas?: string;
   precio: number;
   habitaciones?: number;
   banos?: number;
@@ -96,11 +97,12 @@ export default function PropiedadDetalle() {
     );
   }
 
-  const imagenes: string[] = propiedad.media_urls?.length
-    ? propiedad.media_urls
-    : propiedad.imagenes?.length
-      ? propiedad.imagenes
-      : ([propiedad.imagen_url].filter(Boolean) as string[]);
+  const imagenesRaw: (string | undefined | null)[] = [
+    ...(Array.isArray(propiedad.media_urls) ? propiedad.media_urls : []),
+    ...(Array.isArray(propiedad.imagenes) ? propiedad.imagenes : []),
+    propiedad.imagen_url,
+  ];
+  const imagenes: string[] = Array.from(new Set(imagenesRaw.filter((url): url is string => Boolean(url && typeof url === 'string' && url.trim() !== ''))));
 
   const esCasaDepto = ['casa', 'departamento'].includes(propiedad.tipo_propiedad?.toLowerCase());
   const esCampo = propiedad.tipo_propiedad?.toLowerCase() === 'campo';
@@ -124,37 +126,37 @@ export default function PropiedadDetalle() {
       <div className="fixed inset-0 z-[-1] bg-black/30" />
 
       {/* Header */}
-      <header className="absolute top-0 left-0 w-full z-50 h-24 bg-transparent flex items-center px-6">
+      <header className="absolute top-0 left-0 w-full z-50 h-20 sm:h-24 bg-transparent flex items-center px-4 sm:px-6">
         <div className="max-w-screen-xl mx-auto w-full flex items-center justify-between">
-          <Link to="/propiedades" className="flex items-center gap-2 text-white bg-black/20 hover:bg-black/40 px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[12px] font-light tracking-wide transition-colors">
-            <ArrowLeft size={16} weight="light" /><span>Volver al catálogo</span>
+          <Link to="/propiedades" className="flex items-center gap-1.5 sm:gap-2 text-white bg-black/20 hover:bg-black/40 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[11px] sm:text-[12px] font-light tracking-wide transition-colors">
+            <ArrowLeft size={14} weight="light" /><span>Volver</span>
           </Link>
-          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[7rem] h-auto object-contain opacity-90" />
+          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[5.5rem] sm:w-[7rem] h-auto object-contain opacity-90" />
         </div>
       </header>
 
-      <main className="pt-28 pb-24 px-4 lg:px-8 max-w-screen-xl mx-auto flex flex-col gap-8 relative z-10">
+      <main className="pt-24 sm:pt-28 pb-24 px-4 sm:px-6 lg:px-8 max-w-screen-xl mx-auto flex flex-col gap-6 sm:gap-8 relative z-10">
 
         {/* ══ BLOQUE 1: Título + Ubicación ══ */}
         <section>
-          <span className="bg-white/15 backdrop-blur-sm text-white/90 px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-widest uppercase mb-4 inline-block border border-white/10">
+          <span className="bg-white/15 backdrop-blur-sm text-white/90 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase mb-3 sm:mb-4 inline-block border border-white/10">
             {propiedad.operacion}
           </span>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight tracking-tight mb-3 drop-shadow-md">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md">
             {propiedad.titulo}
           </h1>
-          <div className="flex items-center gap-2 text-white/60 text-[14px] font-light">
+          <div className="flex items-center gap-2 text-white/60 text-[13px] sm:text-[14px] font-light">
             <MapPin size={16} weight="light" />{propiedad.ubicacion}
           </div>
         </section>
 
         {/* ══ BLOQUE 2: Galería + Precio ══ */}
-        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 lg:gap-8 items-start">
+        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 sm:gap-6 lg:gap-8 items-start">
 
-          {/* Galería: miniaturas verticales a la izquierda + imagen principal */}
+          {/* Galería: miniaturas + imagen principal */}
           <div className="flex flex-col-reverse lg:flex-row gap-3 items-start">
 
-            {/* Miniaturas verticales a la izquierda con scroll suave, sin scrollbar visual y con mask fade */}
+            {/* Miniaturas */}
             {imagenes.length > 1 && (
               <ThumbnailList
                 imagenes={imagenes}
@@ -163,9 +165,9 @@ export default function PropiedadDetalle() {
               />
             )}
 
-            {/* Imagen principal — altura fija de 440px en desktop */}
+            {/* Imagen principal */}
             <div
-              className="flex-1 w-full h-[260px] sm:h-[360px] lg:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer bg-black/30 border border-white/10 backdrop-blur-xl shadow-2xl"
+              className="flex-1 w-full h-[240px] sm:h-[320px] md:h-[380px] lg:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer bg-black/30 border border-white/10 backdrop-blur-xl shadow-2xl"
               onClick={() => setImagenModalIndex(imagenIndex)}
             >
               {imagenes.length === 0 ? (
@@ -189,12 +191,12 @@ export default function PropiedadDetalle() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
 
                   {imagenes.length > 1 && (
-                    <div className="absolute inset-y-0 w-full flex items-center justify-between px-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                      <button onClick={prevImagen} className="pointer-events-auto bg-black/40 hover:bg-black/70 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all" aria-label="Anterior">
-                        <CaretLeft size={18} weight="light" />
+                    <div className="absolute inset-y-0 w-full flex items-center justify-between px-2.5 sm:px-3 z-10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                      <button onClick={prevImagen} className="pointer-events-auto bg-black/50 sm:bg-black/40 hover:bg-black/70 text-white p-2 sm:p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all" aria-label="Anterior">
+                        <CaretLeft size={16} weight="light" />
                       </button>
-                      <button onClick={nextImagen} className="pointer-events-auto bg-black/40 hover:bg-black/70 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all" aria-label="Siguiente">
-                        <CaretRight size={18} weight="light" />
+                      <button onClick={nextImagen} className="pointer-events-auto bg-black/50 sm:bg-black/40 hover:bg-black/70 text-white p-2 sm:p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all" aria-label="Siguiente">
+                        <CaretRight size={16} weight="light" />
                       </button>
                     </div>
                   )}
@@ -209,46 +211,46 @@ export default function PropiedadDetalle() {
             </div>
           </div>
 
-          {/* Precio y datos — altura fija igual a la imagen */}
+          {/* Precio y datos */}
           <div className="w-full h-auto lg:h-[440px] flex flex-col">
-            <div className="bg-black/35 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full justify-between">
+            <div className="bg-black/35 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full justify-between">
 
-              <div className="p-7 pb-5">
-                <div className="flex items-center gap-2 text-white/45 text-[11px] font-light mb-3 uppercase tracking-wider">
+              <div className="p-5 sm:p-7 pb-4 sm:pb-5">
+                <div className="flex items-center gap-2 text-white/45 text-[10px] sm:text-[11px] font-light mb-2 sm:mb-3 uppercase tracking-wider">
                   <IconoTipo tipo={propiedad.tipo_propiedad} size={13} />
                   <span className="capitalize">{propiedad.tipo_propiedad}</span>
                   <span className="text-white/20">·</span>
                   <span className="capitalize">{propiedad.operacion}</span>
                 </div>
-                <div className="text-[32px] lg:text-[36px] font-light text-white tracking-tight leading-none">
+                <div className="text-[26px] sm:text-[32px] lg:text-[36px] font-light text-white tracking-tight leading-none">
                   USD {propiedad.precio.toLocaleString('es-AR')}
                 </div>
               </div>
 
               {(esCasaDepto || esCampo || esLote) && (habs || bns || dims || tipoCampo) && (
                 <>
-                  <div className="h-[1px] bg-white/10 mx-7" />
-                  <div className="px-7 py-5 flex flex-col gap-3.5">
+                  <div className="h-[1px] bg-white/10 mx-5 sm:mx-7" />
+                  <div className="px-5 sm:px-7 py-4 sm:py-5 flex flex-col gap-3">
                     {esCasaDepto && habs && (
-                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                      <div className="flex items-center gap-3 text-white/80 text-[13px] sm:text-[14px]">
                         <Bed size={18} weight="light" className="text-white/40 shrink-0" />
                         <span>{habs} habitaciones</span>
                       </div>
                     )}
                     {esCasaDepto && bns && (
-                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                      <div className="flex items-center gap-3 text-white/80 text-[13px] sm:text-[14px]">
                         <Bathtub size={18} weight="light" className="text-white/40 shrink-0" />
                         <span>{bns} baños</span>
                       </div>
                     )}
                     {dims && (
-                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                      <div className="flex items-center gap-3 text-white/80 text-[13px] sm:text-[14px]">
                         <Ruler size={18} weight="light" className="text-white/40 shrink-0" />
                         <span>{dims}{esCampo ? ' Ha' : ''}</span>
                       </div>
                     )}
                     {esCampo && tipoCampo && (
-                      <div className="flex items-center gap-3 text-white/80 text-[14px]">
+                      <div className="flex items-center gap-3 text-white/80 text-[13px] sm:text-[14px]">
                         <Tree size={18} weight="light" className="text-white/40 shrink-0" />
                         <span className="capitalize">{tipoCampo}</span>
                       </div>
@@ -257,15 +259,30 @@ export default function PropiedadDetalle() {
                 </>
               )}
 
-              <div className="px-7 pb-7 mt-auto">
-                <div className="h-[1px] bg-white/10 mb-5" />
+              <div className="px-5 sm:px-7 pb-5 sm:pb-7 mt-auto flex flex-col gap-3">
+                <div className="h-[1px] bg-white/10 mb-2" />
                 <a
                   href={`https://wa.me/5492920123456?text=Hola, me interesa la propiedad: *${propiedad.titulo}* (ID: ${propiedad.id}). ¿Podrían darme más información?`}
                   target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-white/90 text-roma-olive px-6 py-4 rounded-xl font-bold uppercase tracking-[0.1em] text-[13px] transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                  className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-white/90 text-roma-olive px-5 py-3.5 sm:py-4 rounded-xl font-bold uppercase tracking-[0.1em] text-[12px] sm:text-[13px] transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                 >
-                  <WhatsappLogo size={22} weight="light" />Contactar Asesor
+                  <WhatsappLogo size={20} weight="light" />Contactar Asesor
                 </a>
+                {(propiedad.coordenadas || propiedad.ubicacion) && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      propiedad.coordenadas
+                        ? (propiedad.coordenadas.includes(',') || (propiedad.ubicacion && propiedad.coordenadas.toLowerCase().includes(propiedad.ubicacion.toLowerCase()))
+                            ? propiedad.coordenadas
+                            : `${propiedad.coordenadas}, ${propiedad.ubicacion}`)
+                        : propiedad.ubicacion
+                    )}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white px-5 py-3.5 sm:py-4 rounded-xl font-bold uppercase tracking-[0.1em] text-[12px] sm:text-[13px] transition-all backdrop-blur-md"
+                  >
+                    <MapPin size={18} weight="light" />Ver propiedad en Maps
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -273,17 +290,19 @@ export default function PropiedadDetalle() {
 
         {/* ══ BLOQUE 3: Descripción ══ */}
         <section className="w-full">
-          <div className="bg-black/30 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
-            <div className="border-b border-white/10 px-8 py-5">
-              <h2 className="text-[12px] font-semibold tracking-widest uppercase text-white/55">Descripción</h2>
+          <div className="bg-black/30 border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+            <div className="border-b border-white/10 px-5 sm:px-8 py-4 sm:py-5">
+              <h2 className="text-[11px] sm:text-[12px] font-semibold tracking-widest uppercase text-white/55">Descripción</h2>
             </div>
-            <div className="p-8 lg:p-10">
-              <p className="text-white/85 leading-[1.9] text-[15px] lg:text-[16px] font-normal whitespace-pre-wrap max-w-4xl">
+            <div className="p-5 sm:p-8 lg:p-10">
+              <p className="text-white/85 leading-[1.8] sm:leading-[1.9] text-[14px] sm:text-[15px] lg:text-[16px] font-normal whitespace-pre-wrap max-w-4xl">
                 {propiedad.descripcion || 'Consultanos para recibir la ficha técnica completa y detalles específicos de esta propiedad.'}
               </p>
             </div>
           </div>
         </section>
+
+        {/* Fin Bloque Descripción */}
 
       </main>
 

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { Instagram, User } from 'lucide-react';
+import { Instagram, User, ArrowUpRight } from 'lucide-react';
 import PageLoader from './ui/PageLoader';
 import HeroServicesMenu from './HeroServicesMenu';
 import TasacionesSection from './TasacionesSection';
@@ -52,6 +52,9 @@ export default function Landing() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>('inicio');
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
+  const [expandedMember, setExpandedMember] = useState<number | null>(null);
+  const [playingIg, setPlayingIg] = useState(false);
+  const [playingTk, setPlayingTk] = useState(false);
 
   // Referencias para animaciones y videos
   const { scrollY } = useScroll();
@@ -135,6 +138,19 @@ export default function Landing() {
     });
   };
 
+  const handleVideoClick = (ref: React.RefObject<HTMLVideoElement | null>, isPlaying: boolean, setPlaying: (v: boolean) => void) => {
+    const video = ref.current;
+    if (!video) return;
+    if (isPlaying) {
+      video.pause();
+      setPlaying(false);
+    } else {
+      video.currentTime = 0;
+      video.play().catch(() => {});
+      setPlaying(true);
+    }
+  };
+
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
   });
@@ -180,8 +196,8 @@ export default function Landing() {
         <motion.div
           layout
           className="flex items-center justify-between w-full"
-          initial={{ paddingLeft: "3rem", paddingRight: "3rem", height: "5.5rem" }}
-          animate={{ paddingLeft: isScrolled ? "2rem" : "3rem", paddingRight: isScrolled ? "2rem" : "3rem", height: isScrolled ? "4rem" : "5.5rem" }}
+          initial={{ paddingLeft: "1.25rem", paddingRight: "1.25rem", height: "4.5rem" }}
+          animate={{ paddingLeft: isScrolled ? "1.25rem" : "1.5rem", paddingRight: isScrolled ? "1.25rem" : "1.5rem", height: isScrolled ? "3.5rem" : "4.5rem" }}
           transition={navTransition}
         >
           <motion.a layout href="#inicio" className="flex-shrink-0">
@@ -189,8 +205,8 @@ export default function Landing() {
               src="/logo-blanco.png"
               alt="Roma"
               className="h-auto"
-              initial={{ width: "7rem" }}
-              animate={{ width: isScrolled ? "6rem" : "7rem" }}
+              initial={{ width: "5.5rem" }}
+              animate={{ width: isScrolled ? "4.5rem" : "5.5rem" }}
               transition={navTransition}
             />
           </motion.a>
@@ -238,9 +254,14 @@ export default function Landing() {
             </Link>
           </motion.div>
 
-          <motion.button layout onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-white p-2">
-            <i className={mobileOpen ? "ph ph-x text-2xl" : "ph ph-list text-2xl"} />
-          </motion.button>
+          <div className="flex items-center gap-2 md:hidden">
+            <Link to="/propiedades" className="bg-roma-olive text-white px-3.5 py-1.5 rounded-full text-[11px] font-semibold shadow-lg whitespace-nowrap">
+              Ver Propiedades
+            </Link>
+            <motion.button layout onClick={() => setMobileOpen(!mobileOpen)} className="text-white p-2">
+              <i className={mobileOpen ? "ph ph-x text-2xl" : "ph ph-list text-2xl"} />
+            </motion.button>
+          </div>
         </motion.div>
 
         {/* Desplegable Móvil */}
@@ -287,7 +308,7 @@ export default function Landing() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section id="inicio" className="relative min-h-screen flex flex-col justify-center pb-32 pt-32 px-8 md:px-16 overflow-hidden">
+      <section id="inicio" className="relative min-h-screen flex flex-col justify-center pb-20 sm:pb-32 pt-24 sm:pt-32 px-4 sm:px-8 md:px-16 overflow-hidden">
         <motion.div className="absolute inset-0 z-0 bg-roma-dark" style={{ y: heroImgY, opacity: heroOpacity }}>
           <video
             autoPlay
@@ -312,7 +333,7 @@ export default function Landing() {
         </motion.div>
 
         <motion.a href="#servicios" className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[2] text-white/80 hover:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] transition-colors duration-300" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-          <span className="material-icons text-[60px] md:text-[80px] font-light">keyboard_arrow_down</span>
+          <span className="material-icons text-[50px] sm:text-[60px] md:text-[80px] font-light">keyboard_arrow_down</span>
         </motion.a>
       </section>
 
@@ -357,151 +378,175 @@ export default function Landing() {
         <SedesSection />
 
         {/* ═══ NUESTRO EQUIPO ═══ */}
-        <section id="equipo" className="relative z-10 pt-20 pb-20 px-6">
+        <section id="equipo" className="relative z-10 pt-16 sm:pt-20 pb-16 sm:pb-20 px-4 sm:px-6">
           <motion.div className="max-w-7xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
 
-            <motion.div variants={fadeUp} className="text-center mb-14">
-              <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Conocenos</p>
-              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestro equipo</h2>
+            <motion.div variants={fadeUp} className="text-center mb-10 sm:mb-14">
+              <p className="text-roma-leaf text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.25em] mb-3 sm:mb-4">Conocenos</p>
+              <h2 className="font-['Cinzel',serif] text-3xl sm:text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestro equipo</h2>
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-              {EQUIPO.map((persona) => (
-                <motion.div
-                  key={persona.id}
-                  variants={fadeUp}
-                  className="group flex flex-col bg-[#1a2c1a]/95 backdrop-blur-md rounded-3xl overflow-hidden border border-white/10 shadow-2xl cursor-pointer"
-                >
-                  {/* Foto / Ícono superior */}
-                  <div className="relative h-64 w-full flex-shrink-0 bg-black/40 flex items-center justify-center border-b border-white/5">
-                    <User size={80} strokeWidth={1} className="text-white/20 group-hover:text-white/30 transition-colors duration-500" />
-                    {/* Cuando tengas las fotos: <img src={persona.img} className="absolute inset-0 w-full h-full object-cover" /> */}
-                  </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 items-start">
+              {EQUIPO.map((persona) => {
+                const isExpanded = expandedMember === persona.id;
+                return (
+                  <motion.div
+                    key={persona.id}
+                    variants={fadeUp}
+                    onClick={() => setExpandedMember(isExpanded ? null : persona.id)}
+                    className="flex flex-col bg-[#1a2c1a]/95 backdrop-blur-md rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl cursor-pointer hover:border-roma-leaf/40 transition-colors"
+                  >
+                    {/* Foto / Ícono superior */}
+                    <div className="relative h-36 sm:h-64 w-full flex-shrink-0 bg-black/40 flex items-center justify-center border-b border-white/5">
+                      <User size={48} strokeWidth={1} className="text-white/20 sm:hidden" />
+                      <User size={80} strokeWidth={1} className="text-white/20 hidden sm:block" />
+                    </div>
 
-                  {/* Contenedor de Textos Inferior */}
-                  <div className="p-6 flex flex-col bg-roma-olive transition-all duration-500">
-                    <h3 className="text-[20px] font-semibold text-white tracking-tight leading-none mb-1.5">{persona.nombre}</h3>
-                    <p className="text-roma-leaf text-[10px] font-medium uppercase tracking-widest">{persona.rol}</p>
+                    {/* Contenedor de Textos Inferior */}
+                    <div className="p-3 sm:p-6 flex flex-col bg-roma-olive transition-all duration-500">
+                      <h3 className="text-[14px] sm:text-[20px] font-semibold text-white tracking-tight leading-none mb-1 sm:mb-1.5">{persona.nombre}</h3>
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="text-roma-leaf text-[8px] sm:text-[10px] font-medium uppercase tracking-widest">{persona.rol}</p>
+                        <span className={`material-icons text-white/50 text-[14px] sm:text-[18px] transition-transform duration-300 ${isExpanded ? 'rotate-180 text-white' : ''}`}>
+                          expand_more
+                        </span>
+                      </div>
 
-                    {/* Acordeón que empuja la tarjeta hacia abajo */}
-                    <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-500 ease-in-out">
-                      <div className="overflow-hidden">
-                        <p className="text-white/80 text-[13px] leading-relaxed font-light mt-4 border-t border-white/10 pt-4">
-                          {persona.desc}
-                        </p>
+                      {/* Acordeón que se abre al hacer click */}
+                      <div
+                        className="transition-[grid-template-rows] duration-500 ease-in-out grid"
+                        style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}
+                      >
+                        <div className="overflow-hidden">
+                          <p className="text-white/80 text-[11px] sm:text-[13px] leading-relaxed font-light mt-3 sm:mt-4 border-t border-white/10 pt-3 sm:pt-4">
+                            {persona.desc}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </section>
 
         {/* ═══ NUESTRAS REDES (Videos Nativos Secuenciales) ═══ */}
-        <section className="relative z-10 pt-20 pb-32 px-6">
+        <section className="relative z-10 pt-16 sm:pt-20 pb-24 sm:pb-32 px-4 sm:px-6">
           <motion.div className="max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.div variants={fadeUp} className="text-center mb-14">
-              <p className="text-roma-leaf text-[11px] font-medium uppercase tracking-[0.25em] mb-4">Comunidad</p>
-              <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestras Redes</h2>
+            <motion.div variants={fadeUp} className="text-center mb-10 sm:mb-14">
+              <p className="text-roma-leaf text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.25em] mb-3 sm:mb-4">Comunidad</p>
+              <h2 className="font-['Cinzel',serif] text-3xl sm:text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestras Redes</h2>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-10 justify-items-center">
 
               {/* Contenedor Instagram */}
-              <motion.div variants={fadeLeft} className="flex flex-col items-center gap-4 w-full max-w-[320px]">
-                {/* Label arriba del card */}
-                <a
+              <motion.div variants={fadeLeft} className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px]">
+                {/* Label arriba del card animado con movimiento suave arriba y abajo */}
+                <motion.a
                   href="https://instagram.com/romainmobiliaria"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 group/link cursor-pointer hover:-translate-y-0.5 transition-transform duration-300"
+                  animate={{ y: [-8, 8, -8] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex items-center gap-2.5 bg-black/50 hover:bg-roma-olive/90 text-white px-4 py-2 rounded-full border border-roma-leaf/40 hover:border-roma-leaf backdrop-blur-md shadow-lg transition-all duration-300 hover:scale-105 group/link cursor-pointer"
                 >
-                  <Instagram size={20} strokeWidth={1.5} className="text-white group-hover/link:text-roma-leaf transition-colors duration-300" />
-                  <span className="text-white group-hover/link:text-roma-leaf font-medium tracking-widest text-[11px] uppercase drop-shadow-md transition-colors duration-300">
+                  <Instagram size={18} strokeWidth={1.75} className="text-pink-400 group-hover/link:text-white transition-colors duration-300" />
+                  <span className="font-semibold tracking-widest text-[11px] uppercase drop-shadow-md">
                     @romainmobiliaria
                   </span>
-                </a>
+                  <ArrowUpRight size={14} className="text-white/60 group-hover/link:text-white group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-all duration-300" />
+                </motion.a>
 
                 {/* Card del video */}
                 <div
-                  className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden group cursor-pointer"
-                  onMouseEnter={() => handleVideoHoverStart(videoIgRef)}
-                  onMouseLeave={() => handleVideoHoverEnd(videoIgRef)}
+                  className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden cursor-pointer"
+                  onClick={() => handleVideoClick(videoIgRef, playingIg, setPlayingIg)}
                 >
                   <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
                     <video
                       ref={videoIgRef}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      className="w-full h-full object-cover"
                       muted
                       playsInline
                       loop
                     >
                       <source src="/video-ig.mp4" type="video/mp4" />
                     </video>
-                    {/* Overlay play hint cuando está pausado */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-100 group-hover:opacity-0 transition-opacity duration-400 pointer-events-none">
-                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                        <i className="fas fa-play text-white text-lg ml-1" />
+                    {/* Play/Pause overlay */}
+                    {!playingIg && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+                        <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                          <i className="fas fa-play text-white text-lg ml-1" />
+                        </div>
                       </div>
-                    </div>
-                    {/* Botón de sonido - bottom right */}
-                    <button
-                      onClick={toggleSound}
-                      className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/70"
-                      title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
-                    >
-                      <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
-                    </button>
+                    )}
+                    {/* Botón de sonido - siempre visible cuando se reproduce */}
+                    {playingIg && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleSound(e); }}
+                        className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-black/70 transition-colors"
+                        title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
+                      >
+                        <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
 
               {/* Contenedor TikTok */}
-              <motion.div variants={fadeRight} className="flex flex-col items-center gap-4 w-full max-w-[320px]">
-                {/* Label arriba del card */}
-                <a
+              <motion.div variants={fadeRight} className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px]">
+                {/* Label arriba del card animado con movimiento suave arriba y abajo */}
+                <motion.a
                   href="https://tiktok.com/@romainmobiliaria"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 group/link cursor-pointer hover:-translate-y-0.5 transition-transform duration-300"
+                  animate={{ y: [8, -8, 8] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex items-center gap-2.5 bg-black/50 hover:bg-roma-olive/90 text-white px-4 py-2 rounded-full border border-roma-leaf/40 hover:border-roma-leaf backdrop-blur-md shadow-lg transition-all duration-300 hover:scale-105 group/link cursor-pointer"
                 >
-                  <i className="fab fa-tiktok text-white group-hover/link:text-roma-leaf text-[18px] transition-colors duration-300" />
-                  <span className="text-white group-hover/link:text-roma-leaf font-medium tracking-widest text-[11px] uppercase drop-shadow-md transition-colors duration-300">
+                  <i className="fab fa-tiktok text-cyan-400 group-hover/link:text-white text-[15px] transition-colors duration-300" />
+                  <span className="font-semibold tracking-widest text-[11px] uppercase drop-shadow-md">
                     @romainmobiliaria
                   </span>
-                </a>
+                  <ArrowUpRight size={14} className="text-white/60 group-hover/link:text-white group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-all duration-300" />
+                </motion.a>
 
                 {/* Card del video */}
                 <div
-                  className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden group cursor-pointer"
-                  onMouseEnter={() => handleVideoHoverStart(videoTkRef)}
-                  onMouseLeave={() => handleVideoHoverEnd(videoTkRef)}
+                  className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden cursor-pointer"
+                  onClick={() => handleVideoClick(videoTkRef, playingTk, setPlayingTk)}
                 >
                   <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
                     <video
                       ref={videoTkRef}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      className="w-full h-full object-cover"
                       muted
                       playsInline
                       loop
                     >
                       <source src="/video-tiktok.mp4" type="video/mp4" />
                     </video>
-                    {/* Overlay play hint cuando está pausado */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-100 group-hover:opacity-0 transition-opacity duration-400 pointer-events-none">
-                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                        <i className="fas fa-play text-white text-lg ml-1" />
+                    {/* Play/Pause overlay */}
+                    {!playingTk && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+                        <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                          <i className="fas fa-play text-white text-lg ml-1" />
+                        </div>
                       </div>
-                    </div>
-                    {/* Botón de sonido - bottom right */}
-                    <button
-                      onClick={toggleSound}
-                      className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/70"
-                      title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
-                    >
-                      <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
-                    </button>
+                    )}
+                    {/* Botón de sonido - siempre visible cuando se reproduce */}
+                    {playingTk && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleSound(e); }}
+                        className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-black/70 transition-colors"
+                        title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
+                      >
+                        <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -514,7 +559,7 @@ export default function Landing() {
         <NuestrosCimientos />
 
         {/* ═══ CTA SECCIÓN PRINCIPAL ═══ */}
-        <section className="relative z-10 pt-10 pb-40 px-6 flex flex-col justify-center">
+        <section className="relative z-10 pt-8 sm:pt-10 pb-32 sm:pb-40 px-4 sm:px-6 flex flex-col justify-center">
           <motion.div
             className="max-w-4xl mx-auto w-full text-center"
             initial="hidden"
@@ -523,18 +568,18 @@ export default function Landing() {
             variants={stagger}
           >
             <motion.div variants={fadeUp}>
-              <p className="text-roma-leaf text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.25em] mb-4">
+              <p className="text-roma-leaf text-[11px] sm:text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.25em] mb-3 sm:mb-4">
                 Inversión Patrimonial
               </p>
-              <h2 className="font-['Cinzel',serif] text-4xl md:text-6xl font-semibold text-white tracking-tight drop-shadow-md mb-6 max-w-3xl mx-auto leading-tight">
+              <h2 className="font-['Cinzel',serif] text-3xl sm:text-4xl md:text-6xl font-semibold text-white tracking-tight drop-shadow-md mb-5 sm:mb-6 max-w-3xl mx-auto leading-tight">
                 El momento de asegurar tu futuro es hoy
               </h2>
-              <p className="text-white/80 text-base md:text-lg font-light leading-relaxed max-w-2xl mx-auto mb-10">
+              <p className="text-white/80 text-sm sm:text-base md:text-lg font-light leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10">
                 Descubrí propiedades exclusivas y oportunidades de inversión únicas en la Patagonia con nuestro acompañamiento estratégico.
               </p>
               <Link
                 to="/propiedades"
-                className="inline-flex items-center gap-3 bg-roma-olive hover:bg-roma-olive/90 text-white px-9 py-4 rounded-full font-semibold text-xs uppercase tracking-widest shadow-2xl transition-all duration-300 hover:scale-105 border border-white/10"
+                className="inline-flex items-center gap-2 sm:gap-3 bg-roma-olive hover:bg-roma-olive/90 text-white px-7 sm:px-9 py-3.5 sm:py-4 rounded-full font-semibold text-[10px] sm:text-xs uppercase tracking-widest shadow-2xl transition-all duration-300 hover:scale-105 border border-white/10"
               >
                 <span>Elegí tu próxima inversión</span>
                 <span className="material-icons text-sm">arrow_forward</span>
@@ -546,9 +591,9 @@ export default function Landing() {
       </div>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="bg-roma-dark text-white py-20 px-6 border-t border-white/5 relative z-20">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
+      <footer className="bg-roma-dark text-white py-14 sm:py-20 px-4 sm:px-6 border-t border-white/5 relative z-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
+          <div className="col-span-1 sm:col-span-2">
             <img src="/logo-blanco.png" alt="Logo Roma" className="w-44 h-auto mb-6" />
             <p className="text-white/50 text-[13px] font-light max-w-md leading-relaxed">
               En Roma Inmobiliaria, nos especializamos en la venta, alquiler y gestión de propiedades urbanas y rurales en la Patagonia, ofreciendo un trato cercano y profesional.
@@ -557,8 +602,19 @@ export default function Landing() {
           <div>
             <h5 className="font-semibold mb-4 text-roma-leaf text-[11px] uppercase tracking-wider">Contacto</h5>
             <ul className="space-y-3 text-white/50 text-[13px] font-light">
-              <li className="flex items-center gap-2"><span className="material-icons text-[16px]">call</span> +54 9 291 4136535 (Rodrigo) <br></br> +54 9 29 (Maira)</li>
-              <li className="flex items-center gap-2"><span className="material-icons text-[16px]">mail</span> </li>
+              <li className="flex items-start gap-2">
+                <span className="material-icons text-[16px] shrink-0 mt-0.5">call</span>
+                <div>
+                  <div>+54 9 291 4136535 (Rodrigo)</div>
+                  <div>+54 291 4714896 (Maira)</div>
+                </div>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="material-icons text-[16px] shrink-0">mail</span>
+                <a href="mailto:romainmobiliaria.arg@gmail.com" className="hover:text-white transition">
+                  romainmobiliaria.arg@gmail.com
+                </a>
+              </li>
               <li className="flex items-center gap-2"><span className="material-icons text-[16px]">location_on</span> Villalonga, Buenos Aires</li>
             </ul>
           </div>

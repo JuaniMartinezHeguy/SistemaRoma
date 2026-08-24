@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Compass, ShieldCheck } from 'lucide-react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -142,15 +141,6 @@ export default function NuestrosCimientos() {
               </div>
             </div>
 
-            {/* Tarjeta Flotante Inferior de Solvencia */}
-            <div className="absolute bottom-6 left-6 z-30 bg-[#1a2c1a]/95 backdrop-blur-xl border border-white/15 p-4 rounded-2xl shadow-2xl flex flex-col text-left">
-              <span className="text-2xl font-bold text-roma-leaf font-['Cinzel',serif]">
-                +<CountUpNumber end={20000} duration={2.5} /> ha
-              </span>
-              <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider mt-0.5">
-                Hectáreas Tasadas
-              </span>
-            </div>
 
           </motion.div>
 
@@ -172,41 +162,11 @@ export default function NuestrosCimientos() {
             </p>
 
             {/* Cita Destacada Solicitada (Frase Exacta) */}
-            <div className="border-l-2 border-roma-leaf pl-5 py-2 mb-10 bg-white/[0.02] rounded-r-2xl">
+            <div className="border-l-2 border-roma-leaf pl-5 py-2 mb-0 bg-white/[0.02] rounded-r-2xl">
               <p className="font-['Cinzel',serif] italic text-lg md:text-xl text-white/95 leading-snug">
                 &ldquo;Conocemos la tierra porque la trabajamos día a día. Saber lo que rinde cada hectárea desde adentro es nuestra mayor garantía.&rdquo;
               </p>
             </div>
-
-            {/* Dos Tarjetas Pilares Lado a Lado */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              <div className="p-5 rounded-2xl bg-[#1a2c1a]/60 border border-white/10 hover:bg-[#1a2c1a]/90 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1">
-                <div className="w-9 h-9 rounded-xl bg-roma-olive/40 border border-roma-leaf/30 flex items-center justify-center text-roma-leaf mb-3">
-                  <Compass size={18} />
-                </div>
-                <h4 className="font-['Cinzel',serif] text-white text-sm font-semibold tracking-wide mb-1.5">
-                  Saber Agroinmobiliario
-                </h4>
-                <p className="text-white/70 text-xs font-light leading-relaxed">
-                  Especialización en la tasación y comercialización de campos y activos de valor.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-[#1a2c1a]/60 border border-white/10 hover:bg-[#1a2c1a]/90 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1">
-                <div className="w-9 h-9 rounded-xl bg-roma-olive/40 border border-roma-leaf/30 flex items-center justify-center text-roma-leaf mb-3">
-                  <ShieldCheck size={18} />
-                </div>
-                <h4 className="font-['Cinzel',serif] text-white text-sm font-semibold tracking-wide mb-1.5">
-                  Visión Estratégica
-                </h4>
-                <p className="text-white/70 text-xs font-light leading-relaxed">
-                  Asesoramiento fundamentado en análisis productivo y solvencia profesional.
-                </p>
-              </div>
-
-            </div>
-
           </motion.div>
 
         </div>
