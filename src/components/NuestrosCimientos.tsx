@@ -6,11 +6,36 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 // ─── COMPONENTE COUNT-UP ANIMADO ────────────────────────────────────────────────
 function CountUpNumber({ end, prefix = '', suffix = '', duration = 2 }: { end: number; prefix?: string; suffix?: string; duration?: number }) {
   const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const isInView = useInView(ref, { once: true, amount: 0.05 });
 
   useEffect(() => {
-    if (!isInView) return;
+    if (isInView) {
+      setStarted(true);
+    }
+  }, [isInView]);
+
+  // Fallback directo para mobile por si IntersectionObserver o scroll margin fallan en pantallas chicas
+  useEffect(() => {
+    if (started) return;
+
+    const checkVisibility = () => {
+      if (ref.current) {
+        const rect = ref.current.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          setStarted(true);
+        }
+      }
+    };
+
+    checkVisibility();
+    window.addEventListener('scroll', checkVisibility, { passive: true });
+    return () => window.removeEventListener('scroll', checkVisibility);
+  }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
 
     let startTime: number | null = null;
     let animationFrameId: number;
@@ -30,7 +55,7 @@ function CountUpNumber({ end, prefix = '', suffix = '', duration = 2 }: { end: n
 
     animationFrameId = requestAnimationFrame(updateCount);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isInView, end, duration]);
+  }, [started, end, duration]);
 
   return (
     <span ref={ref} className="font-['Cinzel',serif] tracking-tight">

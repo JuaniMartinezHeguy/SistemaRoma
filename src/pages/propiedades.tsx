@@ -87,6 +87,17 @@ export default function Catalogo() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [destacadaIndex, setDestacadaIndex] = useState(0);
 
+  const cantidadFiltrosActivos = [
+    filtroTipo !== 'Todos',
+    filtroUbicacion !== 'Todas',
+    filtroOperacion !== 'Todas',
+    filtroTipoCampo !== 'Todos',
+    filtroHabs !== null,
+    Boolean(filtroPrecioMin),
+    Boolean(filtroPrecioMax),
+    Boolean(busqueda),
+  ].filter(Boolean).length;
+
   const [searchParams] = useSearchParams();
 
   // Sincronizar filtro desde parámetros de la URL (?tipo=Campo, ?tipo=Terreno, etc.)
@@ -495,17 +506,10 @@ export default function Catalogo() {
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/"
-              className="flex items-center gap-1.5 sm:gap-2 text-white bg-black/20 hover:bg-black/40 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full backdrop-blur-md border border-white/10 text-[11px] sm:text-[12px] font-light tracking-wide transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 text-white bg-black/30 hover:bg-black/50 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full backdrop-blur-md border border-white/15 text-[11px] sm:text-[12px] font-light tracking-wide transition-colors"
             >
-              <ArrowLeft size={14} weight="light" /> <span className="hidden sm:inline">Volver al inicio</span>
+              <ArrowLeft size={14} weight="light" /> <span>Volver al inicio</span>
             </Link>
-
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center gap-1.5 sm:gap-2 text-white bg-roma-olive hover:bg-roma-olive/90 text-[11px] sm:text-[12px] font-light tracking-wide border border-white/20 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg transition-all"
-            >
-              <SlidersHorizontal size={14} weight="light" /> Filtros
-            </button>
           </div>
 
           <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[5.5rem] sm:w-[7rem] h-auto object-contain opacity-90" />
@@ -783,21 +787,18 @@ export default function Catalogo() {
                   className="fixed top-0 left-0 bottom-0 w-[88%] max-w-[340px] bg-roma-olive border-r border-white/10 z-[90] overflow-y-auto px-5 sm:px-6 pt-6 pb-6 lg:hidden shadow-2xl rounded-r-3xl"
                 >
                   <div className="flex items-center justify-between mb-5 sticky top-0 bg-roma-olive z-20 pb-3 border-b border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => setSidebarOpen(false)}
-                      className="flex items-center gap-2.5 text-white bg-black/20 hover:bg-black/30 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all shadow-md cursor-pointer"
-                    >
-                      <ArrowLeft size={16} weight="bold" />
+                    <div className="flex items-center gap-2 text-white font-semibold text-sm uppercase tracking-wider">
+                      <SlidersHorizontal size={18} weight="bold" className="text-roma-leaf" />
                       <span>Filtros</span>
-                    </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setSidebarOpen(false)}
-                      className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer border border-white/10"
-                      title="Volver"
+                      className="px-3 py-1.5 rounded-full bg-black/30 hover:bg-black/40 flex items-center gap-1.5 text-white/90 hover:text-white transition-colors cursor-pointer border border-white/15 text-xs"
+                      title="Cerrar"
                     >
-                      <ArrowLeft size={16} weight="bold" />
+                      <X size={14} weight="bold" />
+                      <span>Cerrar</span>
                     </button>
                   </div>
                   {SidebarContent()}
@@ -817,7 +818,7 @@ export default function Catalogo() {
               <select
                 value={ordenar}
                 onChange={e => setOrdenar(e.target.value)}
-                className="bg-black/30 backdrop-blur-md border border-white/10 text-white text-[12px] font-light rounded-xl px-4 py-2.5 outline-none cursor-pointer"
+                className="bg-black/30 backdrop-blur-md border border-white/10 text-white text-[12px] font-light rounded-xl px-4 py-2.5 outline-none cursor-pointer w-full sm:w-auto"
               >
                 <option value="recientes">Más recientes</option>
                 <option value="asc">Menor precio</option>
@@ -1060,6 +1061,26 @@ export default function Catalogo() {
           </main>
         </section>
       </motion.div>
+
+      {/* ── BOTÓN FLOTANTE DE FILTROS EN MOBILE (FAB FLOTANTE AL NAVEGAR) ── */}
+      {heroDismissed && !showScreenLoader && !sidebarOpen && (
+        <motion.button
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ duration: 0.35, ease: EASE }}
+          onClick={() => setSidebarOpen(true)}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] lg:hidden flex items-center gap-2.5 bg-roma-olive/95 hover:bg-roma-olive text-white px-6 py-3 rounded-full border border-white/25 shadow-[0_10px_25px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 active:scale-95 cursor-pointer"
+        >
+          <SlidersHorizontal size={18} weight="bold" className="text-roma-leaf" />
+          <span className="font-semibold text-xs uppercase tracking-widest text-white">Filtros</span>
+          {cantidadFiltrosActivos > 0 && (
+            <span className="w-5 h-5 rounded-full bg-white text-roma-olive font-bold text-[10px] flex items-center justify-center shadow-xs">
+              {cantidadFiltrosActivos}
+            </span>
+          )}
+        </motion.button>
+      )}
     </div>
   );
 }
