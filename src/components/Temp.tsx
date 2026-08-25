@@ -46,7 +46,6 @@ const fadeRight = { hidden: { opacity: 0, x: 50 }, visible: { opacity: 1, x: 0, 
 // ─── COMPONENTE PRINCIPAL ───────────────────────────────────────────────────────
 
 export default function Landing() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -210,9 +209,9 @@ export default function Landing() {
       {/* ── LOADER DE PÁGINA ── */}
       {isPageLoading && <PageLoader />}
 
-      {/* ── NAVBAR ── */}
+      {/* ── NAVBAR ESCRITORIO (PC) ── */}
       <motion.header
-        className="fixed z-[100] left-0 right-0 mx-auto border"
+        className="hidden md:block fixed z-[100] left-0 right-0 mx-auto border"
         initial={{ y: -120, opacity: 0, top: 16, width: "90%", maxWidth: "1152px", borderRadius: "40px", backgroundColor: "rgba(0,0,0,0)", borderColor: "rgba(255,255,255,0)", backdropFilter: "blur(0px)" }}
         animate={{
           y: 0,
@@ -235,6 +234,7 @@ export default function Landing() {
           animate={{ paddingLeft: isScrolled ? "1.25rem" : "1.5rem", paddingRight: isScrolled ? "1.25rem" : "1.5rem", height: isScrolled ? "3.5rem" : "4.5rem" }}
           transition={navTransition}
         >
+          {/* LOGO (IZQUIERDA) */}
           <motion.a layout href="#inicio" className="flex-shrink-0">
             <motion.img
               src="/logo-blanco.png"
@@ -246,9 +246,10 @@ export default function Landing() {
             />
           </motion.a>
 
+          {/* MENÚ VISTA ESCRITORIO (PC) */}
           <motion.nav
             layout
-            className="hidden md:flex items-center gap-2 relative"
+            className="flex items-center gap-2 relative"
             onMouseLeave={() => setHoveredSection(null)}
           >
             {NAV_ITEMS.map((item) => {
@@ -283,45 +284,69 @@ export default function Landing() {
             })}
           </motion.nav>
 
-          <motion.div layout className="hidden md:block">
+          {/* BOTÓN VISTA ESCRITORIO (PC) */}
+          <motion.div layout>
             <Link to="/propiedades" className="bg-roma-olive text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-roma-olive/90 shadow-lg transition-all duration-300 hover:scale-[1.03]">
               Ver Propiedades
             </Link>
           </motion.div>
-
-          <div className="flex items-center gap-2 md:hidden">
-            <Link to="/propiedades" className="bg-roma-olive text-white px-3.5 py-1.5 rounded-full text-[11px] font-semibold shadow-lg whitespace-nowrap">
-              Ver Propiedades
-            </Link>
-            <motion.button layout onClick={() => setMobileOpen(!mobileOpen)} className="text-white p-2">
-              <i className={mobileOpen ? "ph ph-x text-2xl" : "ph ph-list text-2xl"} />
-            </motion.button>
-          </div>
         </motion.div>
-
-        {/* Desplegable Móvil */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden bg-black/80 backdrop-blur-xl border-t border-white/10 p-6 flex flex-col items-center gap-3 rounded-b-3xl shadow-2xl absolute left-0 right-0 top-full mt-2 w-[90%] mx-auto">
-              {NAV_ITEMS.map((item) => {
-                const isActive = activeSection === item.id;
-                return (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`w-full text-center py-2.5 rounded-full font-medium text-[15px] transition-all duration-300 ${isActive ? 'bg-roma-olive text-white font-semibold shadow-md' : 'text-white/80 hover:text-white'
-                      }`}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-              <Link to="/propiedades" className="bg-roma-olive text-white px-8 py-3 rounded-full font-semibold mt-2 text-[14px]" onClick={() => setMobileOpen(false)}>Ver Propiedades</Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.header>
+
+      {/* ── NAVBAR MÓVIL: FILA SUPERIOR QUE SE QUEDA ARRIBA EN INICIO (ABSOLUTE) ── */}
+      <div className="md:hidden absolute top-4 left-0 right-0 z-40 w-[92%] max-w-xl mx-auto flex items-center justify-between pointer-events-auto">
+        <a href="#inicio" className="flex-shrink-0">
+          <img src="/logo-blanco.png" alt="Roma" className="h-8 w-auto drop-shadow-md" />
+        </a>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <a
+            href="#tasaciones"
+            className="bg-roma-olive text-white px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold shadow-md whitespace-nowrap border border-white/10"
+          >
+            Tasar propiedad
+          </a>
+          <Link
+            to="/propiedades"
+            className="bg-roma-olive text-white px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold shadow-md whitespace-nowrap border border-white/10"
+          >
+            Ver Propiedades
+          </Link>
+        </div>
+      </div>
+
+      {/* ── NAVBAR MÓVIL: PÍLDORAS VERDES QUE APARECEN FLUIDAMENTE SOLO AL HACER SCROLL ── */}
+      <AnimatePresence>
+        {isScrolled && (
+          <motion.div
+            initial={{ opacity: 0, y: -25, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -25, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="md:hidden fixed top-4 left-1/2 -translate-x-1/2 z-[110] flex items-center justify-center gap-2 pointer-events-auto"
+          >
+            {[
+              { id: 'servicios', href: '#servicios', label: 'Servicios' },
+              { id: 'tasaciones', href: '#tasaciones', label: 'Tasaciones' },
+              { id: 'nosotros', href: '#nosotros', label: 'Nosotros' },
+            ].map((item) => {
+              const isActive = activeSection === item.id || (item.id === 'nosotros' && activeSection === 'equipo');
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className={`px-3.5 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 backdrop-blur-xl shadow-xl flex items-center justify-center cursor-pointer border ${
+                    isActive
+                      ? 'bg-roma-leaf text-white border-white/60 shadow-roma-leaf/50 ring-2 ring-roma-leaf/40 scale-105 z-10'
+                      : 'bg-roma-olive/95 hover:bg-roma-olive text-white/95 border-white/25 shadow-black/40'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── SOCIAL FLOTANTE ── */}
       <div className="hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">

@@ -66,7 +66,7 @@ function CountUpNumber({ end, prefix = '', suffix = '', duration = 2 }: { end: n
 
 export default function NuestrosCimientos() {
   return (
-    <section id="cimientos" className="relative z-10 pt-28 pb-36 px-6 overflow-hidden">
+    <section id="nosotros" className="relative z-10 pt-28 pb-36 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto w-full">
 
         {/* 1. ENCABEZADO DE LA SECCIÓN */}
