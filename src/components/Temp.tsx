@@ -60,6 +60,8 @@ export default function Landing() {
   const { scrollY } = useScroll();
   const videoIgRef = useRef<HTMLVideoElement>(null);
   const videoTkRef = useRef<HTMLVideoElement>(null);
+  const videoIgMobileRef = useRef<HTMLVideoElement>(null);
+  const videoTkMobileRef = useRef<HTMLVideoElement>(null);
 
   // Bloqueo de Scroll al cargar
   useEffect(() => {
@@ -113,12 +115,27 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Hover play handlers para escritorio (computadora)
+  const handleVideoHoverStart = (ref: React.RefObject<HTMLVideoElement | null>) => {
+    const video = ref.current;
+    if (!video) return;
+    video.currentTime = 0;
+    video.play().catch(() => {});
+  };
+
+  const handleVideoHoverEnd = (ref: React.RefObject<HTMLVideoElement | null>) => {
+    const video = ref.current;
+    if (!video) return;
+    video.pause();
+    video.currentTime = 0;
+  };
+
   // Toggle de sonido global: un solo click activa/desactiva el audio en ambos videos
   const toggleSound = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newSoundEnabled = !soundEnabled;
     setSoundEnabled(newSoundEnabled);
-    [videoIgRef, videoTkRef].forEach(ref => {
+    [videoIgRef, videoTkRef, videoIgMobileRef, videoTkMobileRef].forEach(ref => {
       if (ref.current) ref.current.muted = !newSoundEnabled;
     });
   };
@@ -416,7 +433,7 @@ export default function Landing() {
           </motion.div>
         </section>
 
-        {/* ═══ NUESTRAS REDES (Videos Nativos Secuenciales) ═══ */}
+        {/* ═══ NUESTRAS REDES (Videos Nativos) ═══ */}
         <section className="relative z-10 pt-16 sm:pt-20 pb-24 sm:pb-32 px-4 sm:px-6">
           <motion.div className="max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
             <motion.div variants={fadeUp} className="text-center mb-10 sm:mb-14">
@@ -424,11 +441,107 @@ export default function Landing() {
               <h2 className="font-['Cinzel',serif] text-3xl sm:text-4xl md:text-5xl font-semibold text-white tracking-tight">Nuestras Redes</h2>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-10 justify-items-center">
+            {/* ─── VISTA COMPUTADORA (Hover play interactivo y minimalista) ─── */}
+            <div className="hidden md:grid md:grid-cols-2 gap-10 justify-items-center">
+              {/* Instagram Desktop */}
+              <motion.div variants={fadeLeft} className="flex flex-col items-center gap-4 w-full max-w-[320px]">
+                <a
+                  href="https://instagram.com/romainmobiliaria"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 group/link cursor-pointer hover:-translate-y-0.5 transition-transform duration-300"
+                >
+                  <Instagram size={20} strokeWidth={1.5} className="text-white group-hover/link:text-roma-leaf transition-colors duration-300" />
+                  <span className="text-white group-hover/link:text-roma-leaf font-medium tracking-widest text-[11px] uppercase drop-shadow-md transition-colors duration-300">
+                    @romainmobiliaria
+                  </span>
+                </a>
 
-              {/* Contenedor Instagram */}
-              <motion.div variants={fadeLeft} className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px]">
-                {/* Label arriba del card animado con movimiento suave arriba y abajo */}
+                <div
+                  className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden group cursor-pointer"
+                  onMouseEnter={() => handleVideoHoverStart(videoIgRef)}
+                  onMouseLeave={() => handleVideoHoverEnd(videoIgRef)}
+                >
+                  <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
+                    <video
+                      ref={videoIgRef}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      muted
+                      playsInline
+                      loop
+                    >
+                      <source src="/video-ig.mp4" type="video/mp4" />
+                    </video>
+                    {/* Play hint icon */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-100 group-hover:opacity-0 transition-opacity duration-400 pointer-events-none">
+                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                        <i className="fas fa-play text-white text-lg ml-1" />
+                      </div>
+                    </div>
+                    {/* Botón de sonido en hover */}
+                    <button
+                      onClick={toggleSound}
+                      className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/70"
+                      title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
+                    >
+                      <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* TikTok Desktop */}
+              <motion.div variants={fadeRight} className="flex flex-col items-center gap-4 w-full max-w-[320px]">
+                <a
+                  href="https://tiktok.com/@romainmobiliaria"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 group/link cursor-pointer hover:-translate-y-0.5 transition-transform duration-300"
+                >
+                  <i className="fab fa-tiktok text-white group-hover/link:text-roma-leaf text-[18px] transition-colors duration-300" />
+                  <span className="text-white group-hover/link:text-roma-leaf font-medium tracking-widest text-[11px] uppercase drop-shadow-md transition-colors duration-300">
+                    @romainmobiliaria
+                  </span>
+                </a>
+
+                <div
+                  className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden group cursor-pointer"
+                  onMouseEnter={() => handleVideoHoverStart(videoTkRef)}
+                  onMouseLeave={() => handleVideoHoverEnd(videoTkRef)}
+                >
+                  <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
+                    <video
+                      ref={videoTkRef}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      muted
+                      playsInline
+                      loop
+                    >
+                      <source src="/video-tiktok.mp4" type="video/mp4" />
+                    </video>
+                    {/* Play hint icon */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-100 group-hover:opacity-0 transition-opacity duration-400 pointer-events-none">
+                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                        <i className="fas fa-play text-white text-lg ml-1" />
+                      </div>
+                    </div>
+                    {/* Botón de sonido en hover */}
+                    <button
+                      onClick={toggleSound}
+                      className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/70"
+                      title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
+                    >
+                      <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* ─── VISTA MOBILE (Touch interactivo con badges flotantes y click to play) ─── */}
+            <div className="grid md:hidden grid-cols-1 gap-8 justify-items-center">
+              {/* Instagram Mobile */}
+              <motion.div variants={fadeLeft} className="flex flex-col items-center gap-3 w-full max-w-[280px]">
                 <motion.a
                   href="https://instagram.com/romainmobiliaria"
                   target="_blank"
@@ -444,14 +557,13 @@ export default function Landing() {
                   <ArrowUpRight size={14} className="text-white/60 group-hover/link:text-white group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-all duration-300" />
                 </motion.a>
 
-                {/* Card del video */}
                 <div
                   className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden cursor-pointer"
-                  onClick={() => handleVideoClick(videoIgRef, playingIg, setPlayingIg)}
+                  onClick={() => handleVideoClick(videoIgMobileRef, playingIg, setPlayingIg)}
                 >
                   <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
                     <video
-                      ref={videoIgRef}
+                      ref={videoIgMobileRef}
                       className="w-full h-full object-cover"
                       muted
                       playsInline
@@ -459,7 +571,6 @@ export default function Landing() {
                     >
                       <source src="/video-ig.mp4" type="video/mp4" />
                     </video>
-                    {/* Play/Pause overlay */}
                     {!playingIg && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
                         <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
@@ -467,7 +578,6 @@ export default function Landing() {
                         </div>
                       </div>
                     )}
-                    {/* Botón de sonido - siempre visible cuando se reproduce */}
                     {playingIg && (
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleSound(e); }}
@@ -481,9 +591,8 @@ export default function Landing() {
                 </div>
               </motion.div>
 
-              {/* Contenedor TikTok */}
-              <motion.div variants={fadeRight} className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px]">
-                {/* Label arriba del card animado con movimiento suave arriba y abajo */}
+              {/* TikTok Mobile */}
+              <motion.div variants={fadeRight} className="flex flex-col items-center gap-3 w-full max-w-[280px]">
                 <motion.a
                   href="https://tiktok.com/@romainmobiliaria"
                   target="_blank"
@@ -499,14 +608,13 @@ export default function Landing() {
                   <ArrowUpRight size={14} className="text-white/60 group-hover/link:text-white group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-all duration-300" />
                 </motion.a>
 
-                {/* Card del video */}
                 <div
                   className="relative bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl w-full aspect-[9/16] overflow-hidden cursor-pointer"
-                  onClick={() => handleVideoClick(videoTkRef, playingTk, setPlayingTk)}
+                  onClick={() => handleVideoClick(videoTkMobileRef, playingTk, setPlayingTk)}
                 >
                   <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
                     <video
-                      ref={videoTkRef}
+                      ref={videoTkMobileRef}
                       className="w-full h-full object-cover"
                       muted
                       playsInline
@@ -514,7 +622,6 @@ export default function Landing() {
                     >
                       <source src="/video-tiktok.mp4" type="video/mp4" />
                     </video>
-                    {/* Play/Pause overlay */}
                     {!playingTk && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
                         <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
@@ -522,7 +629,6 @@ export default function Landing() {
                         </div>
                       </div>
                     )}
-                    {/* Botón de sonido - siempre visible cuando se reproduce */}
                     {playingTk && (
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleSound(e); }}
@@ -535,7 +641,6 @@ export default function Landing() {
                   </div>
                 </div>
               </motion.div>
-
             </div>
           </motion.div>
         </section>
