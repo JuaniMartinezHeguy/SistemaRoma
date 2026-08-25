@@ -327,9 +327,9 @@ export default function Landing() {
             {[
               { id: 'servicios', href: '#servicios', label: 'Servicios' },
               { id: 'tasaciones', href: '#tasaciones', label: 'Tasaciones' },
-              { id: 'nosotros', href: '#nosotros', label: 'Nosotros' },
+              { id: 'ubicaciones', href: '#ubicaciones', label: 'Sucursales' },
             ].map((item) => {
-              const isActive = activeSection === item.id || (item.id === 'nosotros' && activeSection === 'equipo');
+              const isActive = activeSection === item.id;
               return (
                 <a
                   key={item.id}
