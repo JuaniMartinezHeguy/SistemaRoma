@@ -154,20 +154,11 @@ export default function PropiedadDetalle() {
         <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 sm:gap-6 lg:gap-8 items-start">
 
           {/* Galería: miniaturas + imagen principal */}
-          <div className="flex flex-col-reverse lg:flex-row gap-3 items-start">
+          <div className="w-full flex flex-col lg:flex-row gap-3 items-stretch lg:items-start">
 
-            {/* Miniaturas */}
-            {imagenes.length > 1 && (
-              <ThumbnailList
-                imagenes={imagenes}
-                imagenIndex={imagenIndex}
-                onSelect={setImagenIndex}
-              />
-            )}
-
-            {/* Imagen principal */}
+            {/* Imagen principal (En mobile arriba: order-1, en desktop derecha: lg:order-2) */}
             <div
-              className="flex-1 w-full h-[240px] sm:h-[320px] md:h-[380px] lg:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer bg-black/30 border border-white/10 backdrop-blur-xl shadow-2xl"
+              className="order-1 lg:order-2 w-full lg:flex-1 h-[260px] sm:h-[340px] md:h-[400px] lg:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer bg-black/30 border border-white/10 backdrop-blur-xl shadow-2xl shrink-0"
               onClick={() => setImagenModalIndex(imagenIndex)}
             >
               {imagenes.length === 0 ? (
@@ -209,6 +200,17 @@ export default function PropiedadDetalle() {
                 </>
               )}
             </div>
+
+            {/* Miniaturas (En mobile abajo: order-2, en desktop izquierda: lg:order-1) */}
+            {imagenes.length > 1 && (
+              <div className="order-2 lg:order-1 w-full lg:w-[76px] shrink-0">
+                <ThumbnailList
+                  imagenes={imagenes}
+                  imagenIndex={imagenIndex}
+                  onSelect={setImagenIndex}
+                />
+              </div>
+            )}
           </div>
 
           {/* Precio y datos */}
@@ -368,7 +370,7 @@ export default function PropiedadDetalle() {
   );
 }
 
-/** Componente de lista de miniaturas con scroll automático, scrollbar oculto y mask fade */
+/** Componente de lista de miniaturas con scroll automático, scrollbar oculto y soporte responsive */
 function ThumbnailList({
   imagenes,
   imagenIndex,
@@ -392,76 +394,40 @@ function ThumbnailList({
     }
   }, [imagenIndex]);
 
-  // Aislar 100% los eventos de wheel y touch en el contenedor para que NUNCA scroollee la página estando encima de las miniaturas
+  // En desktop, aislar el scroll de la rueda del mouse para el contenedor vertical
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-
       if (window.innerWidth >= 1024) {
+        e.preventDefault();
+        e.stopPropagation();
         container.scrollTop += e.deltaY;
-      } else {
-        container.scrollLeft += (e.deltaX || e.deltaY);
-      }
-    };
-
-    let startY = 0;
-    let startX = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      startX = e.touches[0].clientX;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      e.stopPropagation();
-      if (window.innerWidth >= 1024) {
-        const deltaY = startY - e.touches[0].clientY;
-        container.scrollTop += deltaY;
-        startY = e.touches[0].clientY;
-        e.preventDefault();
-      } else {
-        const deltaX = startX - e.touches[0].clientX;
-        container.scrollLeft += deltaX;
-        startX = e.touches[0].clientX;
-        e.preventDefault();
       }
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-
     return () => {
       container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
     };
   }, []);
 
   return (
     <div
       ref={containerRef}
-      className="shrink-0 w-full lg:w-[76px] h-auto lg:h-[440px] overflow-x-auto lg:overflow-y-auto py-2 no-scrollbar overscroll-contain touch-pan-y"
-      style={{
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
-        maskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
-      }}
+      className="w-full lg:w-[76px] h-auto lg:h-[440px] overflow-x-auto lg:overflow-y-auto py-1 lg:py-2 no-scrollbar overscroll-contain touch-pan-x lg:touch-pan-y"
     >
-      <div className="flex flex-row lg:flex-col gap-2">
+      <div className="flex flex-row lg:flex-col gap-2 pb-1">
         {imagenes.map((img, idx) => (
           <button
             key={idx}
             ref={(el) => { itemsRef.current[idx] = el; }}
             onClick={() => onSelect(idx)}
-            className={`relative shrink-0 w-16 h-16 lg:w-[76px] lg:h-[76px] rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+            className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 lg:w-[76px] lg:h-[76px] rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
               idx === imagenIndex
                 ? 'border-white shadow-lg opacity-100 scale-[1.02]'
-                : 'border-white/10 opacity-50 hover:opacity-80 hover:border-white/40'
+                : 'border-white/15 opacity-60 hover:opacity-90 hover:border-white/40'
             }`}
             aria-label={`Foto ${idx + 1}`}
           >
