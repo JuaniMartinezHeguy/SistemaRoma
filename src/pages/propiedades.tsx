@@ -760,13 +760,186 @@ export default function Catalogo() {
           </h2>
         </div>
 
-        {/* ── SECCIÓN INFERIOR: SIDEBAR Y GRILLA ── */}
-        <section className="flex gap-6 lg:gap-10 relative items-start">
+        {/* ── FILTRO HORIZONTAL VISTA PC (Entre título y grilla) ── */}
+        <div className="hidden lg:block w-full bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl mb-8 text-left">
+          {/* FILA 1: BÚSQUEDA + TIPO DE PROPIEDAD + OPERACIÓN */}
+          <div className="flex items-center gap-4 flex-wrap mb-5 pb-5 border-b border-white/10 justify-between">
+            {/* Buscador libre */}
+            <div className="relative min-w-[240px] flex-1 max-w-xs">
+              <MagnifyingGlass
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none"
+              />
+              <input
+                type="text"
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Buscar por título, ubicación..."
+                className="w-full bg-black/10 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
+              />
+            </div>
 
-          {/* SIDEBAR DESKTOP */}
-          <aside className="hidden lg:block w-[280px] shrink-0 sticky top-10 h-fit bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-7">
-            {SidebarContent()}
-          </aside>
+            {/* Tipos de propiedad */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
+                <HouseLine size={14} /> Tipo:
+              </span>
+              {['Todos', ...TIPOS].map(t => {
+                const isSelected = filtroTipo === t || (
+                  filtroTipo !== 'Todos' &&
+                  t !== 'Todos' &&
+                  (
+                    (t.toLowerCase().includes('campo') && filtroTipo.toLowerCase().includes('campo')) ||
+                    ((t.toLowerCase().includes('terreno') || t.toLowerCase().includes('lote')) && (filtroTipo.toLowerCase().includes('terreno') || filtroTipo.toLowerCase().includes('lote')))
+                  )
+                );
+                return (
+                  <button
+                    key={t}
+                    onClick={() => { setFiltroTipo(t); if (!t.toLowerCase().includes('campo')) setFiltroTipoCampo('Todos'); }}
+                    className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer whitespace-nowrap ${
+                      isSelected
+                        ? 'bg-white border-white text-roma-olive shadow-sm'
+                        : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Operación */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
+                <Tag size={14} /> Operación:
+              </span>
+              {['Todas', ...OPERACIONES].map(o => (
+                <button
+                  key={o}
+                  onClick={() => setFiltroOperacion(o)}
+                  className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer ${
+                    filtroOperacion === o
+                      ? 'bg-white border-white text-roma-olive shadow-sm'
+                      : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  }`}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* FILA 2: ZONA + HABITACIONES + PRECIOS */}
+          <div className="flex items-center gap-5 flex-wrap justify-between">
+            {/* Ubicaciones / Zona */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
+                <MapTrifold size={14} /> Zona:
+              </span>
+              {['Todas', ...UBICACIONES].map(u => (
+                <button
+                  key={u}
+                  onClick={() => setFiltroUbicacion(u)}
+                  className={`px-3.5 py-1 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer ${
+                    filtroUbicacion === u
+                      ? 'bg-white border-white text-roma-olive shadow-sm'
+                      : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  }`}
+                >
+                  {u}
+                </button>
+              ))}
+            </div>
+
+            {/* Subfiltro de Campo */}
+            {filtroTipo.toLowerCase().includes('campo') && TIPOS_CAMPO.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
+                  <Tree size={14} /> Campo:
+                </span>
+                {['Todos', ...TIPOS_CAMPO].map(tc => (
+                  <button
+                    key={tc}
+                    onClick={() => setFiltroTipoCampo(tc)}
+                    className={`px-3.5 py-1 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer ${
+                      filtroTipoCampo === tc
+                        ? 'bg-white border-white text-roma-olive shadow-sm'
+                        : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                    }`}
+                  >
+                    {tc}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Habitaciones */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
+                <Bed size={14} /> Habs:
+              </span>
+              <button
+                onClick={() => setFiltroHabs(null)}
+                className={`px-3 py-1 rounded-xl text-[12px] font-normal border transition-all duration-300 cursor-pointer ${
+                  filtroHabs === null
+                    ? 'bg-white border-white text-roma-olive shadow-sm'
+                    : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                }`}
+              >
+                Todas
+              </button>
+              {HABITACIONES.map(n => (
+                <button
+                  key={n}
+                  onClick={() => setFiltroHabs(n)}
+                  className={`w-8 h-8 rounded-xl text-[12px] font-normal border transition-all duration-300 flex items-center justify-center cursor-pointer ${
+                    filtroHabs === n
+                      ? 'bg-white border-white text-roma-olive shadow-sm'
+                      : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  }`}
+                >
+                  {n === 4 ? '4+' : n}
+                </button>
+              ))}
+            </div>
+
+            {/* Precios */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase shrink-0">USD:</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={filtroPrecioMin}
+                onChange={e => setFiltroPrecioMin(e.target.value.replace(/\D/g, ''))}
+                placeholder="Mín"
+                className="w-20 bg-black/10 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
+              />
+              <span className="text-white/40 text-xs">-</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={filtroPrecioMax}
+                onChange={e => setFiltroPrecioMax(e.target.value.replace(/\D/g, ''))}
+                placeholder="Máx"
+                className="w-20 bg-black/10 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
+              />
+            </div>
+
+            {hayFiltros && (
+              <button
+                type="button"
+                onClick={limpiarFiltros}
+                className="text-white/70 hover:text-white text-xs font-medium tracking-wide underline underline-offset-4 transition-colors cursor-pointer"
+              >
+                Limpiar todo
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── SECCIÓN INFERIOR: SIDEBAR MOBILE Y GRILLA 4 COLUMNAS EN PC ── */}
+        <section className="flex gap-6 lg:gap-10 relative items-start">
 
           {/* SIDEBAR MOBILE */}
           <AnimatePresence>
@@ -807,7 +980,7 @@ export default function Catalogo() {
             )}
           </AnimatePresence>
 
-          {/* GRILLA PRINCIPAL */}
+          {/* GRILLA PRINCIPAL DE 4 COLUMNAS EN PC */}
           <main className="flex-1 min-w-0">
             {/* Controles */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -861,16 +1034,16 @@ export default function Catalogo() {
               </div>
             )}
 
-            {/* Grilla */}
+            {/* Grilla de 4 Tarjetas por fila en PC */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {[...Array(6)].map((_, i) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {[...Array(8)].map((_, i) => (
                   <div key={i} className="bg-black/20 backdrop-blur-md rounded-[20px] sm:rounded-[24px] h-[400px] sm:h-[480px] animate-pulse border border-white/10" />
                 ))}
               </div>
             ) : propiedades.length > 0 ? (
               <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
                 variants={stagger}
                 initial="hidden"
                 animate="visible"

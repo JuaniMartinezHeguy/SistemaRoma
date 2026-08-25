@@ -116,8 +116,8 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4 py-8">
-        <div className="bg-roma-olive border border-white/10 w-full max-w-4xl rounded-[32px] shadow-2xl animate-in zoom-in-95 p-8 my-auto">
+      <div className="flex min-h-full items-center justify-center p-2.5 sm:p-4 py-4 sm:py-8">
+        <div className="bg-roma-olive border border-white/10 w-full max-w-4xl rounded-[24px] sm:rounded-[32px] shadow-2xl animate-in zoom-in-95 p-4 sm:p-8 my-auto">
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">

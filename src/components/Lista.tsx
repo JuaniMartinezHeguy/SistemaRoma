@@ -119,13 +119,13 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
                       <div className="flex items-center justify-end gap-1">
                         <button 
                           onClick={(e) => { e.stopPropagation(); onEditar(prop); }} 
-                          className="p-2 text-white/30 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                          className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                         >
                           <Pencil size={18} />
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setPropiedadABorrar(prop.id); }} 
-                          className="p-2 text-white/30 hover:text-red-400 hover:bg-white/10 rounded-lg transition-all"
+                          className="p-2 text-white/60 hover:text-red-400 hover:bg-white/10 rounded-lg transition-all"
                         >
                           <Trash2 size={18} />
                         </button>
