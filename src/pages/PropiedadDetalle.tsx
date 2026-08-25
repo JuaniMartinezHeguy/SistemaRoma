@@ -122,7 +122,7 @@ export default function PropiedadDetalle() {
     <div className="min-h-screen font-['Inter',system-ui,sans-serif] text-white relative overflow-x-hidden">
 
       {/* Fondo fijo */}
-      <div className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondo-campo.png')", backgroundAttachment: 'fixed' }} />
+      <div className="fixed inset-0 z-[-2] bg-roma-olive md:bg-[url('/fondo-campo.png')] md:bg-cover md:bg-center md:bg-no-repeat md:[background-attachment:fixed]" />
       <div className="fixed inset-0 z-[-1] bg-black/30" />
 
       {/* Header */}

@@ -485,8 +485,7 @@ export default function Catalogo() {
 
       {/* Fondo Fijo */}
       <div
-        className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/fondo-campo.png')", backgroundAttachment: 'fixed' }}
+        className="fixed inset-0 z-[-2] bg-roma-olive md:bg-[url('/fondo-campo.png')] md:bg-cover md:bg-center md:bg-no-repeat md:[background-attachment:fixed]"
       />
 
       {/* ── HEADER ABSOLUTE ── */}

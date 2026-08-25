@@ -55,6 +55,8 @@ export default function Landing() {
   const [expandedMember, setExpandedMember] = useState<number | null>(null);
   const [playingIg, setPlayingIg] = useState(false);
   const [playingTk, setPlayingTk] = useState(false);
+  const [mutedIgMobile, setMutedIgMobile] = useState(true);
+  const [mutedTkMobile, setMutedTkMobile] = useState(true);
 
   // Referencias para animaciones y videos
   const { scrollY } = useScroll();
@@ -130,14 +132,45 @@ export default function Landing() {
     video.currentTime = 0;
   };
 
-  // Toggle de sonido global: un solo click activa/desactiva el audio en ambos videos
+  // Toggle de sonido global: para escritorio
   const toggleSound = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newSoundEnabled = !soundEnabled;
     setSoundEnabled(newSoundEnabled);
-    [videoIgRef, videoTkRef, videoIgMobileRef, videoTkMobileRef].forEach(ref => {
+    [videoIgRef, videoTkRef].forEach(ref => {
       if (ref.current) ref.current.muted = !newSoundEnabled;
     });
+  };
+
+  // Toggle de sonido independiente para mobile (evita reproducir audio en simultáneo)
+  const toggleSoundIgMobile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newMuted = !mutedIgMobile;
+    setMutedIgMobile(newMuted);
+    if (videoIgMobileRef.current) {
+      videoIgMobileRef.current.muted = newMuted;
+    }
+    if (!newMuted) {
+      setMutedTkMobile(true);
+      if (videoTkMobileRef.current) {
+        videoTkMobileRef.current.muted = true;
+      }
+    }
+  };
+
+  const toggleSoundTkMobile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newMuted = !mutedTkMobile;
+    setMutedTkMobile(newMuted);
+    if (videoTkMobileRef.current) {
+      videoTkMobileRef.current.muted = newMuted;
+    }
+    if (!newMuted) {
+      setMutedIgMobile(true);
+      if (videoIgMobileRef.current) {
+        videoIgMobileRef.current.muted = true;
+      }
+    }
   };
 
   const handleVideoClick = (ref: React.RefObject<HTMLVideoElement | null>, isPlaying: boolean, setPlaying: (v: boolean) => void) => {
@@ -341,13 +374,7 @@ export default function Landing() {
 
       {/* ═══ CONTENEDOR GLOBAL DE FONDO CAMPO ═══ */}
       <div
-        className="relative w-full overflow-hidden bg-transparent"
-        style={{
-          backgroundImage: "url('/fondo-campo.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundAttachment: "fixed"
-        }}
+        className="relative w-full overflow-hidden bg-roma-olive md:bg-transparent md:bg-[url('/fondo-campo.png')] md:bg-cover md:bg-center md:[background-attachment:fixed]"
       >
 
         {/* ═══ CARRUSEL DE MARCAS/DATOS ═══ */}
@@ -567,9 +594,10 @@ export default function Landing() {
                       className="w-full h-full object-cover"
                       muted
                       playsInline
+                      preload="auto"
                       loop
                     >
-                      <source src="/video-ig.mp4" type="video/mp4" />
+                      <source src="/video-ig.mp4#t=0.001" type="video/mp4" />
                     </video>
                     {!playingIg && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
@@ -578,15 +606,13 @@ export default function Landing() {
                         </div>
                       </div>
                     )}
-                    {playingIg && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleSound(e); }}
-                        className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-black/70 transition-colors"
-                        title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
-                      >
-                        <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
-                      </button>
-                    )}
+                    <button
+                      onClick={toggleSoundIgMobile}
+                      className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      title={mutedIgMobile ? 'Activar sonido' : 'Silenciar'}
+                    >
+                      <i className={`fas ${!mutedIgMobile ? 'fa-volume-high text-roma-leaf' : 'fa-volume-xmark text-white/70'} text-sm`} />
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -618,9 +644,10 @@ export default function Landing() {
                       className="w-full h-full object-cover"
                       muted
                       playsInline
+                      preload="auto"
                       loop
                     >
-                      <source src="/video-tiktok.mp4" type="video/mp4" />
+                      <source src="/video-tiktok.mp4#t=0.001" type="video/mp4" />
                     </video>
                     {!playingTk && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
@@ -629,15 +656,13 @@ export default function Landing() {
                         </div>
                       </div>
                     )}
-                    {playingTk && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleSound(e); }}
-                        className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-black/70 transition-colors"
-                        title={soundEnabled ? 'Silenciar' : 'Activar sonido'}
-                      >
-                        <i className={`fas ${soundEnabled ? 'fa-volume-high' : 'fa-volume-xmark'} text-white text-sm`} />
-                      </button>
-                    )}
+                    <button
+                      onClick={toggleSoundTkMobile}
+                      className="absolute bottom-4 right-4 z-30 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      title={mutedTkMobile ? 'Activar sonido' : 'Silenciar'}
+                    >
+                      <i className={`fas ${!mutedTkMobile ? 'fa-volume-high text-roma-leaf' : 'fa-volume-xmark text-white/70'} text-sm`} />
+                    </button>
                   </div>
                 </div>
               </motion.div>

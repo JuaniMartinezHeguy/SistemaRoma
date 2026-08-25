@@ -114,8 +114,16 @@ export default function TasacionesSection() {
                   <motion.div
                     key={item.numero}
                     onClick={() => setActiveFactor(activeFactor === idx ? null : idx)}
-                    onMouseEnter={() => setActiveFactor(idx)}
-                    onMouseLeave={() => setActiveFactor(null)}
+                    onMouseEnter={() => {
+                      if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+                        setActiveFactor(idx);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+                        setActiveFactor(null);
+                      }
+                    }}
                     className={`relative cursor-pointer rounded-2xl transition-all duration-500 overflow-hidden border ${
                       isActive
                         ? 'bg-white/[0.06] border-roma-leaf/50 shadow-lg shadow-black/40'
