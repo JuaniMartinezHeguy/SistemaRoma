@@ -92,4 +92,20 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .animate-marquee-responsive {
+    animation: marqueeFast 12s linear infinite;
+    will-change: transform;
+  }
+}
+
+@keyframes marqueeFast {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (min-width: 768px) {
+  .animate-marquee-responsive {
+    animation: marqueeFast 40s linear infinite;
+  }
 }

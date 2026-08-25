@@ -404,22 +404,18 @@ export default function Landing() {
 
         {/* ═══ CARRUSEL DE MARCAS/DATOS ═══ */}
         <div className="relative z-10 w-full overflow-hidden py-5 bg-black/60 backdrop-blur-md border-y border-white/10">
-          <motion.div
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-            className="flex items-center whitespace-nowrap"
-          >
-            {[...Array(2)].map((_, i) => (
+          <div className="flex items-center whitespace-nowrap animate-marquee-responsive">
+            {[...Array(4)].map((_, i) => (
               <div key={i} className="flex items-center">
                 {['10+ Años de experiencia', '3 Sedes en la región', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
                   <div key={idx} className="flex items-center">
-                    <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.2em] px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
+                    <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.18em] px-4 sm:px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/80 shadow-[0_0_5px_rgba(0,0,0,0.8)]" />
                   </div>
                 ))}
               </div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         {/* ═══ SERVICIOS (MENÚ HERO 4 PANELES 100VH) ═══ */}
