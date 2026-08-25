@@ -241,38 +241,40 @@ export default function Admin() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-roma-olive text-white overflow-hidden">
       
-      {/* HEADER TOP BAR FOR MOBILE */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-roma-olive/95 border-b border-white/10 sticky top-0 z-30 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 text-white/80 hover:text-white bg-white/10 rounded-xl transition-colors cursor-pointer"
-            aria-label="Abrir menú"
-          >
-            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-          <img src="/logo-blanco.png" alt="Roma Inmobiliaria" className="h-9 object-contain" />
-        </div>
+      {/* HEADER TOP BAR FOR MOBILE (Solo en el Dashboard) */}
+      {activeTab === "dashboard" && (
+        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-roma-olive border-b border-white/10 relative z-30 shrink-0 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 text-white/80 hover:text-white bg-white/10 rounded-xl transition-colors cursor-pointer"
+              aria-label="Abrir menú"
+            >
+              {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+            <img src="/logo-blanco.png" alt="Roma Inmobiliaria" className="h-9 object-contain" />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={abrirFormularioNuevoCliente}
-            className="p-2 bg-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer border border-white/10"
-            title="Nuevo Cliente"
-          >
-            <Users size={16} />
-            <span className="hidden xs:inline">Cliente</span>
-          </button>
-          <button
-            onClick={abrirFormularioNuevo}
-            className="p-2 bg-white text-roma-dark rounded-xl text-xs font-bold flex items-center gap-1 shadow-md cursor-pointer"
-            title="Nueva Propiedad"
-          >
-            <PlusCircle size={16} />
-            <span className="hidden xs:inline">Propiedad</span>
-          </button>
-        </div>
-      </header>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={abrirFormularioNuevoCliente}
+              className="p-2 bg-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer border border-white/10"
+              title="Nuevo Cliente"
+            >
+              <Users size={16} />
+              <span className="hidden xs:inline">Cliente</span>
+            </button>
+            <button
+              onClick={abrirFormularioNuevo}
+              className="p-2 bg-white text-roma-dark rounded-xl text-xs font-bold flex items-center gap-1 shadow-md cursor-pointer"
+              title="Nueva Propiedad"
+            >
+              <PlusCircle size={16} />
+              <span className="hidden xs:inline">Propiedad</span>
+            </button>
+          </div>
+        </header>
+      )}
 
       {/* OVERLAY PARA SIDEBAR EN MOBILE */}
       {sidebarOpen && (

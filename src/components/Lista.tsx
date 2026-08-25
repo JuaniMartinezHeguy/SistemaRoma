@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2, Star, MapPin, Ruler, Search, AlertCircle, PlusCircle, Home, X } from "lucide-react";
+import { Pencil, Trash2, Star, MapPin, Ruler, Search, AlertCircle, PlusCircle, Home, X, Maximize2, Minimize2 } from "lucide-react";
 
 interface Propiedad {
   id: number; titulo: string; descripcion: string; precio: number;
@@ -22,6 +22,7 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
   const [busqueda, setBusqueda] = useState("");
   const [propiedadABorrar, setPropiedadABorrar] = useState<number | null>(null);
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<Propiedad | null>(null);
+  const [isTableExpanded, setIsTableExpanded] = useState(false);
 
   const propiedadesFiltradas = propiedades.filter((prop) => 
     prop.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -33,12 +34,22 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
       
       {/* HEADER Y BUSCADOR */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Inventario</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Inventario de Propiedades</h1>
         
         {propiedades.length > 0 && (
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-            <Input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="pl-9 h-10 bg-black/20 text-white placeholder-white/30 rounded-xl border-white/10 focus-visible:ring-white/30" />
+          <div className="flex items-center gap-2.5 w-full md:w-auto">
+            <div className="relative flex-1 md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+              <Input type="text" placeholder="Buscar por título o ubicación..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="pl-9 h-10 bg-black/20 text-white placeholder-white/30 rounded-xl border-white/10 focus-visible:ring-white/30 text-base sm:text-sm" />
+            </div>
+
+            <button
+              onClick={() => setIsTableExpanded(!isTableExpanded)}
+              className="p-2.5 h-10 w-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/15 cursor-pointer shrink-0"
+              title={isTableExpanded ? "Reducir vista" : "Agrandar tabla a pantalla completa"}
+            >
+              {isTableExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
           </div>
         )}
       </div>
@@ -78,7 +89,31 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
       ) : (
         
         // VISTA 3: TABLA DE PROPIEDADES
-        <div className="bg-roma-leaf/30 backdrop-blur-md border border-white/10 rounded-[28px] shadow-sm overflow-hidden animate-in fade-in duration-300">
+        <div className={`transition-all duration-300 ${
+          isTableExpanded 
+            ? "fixed inset-0 z-[1000] bg-roma-olive p-4 sm:p-8 overflow-y-auto flex flex-col justify-start" 
+            : "bg-roma-leaf/30 backdrop-blur-md border border-white/10 rounded-[28px] shadow-sm overflow-hidden animate-in fade-in duration-300"
+        }`}>
+          {isTableExpanded && (
+            <div className="flex items-center justify-between pb-4 border-b border-white/15 mb-6 shrink-0 bg-black/20 p-4 rounded-2xl gap-3">
+              <div>
+                <h2 className="text-lg sm:text-2xl font-black text-white flex items-center gap-2.5">
+                  <Home className="text-white/80 shrink-0" /> Inventario Completo de Propiedades
+                </h2>
+                <p className="text-xs text-white/60 font-medium mt-0.5">
+                  Mostrando {propiedadesFiltradas.length} inmuebles en pantalla completa
+                </p>
+              </div>
+              
+              <button
+                onClick={() => setIsTableExpanded(false)}
+                className="p-3 bg-white text-roma-dark font-black rounded-xl shadow-2xl transition-all hover:bg-white/90 active:scale-95 cursor-pointer shrink-0"
+                title="Reducir tabla a vista normal"
+              >
+                <Minimize2 size={20} />
+              </button>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-white/50 uppercase tracking-wider bg-black/20">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { PlusCircle, Pencil, Trash2, Users, Phone, MapPin, AlignLeft, Search, Building, Tag, FilterX, ArrowUpDown, LayoutGrid, Table } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Users, Phone, MapPin, AlignLeft, Search, Building, Tag, FilterX, ArrowUpDown, LayoutGrid, Table, Maximize2, Minimize2 } from 'lucide-react';
 import FormularioClienteModal from '@/components/FormularioClienteModal';
 
 export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarToast: (texto: string, tipo?: 'success' | 'error') => void; autoOpenForm?: boolean }) {
@@ -16,6 +16,7 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
   const [filtroOperacion, setFiltroOperacion] = useState('Todas');
   const [ordenar, setOrdenar] = useState<'recientes' | 'antiguos'>('recientes');
   const [vistaMode, setVistaMode] = useState<'cards' | 'tabla'>('cards');
+  const [isTableExpanded, setIsTableExpanded] = useState(false);
 
   useEffect(() => {
     fetchClientes();
@@ -170,7 +171,7 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
           </p>
         </div>
         
-        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
           {/* CONMUTADOR DE VISTA (CARDS / EXCEL TABLA) */}
           <div className="flex items-center bg-black/40 p-1 rounded-2xl border border-white/15">
             <button
@@ -183,7 +184,7 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
               title="Vista de Tarjetas"
             >
               <LayoutGrid size={15} />
-              <span className="inline sm:inline">Tarjetas</span>
+              <span>Tarjetas</span>
             </button>
             <button
               onClick={() => setVistaMode('tabla')}
@@ -195,13 +196,25 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
               title="Vista de Tabla Excel"
             >
               <Table size={15} />
-              <span className="inline sm:inline">Tabla</span>
+              <span>Tabla</span>
             </button>
           </div>
 
+          {/* BOTÓN DE AGRANDAR PANTALLA COMPLETA (Icono solo) */}
+          <button
+            onClick={() => {
+              setIsTableExpanded(!isTableExpanded);
+              setVistaMode('tabla');
+            }}
+            className="p-2 sm:p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/15 cursor-pointer shrink-0"
+            title={isTableExpanded ? "Reducir pantalla" : "Agrandar tabla a pantalla completa"}
+          >
+            {isTableExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          </button>
+
           <button 
             onClick={() => abrirFormulario()}
-            className="flex items-center justify-center gap-1.5 bg-white hover:bg-white/90 text-roma-dark font-bold py-2.5 sm:py-3.5 px-4 sm:px-6 rounded-2xl shadow-lg transition-all active:scale-95 cursor-pointer text-xs sm:text-sm whitespace-nowrap"
+            className="flex items-center justify-center gap-1.5 bg-white hover:bg-white/90 text-roma-dark font-bold py-2 sm:py-3 px-3.5 sm:px-5 rounded-2xl shadow-lg transition-all active:scale-95 cursor-pointer text-xs sm:text-sm whitespace-nowrap"
           >
             <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5" />
             <span>Nuevo</span>
@@ -232,7 +245,7 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
           )}
         </div>
 
-        {/* DROPDOWNS DE FILTROS Y ORDENAMIENTO (2 por fila en mobile) */}
+        {/* DROPDOWNS DE FILTROS Y ORDENAMIENTO */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           
           {/* Ubicación / Origen */}
@@ -323,7 +336,32 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
       </div>
 
       {/* ── VISTA DE DATOS: CARDS O TABLA TIPO EXCEL ── */}
-      <div className="bg-roma-leaf/30 backdrop-blur-md border border-white/10 rounded-[20px] sm:rounded-[28px] shadow-sm overflow-hidden p-4 sm:p-6">
+      <div className={`transition-all duration-300 ${
+        isTableExpanded 
+          ? "fixed inset-0 z-[1000] bg-roma-olive p-4 sm:p-8 overflow-y-auto flex flex-col justify-start" 
+          : "bg-roma-leaf/30 backdrop-blur-md border border-white/10 rounded-[20px] sm:rounded-[28px] shadow-sm overflow-hidden p-4 sm:p-6"
+      }`}>
+        {isTableExpanded && (
+          <div className="flex items-center justify-between pb-4 border-b border-white/15 mb-6 shrink-0 bg-black/20 p-4 rounded-2xl gap-3">
+            <div>
+              <h2 className="text-lg sm:text-2xl font-black text-white flex items-center gap-2.5">
+                <Table className="text-white/80 shrink-0" /> Tabla Completa de Clientes
+              </h2>
+              <p className="text-xs text-white/60 font-medium mt-0.5">
+                Mostrando {clientesFiltrados.length} registros en pantalla completa
+              </p>
+            </div>
+            
+            <button
+              onClick={() => setIsTableExpanded(false)}
+              className="p-3 bg-white text-roma-dark font-black rounded-xl shadow-2xl transition-all hover:bg-white/90 active:scale-95 cursor-pointer shrink-0"
+              title="Reducir tabla a vista normal"
+            >
+              <Minimize2 size={20} />
+            </button>
+          </div>
+        )}
+
         {cargando ? (
           <div className="text-center py-12 text-white/40 font-medium">Cargando clientes...</div>
         ) : clientesFiltrados.length === 0 ? (
@@ -331,19 +369,19 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
             <Users size={40} className="text-white/20" />
             <p className="text-sm">{hayFiltros ? 'No se encontraron clientes con los filtros aplicados.' : 'No hay clientes registrados.'}</p>
           </div>
-        ) : vistaMode === 'tabla' ? (
-          /* ── VISTA TABLA TIPO EXCEL (Scrollable en mobile) ── */
+        ) : (vistaMode === 'tabla' || isTableExpanded) ? (
+          /* ── VISTA TABLA TIPO EXCEL ── */
           <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-white/10 shadow-inner">
             <table className="w-full text-xs text-left border-collapse bg-black/25">
               <thead className="bg-black/50 text-white/70 uppercase tracking-wider text-[10px] sm:text-[11px] font-bold border-b border-white/15 select-none">
                 <tr>
-                  <th className="py-3 px-3.5 font-bold border-r border-white/10 whitespace-nowrap">Cliente</th>
-                  <th className="py-3 px-3.5 font-bold border-r border-white/10 whitespace-nowrap">Teléfono</th>
-                  <th className="py-3 px-3.5 font-bold border-r border-white/10 whitespace-nowrap">Origen / Zona</th>
-                  <th className="py-3 px-3.5 font-bold border-r border-white/10 whitespace-nowrap">Tipo Propiedad</th>
-                  <th className="py-3 px-3.5 font-bold border-r border-white/10 whitespace-nowrap">Operación</th>
-                  <th className="py-3 px-3.5 font-bold border-r border-white/10 whitespace-nowrap">Notas / Descripción</th>
-                  <th className="py-3 px-3.5 font-bold text-right whitespace-nowrap">Acciones</th>
+                  <th className="py-3.5 px-4 font-bold border-r border-white/10 whitespace-nowrap">Cliente</th>
+                  <th className="py-3.5 px-4 font-bold border-r border-white/10 whitespace-nowrap">Teléfono</th>
+                  <th className="py-3.5 px-4 font-bold border-r border-white/10 whitespace-nowrap">Origen / Zona</th>
+                  <th className="py-3.5 px-4 font-bold border-r border-white/10 whitespace-nowrap">Tipo Propiedad</th>
+                  <th className="py-3.5 px-4 font-bold border-r border-white/10 whitespace-nowrap">Operación</th>
+                  <th className="py-3.5 px-4 font-bold border-r border-white/10 whitespace-nowrap">Notas / Descripción</th>
+                  <th className="py-3.5 px-4 font-bold text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 text-white/90">
@@ -352,16 +390,16 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
                     key={cliente.id} 
                     className={`hover:bg-white/10 transition-colors ${idx % 2 === 0 ? 'bg-white/[0.02]' : 'bg-transparent'}`}
                   >
-                    <td className="py-3 px-3.5 font-bold text-white whitespace-nowrap border-r border-white/5">
+                    <td className="py-3 px-4 font-bold text-white whitespace-nowrap border-r border-white/5">
                       {cliente.nombre} {cliente.apellido}
                     </td>
-                    <td className="py-3 px-3.5 font-medium text-white/80 whitespace-nowrap border-r border-white/5">
+                    <td className="py-3 px-4 font-medium text-white/80 whitespace-nowrap border-r border-white/5">
                       {cliente.telefono || <span className="text-white/30">-</span>}
                     </td>
-                    <td className="py-3 px-3.5 font-medium text-white/80 whitespace-nowrap border-r border-white/5">
+                    <td className="py-3 px-4 font-medium text-white/80 whitespace-nowrap border-r border-white/5">
                       {cliente.origen || <span className="text-white/30">-</span>}
                     </td>
-                    <td className="py-3 px-3.5 font-medium whitespace-nowrap border-r border-white/5">
+                    <td className="py-3 px-4 font-medium whitespace-nowrap border-r border-white/5">
                       {cliente.tipo_propiedad ? (
                         <span className="bg-roma-leaf/40 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-roma-leaf/40">
                           {cliente.tipo_propiedad}
@@ -370,7 +408,7 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
                         <span className="text-white/30">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-3.5 font-medium whitespace-nowrap border-r border-white/5">
+                    <td className="py-3 px-4 font-medium whitespace-nowrap border-r border-white/5">
                       {cliente.operacion ? (
                         <span className="bg-white/10 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-white/15">
                           {cliente.operacion}
@@ -379,10 +417,10 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
                         <span className="text-white/30">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-3.5 font-normal text-white/70 min-w-[200px] max-w-xs border-r border-white/5" title={cliente.descripcion}>
-                      <span className="line-clamp-2">{cliente.descripcion || '-'}</span>
+                    <td className="py-3 px-4 font-normal text-white/70 min-w-[200px] border-r border-white/5" title={cliente.descripcion}>
+                      <span className={isTableExpanded ? "" : "line-clamp-2"}>{cliente.descripcion || '-'}</span>
                     </td>
-                    <td className="py-3 px-3.5 text-right whitespace-nowrap">
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => abrirFormulario(cliente)}
@@ -406,7 +444,7 @@ export default function ClientesAdmin({ mostrarToast, autoOpenForm }: { mostrarT
             </table>
           </div>
         ) : (
-          /* ── VISTA DE TARJETAS (Ajustada para Mobile) ── */
+          /* ── VISTA DE TARJETAS ── */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {clientesFiltrados.map(cliente => (
               <div key={cliente.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-white/30 hover:bg-white/10 transition-all group relative flex flex-col justify-between">
