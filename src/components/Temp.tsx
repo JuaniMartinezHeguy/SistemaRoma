@@ -113,21 +113,6 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Hover play handlers - siempre reproduce (muted), el usuario activa sonido con un click
-  const handleVideoHoverStart = (ref: React.RefObject<HTMLVideoElement | null>) => {
-    const video = ref.current;
-    if (!video) return;
-    video.currentTime = 0;
-    video.play().catch(() => { });
-  };
-
-  const handleVideoHoverEnd = (ref: React.RefObject<HTMLVideoElement | null>) => {
-    const video = ref.current;
-    if (!video) return;
-    video.pause();
-    video.currentTime = 0;
-  };
-
   // Toggle de sonido global: un solo click activa/desactiva el audio en ambos videos
   const toggleSound = (e: React.MouseEvent) => {
     e.stopPropagation();
