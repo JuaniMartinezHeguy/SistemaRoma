@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronRight, Home, TreePine, MapPin } from 'lucide-react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+type TipoTasacion = 'Propiedad' | 'Campo' | 'Terreno';
+
 export default function TasacionesSection() {
+  const [tipoTasacion, setTipoTasacion] = useState<TipoTasacion>('Campo');
   const [activeFactor, setActiveFactor] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
     nombre: '',
     telefono: '',
     ubicacion: '',
+    tipoInmueble: 'Casa',
+    ambientes: '',
+    superficie: '',
     detalles: '',
   });
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -26,11 +33,22 @@ export default function TasacionesSection() {
     e.preventDefault();
     if (!formData.nombre || !formData.ubicacion) return;
 
-    const textMessage = `Hola Roma Inmobiliaria, deseo solicitar la tasación de un campo.%0A%0A` +
+    let textMessage = `Hola Roma Inmobiliaria, deseo solicitar la tasación de un/a *${tipoTasacion}*.%0A%0A` +
+      `*Tipo:* ${encodeURIComponent(tipoTasacion)}%0A` +
       `*Nombre:* ${encodeURIComponent(formData.nombre)}%0A` +
       `*Teléfono:* ${encodeURIComponent(formData.telefono || 'No especificado')}%0A` +
-      `*Ubicación:* ${encodeURIComponent(formData.ubicacion)}%0A` +
-      `*Detalles:* ${encodeURIComponent(formData.detalles || 'Sin detalles adicionales')}`;
+      `*Ubicación:* ${encodeURIComponent(formData.ubicacion)}%0A`;
+
+    if (tipoTasacion === 'Propiedad') {
+      if (formData.tipoInmueble) textMessage += `*Subtipo:* ${encodeURIComponent(formData.tipoInmueble)}%0A`;
+      if (formData.ambientes) textMessage += `*Ambientes:* ${encodeURIComponent(formData.ambientes)}%0A`;
+    } else if (tipoTasacion === 'Terreno') {
+      if (formData.superficie) textMessage += `*Superficie:* ${encodeURIComponent(formData.superficie)}%0A`;
+    }
+
+    if (formData.detalles) {
+      textMessage += `*Detalles adicionales:* ${encodeURIComponent(formData.detalles)}`;
+    }
 
     const whatsappUrl = `https://wa.me/5492920123456?text=${textMessage}`;
 
@@ -45,27 +63,27 @@ export default function TasacionesSection() {
   const FACTORES = [
     {
       numero: '01',
-      titulo: 'Aptitud y Calidad de Suelos',
-      resumen: 'Análisis agronómico, profundidad arable e índice de productividad.',
-      detalle: 'Evaluamos la textura del suelo, aptitud agrícola vs. ganadera, capacidad de retención de humedad, índice de productividad (IP) y rotación histórica de cultivos.',
+      titulo: 'Aptitud y Calidad de Suelos / Inmuebles',
+      resumen: 'Análisis técnico, estado estructural y capacidad de desarrollo.',
+      detalle: 'Evaluamos la calidad constructiva, conservación y superficie útil en propiedades urbanas, o la textura del suelo, profundidad arable e índice de productividad (IP) en campos y loteos.',
     },
     {
       numero: '02',
-      titulo: 'Ubicación y Logística',
-      resumen: 'Accesibilidad a rutas, acopios y puertos agroexportadores.',
-      detalle: 'Analizamos la distancia a centros urbanos, rutas asfaltadas, conectividad ferroviaria, terminales portuarias y la transitabilidad de los caminos rurales en cualquier época del año.',
+      titulo: 'Ubicación y Entorno Logístico',
+      resumen: 'Accesibilidad a servicios, rutas, comercios y centros urbanos.',
+      detalle: 'Analizamos el valor estratégico del sector, acceso a vías asfaltadas, conectividad urbana, cercanía a zonas de alta demanda o puertos agroexportadores.',
     },
     {
       numero: '03',
-      titulo: 'Infraestructura y Mejoras',
-      resumen: 'Estado de conservación de molinos, alambres, mangas y galpones.',
-      detalle: 'Auditamos en detalle el estado de los potreros, alambres perimetrales e internos, perforaciones de agua, tanques australianos, corrales, mangas y viviendas del establecimiento.',
+      titulo: 'Infraestructura y Mejoras Existentes',
+      resumen: 'Estado de instalaciones, servicios públicos y edificaciones.',
+      detalle: 'Auditamos en detalle el estado de conservación de viviendas, locales, corrales, perforaciones de agua, cerramientos perimetrales y redes de servicios.',
     },
     {
       numero: '04',
-      titulo: 'Régimen Hídrico y Receptividad',
-      resumen: 'Calidad de agua subterránea, precipitaciones y carga animal.',
-      detalle: 'Estudiamos el registro pluviométrico histórico, la salinidad y aptitud del agua para consumo animal/humano, receptividad de cabezas por hectárea y drenajes naturales.',
+      titulo: 'Proyección de Mercado y Rentabilidad',
+      resumen: 'Comparativo de valores reales de cierre y potencial patrimonial.',
+      detalle: 'Estudiamos el comportamiento reciente de valores en la zona, potencial de subdivisión o valorización para garantizar una tasación certera y competitiva.',
     },
   ];
 
@@ -73,9 +91,9 @@ export default function TasacionesSection() {
     <section id="tasaciones" className="relative z-10 pt-28 pb-36 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto w-full">
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           
-          {/* LADO IZQUIERDO: TÍTULO A LA IZQUIERDA Y LISTA EDITORIAL CON MOVIMIENTO */}
+          {/* LADO IZQUIERDO: TÍTULO Y CRITERIOS */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -87,17 +105,17 @@ export default function TasacionesSection() {
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-roma-leaf animate-pulse" />
               <span className="text-roma-leaf text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.25em]">
-                Servicio Inmobiliario Rural
+                Servicio Inmobiliario Profesional
               </span>
             </div>
 
-            {/* Título alineado a la izquierda */}
+            {/* Título principal H1/H2 actualizado */}
             <h2 className="font-['Cinzel',serif] text-4xl md:text-5xl lg:text-6xl font-semibold text-white tracking-tight drop-shadow-md mb-6 leading-[1.1]">
-              Tasación de Campos
+              Tasación de Propiedades
             </h2>
 
             <p className="text-white/80 text-base md:text-lg font-light leading-relaxed mb-10 max-w-2xl">
-              Determinamos el verdadero valor de mercado de tu tierra combinando precisión técnica agronómica, análisis comparativo de operaciones recientes y más de 10 años de trayectoria regional.
+              Determinamos el verdadero valor de mercado de tu casa, terreno o establecimiento rural combinando rigor técnico, análisis comparativo de operaciones reales y más de 10 años de trayectoria regional.
             </p>
 
             {/* Subtítulo explicativo */}
@@ -106,7 +124,7 @@ export default function TasacionesSection() {
               <span className="h-[1px] flex-1 bg-white/15" />
             </h3>
 
-            {/* LISTA EDITORIAL INTERACTIVA CON MOVIMIENTO */}
+            {/* LISTA EDITORIAL INTERACTIVA */}
             <div className="flex flex-col gap-3">
               {FACTORES.map((item, idx) => {
                 const isActive = activeFactor === idx;
@@ -155,7 +173,7 @@ export default function TasacionesSection() {
                         />
                       </div>
 
-                      {/* Acordeón fluido con AnimatePresence */}
+                      {/* Acordeón fluido */}
                       <AnimatePresence initial={false}>
                         {isActive && (
                           <motion.div
@@ -178,105 +196,273 @@ export default function TasacionesSection() {
             </div>
           </motion.div>
 
-          {/* LADO DERECHO: FORMULARIO ELEGANTE */}
+          {/* LADO DERECHO: FORMULARIO DINÁMICO - CARD ENTERA ANIMADA */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
-            className="lg:col-span-5 w-full"
+            className="lg:col-span-5 w-full flex flex-col"
           >
-            <div className="bg-[#1a2c1a]/95 backdrop-blur-xl border border-white/10 p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-              
-              <div className="mb-8 text-left">
-                <h3 className="font-['Cinzel',serif] text-2xl md:text-3xl font-semibold text-white mb-2 tracking-tight">
-                  Solicitá tu Tasación
-                </h3>
-                <p className="text-white/70 text-sm font-light leading-relaxed">
-                  Ingresá tus datos y la ubicación del establecimiento para coordinar una inspección técnica.
-                </p>
-              </div>
-
-              {submitted && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 rounded-2xl bg-roma-leaf/20 border border-roma-leaf/40 text-white text-sm flex items-center gap-3"
-                >
-                  <CheckCircle2 size={20} className="text-roma-leaf flex-shrink-0" />
-                  <span>¡Solicitud lista! Redirigiendo a WhatsApp...</span>
-                </motion.div>
-              )}
-
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
-                <div>
-                  <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Nombre y Apellido *
-                  </label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    placeholder="Ej. Rodrigo Martínez"
-                    required
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3.5 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Teléfono / WhatsApp *
-                  </label>
-                  <input
-                    type="tel"
-                    name="telefono"
-                    value={formData.telefono}
-                    onChange={handleChange}
-                    placeholder="Ej. +54 9 2920 123456"
-                    required
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3.5 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Ubicación del Campo *
-                  </label>
-                  <input
-                    type="text"
-                    name="ubicacion"
-                    value={formData.ubicacion}
-                    onChange={handleChange}
-                    placeholder="Ej. Villalonga, Pedro Luro, Partido de Patagones..."
-                    required
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3.5 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Detalles / Hectáreas (Opcional)
-                  </label>
-                  <textarea
-                    name="detalles"
-                    value={formData.detalles}
-                    onChange={handleChange}
-                    rows={3}
-                    placeholder="Ej. 500 ha agrícolas con molino y galpón..."
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3.5 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-roma-olive hover:bg-roma-leaf text-white font-semibold py-4 px-8 rounded-full shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-3 text-base mt-2 group cursor-pointer"
-                >
-                  <span>Tasar mi campo</span>
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
-              </form>
+            {/* SELECTOR DE TIPO (CHOICE TABS SUPERIOR) */}
+            <div className="mb-4 p-1.5 bg-[#162719]/90 backdrop-blur-md border border-white/15 rounded-2xl flex items-center gap-1 shadow-lg relative z-20">
+              {(['Propiedad', 'Campo', 'Terreno'] as TipoTasacion[]).map((tipo) => {
+                const isSelected = tipoTasacion === tipo;
+                return (
+                  <button
+                    key={tipo}
+                    type="button"
+                    onClick={() => setTipoTasacion(tipo)}
+                    className={`flex-1 relative z-10 py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
+                      isSelected ? 'text-white' : 'text-white/60 hover:text-white/90'
+                    }`}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        layoutId="activeTasacionTab"
+                        className="absolute inset-0 bg-roma-olive rounded-xl shadow-md z-[-1] border border-white/20"
+                        transition={{ duration: 0.3, ease: EASE }}
+                      />
+                    )}
+                    {tipo === 'Propiedad' && <Home size={14} className={isSelected ? 'text-roma-leaf' : 'text-white/50'} />}
+                    {tipo === 'Campo' && <TreePine size={14} className={isSelected ? 'text-roma-leaf' : 'text-white/50'} />}
+                    {tipo === 'Terreno' && <MapPin size={14} className={isSelected ? 'text-roma-leaf' : 'text-white/50'} />}
+                    <span>{tipo}</span>
+                  </button>
+                );
+              })}
             </div>
+
+            {/* CARD COMPLETA ANIMADA QUE SALE HACIA LA IZQ Y ENTRA DESDE LA DERECHA */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tipoTasacion}
+                initial={{ opacity: 0, x: 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -60 }}
+                transition={{ duration: 0.35, ease: EASE }}
+                className="bg-[#1a2c1a]/95 backdrop-blur-xl border border-white/10 p-7 md:p-9 rounded-[2.5rem] shadow-2xl relative overflow-hidden text-left"
+              >
+                <div className="mb-5 text-left">
+                  <h3 className="font-['Cinzel',serif] text-2xl md:text-3xl font-semibold text-white mb-1.5 tracking-tight">
+                    {tipoTasacion === 'Propiedad' && 'Tasá tu Propiedad'}
+                    {tipoTasacion === 'Campo' && 'Tasá tu Campo'}
+                    {tipoTasacion === 'Terreno' && 'Tasá tu Terreno'}
+                  </h3>
+                  <p className="text-white/70 text-xs sm:text-sm font-light leading-relaxed">
+                    {tipoTasacion === 'Propiedad' && 'Ingresá los datos de tu casa, departamento o local para coordinar una inspección.'}
+                    {tipoTasacion === 'Campo' && 'Ingresá la ubicación y características de tu establecimiento rural.'}
+                    {tipoTasacion === 'Terreno' && 'Ingresá la ubicación y dimensiones de tu lote o terreno.'}
+                  </p>
+                </div>
+
+                {submitted && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 rounded-2xl bg-roma-leaf/20 border border-roma-leaf/40 text-white text-sm flex items-center gap-3"
+                  >
+                    <CheckCircle2 size={20} className="text-roma-leaf flex-shrink-0" />
+                    <span>¡Solicitud lista! Redirigiendo a WhatsApp...</span>
+                  </motion.div>
+                )}
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
+                  {/* CAMPOS COMUNES (Nombre y Teléfono) */}
+                  <div>
+                    <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                      Nombre y Apellido *
+                    </label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={formData.nombre}
+                      onChange={handleChange}
+                      placeholder="Ej. Rodrigo Martínez"
+                      required
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                      Teléfono / WhatsApp *
+                    </label>
+                    <input
+                      type="tel"
+                      name="telefono"
+                      value={formData.telefono}
+                      onChange={handleChange}
+                      placeholder="Ej. +54 9 2920 123456"
+                      required
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                    />
+                  </div>
+
+                  {/* 1. FORMULARIO PROPIEDAD */}
+                  {tipoTasacion === 'Propiedad' && (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                            Tipo de Inmueble *
+                          </label>
+                          <select
+                            name="tipoInmueble"
+                            value={formData.tipoInmueble}
+                            onChange={handleChange}
+                            className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 cursor-pointer"
+                          >
+                            <option value="Casa" className="bg-[#162719]">Casa</option>
+                            <option value="Departamento" className="bg-[#162719]">Departamento</option>
+                            <option value="Local Comercial" className="bg-[#162719]">Local Comercial</option>
+                            <option value="PH" className="bg-[#162719]">PH</option>
+                            <option value="Oficina / Galpón" className="bg-[#162719]">Oficina / Galpón</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                            Ambientes (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            name="ambientes"
+                            value={formData.ambientes}
+                            onChange={handleChange}
+                            placeholder="Ej. 3 ambientes / 2 hab"
+                            className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Ubicación / Dirección *
+                        </label>
+                        <input
+                          type="text"
+                          name="ubicacion"
+                          value={formData.ubicacion}
+                          onChange={handleChange}
+                          placeholder="Ej. Av. San Martín 450, Villalonga"
+                          required
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Detalles Adicionales (Opcional)
+                        </label>
+                        <textarea
+                          name="detalles"
+                          value={formData.detalles}
+                          onChange={handleChange}
+                          rows={2}
+                          placeholder="Ej. Estado de conservación, patio, garage..."
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* 2. FORMULARIO CAMPO */}
+                  {tipoTasacion === 'Campo' && (
+                    <>
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Ubicación del Campo *
+                        </label>
+                        <input
+                          type="text"
+                          name="ubicacion"
+                          value={formData.ubicacion}
+                          onChange={handleChange}
+                          placeholder="Ej. Villalonga, Pedro Luro, Partido de Patagones..."
+                          required
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Detalles / Hectáreas (Opcional)
+                        </label>
+                        <textarea
+                          name="detalles"
+                          value={formData.detalles}
+                          onChange={handleChange}
+                          rows={3}
+                          placeholder="Ej. 500 ha agrícolas con molino y galpón..."
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* 3. FORMULARIO TERRENO */}
+                  {tipoTasacion === 'Terreno' && (
+                    <>
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Ubicación / Barrio *
+                        </label>
+                        <input
+                          type="text"
+                          name="ubicacion"
+                          value={formData.ubicacion}
+                          onChange={handleChange}
+                          placeholder="Ej. Barrio Don Bosco, Patagones / Viedma"
+                          required
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Superficie / Medidas (Opcional)
+                        </label>
+                        <input
+                          type="text"
+                          name="superficie"
+                          value={formData.superficie}
+                          onChange={handleChange}
+                          placeholder="Ej. 12x30m / 360 m²"
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-white/90 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                          Servicios / Detalles (Opcional)
+                        </label>
+                        <textarea
+                          name="detalles"
+                          value={formData.detalles}
+                          onChange={handleChange}
+                          rows={2}
+                          placeholder="Ej. Agua, Luz, Cloacas, pilar de luz..."
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="w-full bg-roma-olive hover:bg-roma-leaf text-white font-semibold py-3.5 px-8 rounded-full shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-3 text-base mt-2 group cursor-pointer"
+                  >
+                    <span>
+                      {tipoTasacion === 'Propiedad' && 'Tasar mi propiedad'}
+                      {tipoTasacion === 'Campo' && 'Tasar mi campo'}
+                      {tipoTasacion === 'Terreno' && 'Tasar mi terreno'}
+                    </span>
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+                  </button>
+                </form>
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
 
         </div>
@@ -284,3 +470,4 @@ export default function TasacionesSection() {
     </section>
   );
 }
+
