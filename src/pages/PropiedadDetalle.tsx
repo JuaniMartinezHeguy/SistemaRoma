@@ -137,10 +137,15 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
   const esCampo = propiedad.tipo_propiedad?.toLowerCase() === 'campo';
 
-  const dims = propiedad.dimensiones || propiedad.atributos_especificos?.dimensiones || propiedad.superficie || propiedad.mts2;
-  const habs = propiedad.habitaciones || propiedad.atributos_especificos?.habitaciones;
-  const bns  = propiedad.banos || propiedad.atributos_especificos?.banos;
-  const tipoCampo = propiedad.atributos_especificos?.tipo_campo;
+  let attrs = propiedad.atributos_especificos;
+  if (typeof attrs === 'string') {
+    try { attrs = JSON.parse(attrs); } catch { attrs = {}; }
+  }
+
+  const dims = propiedad.dimensiones || attrs?.dimensiones || propiedad.superficie || propiedad.mts2;
+  const habs = propiedad.habitaciones || attrs?.habitaciones;
+  const bns  = propiedad.banos || attrs?.banos;
+  const tipoCampo = attrs?.tipo_campo || attrs?.actividad || attrs?.aptitud || (propiedad as any).tipo_campo;
 
   const nextImagen = (e: React.MouseEvent) => { e.stopPropagation(); setImagenIndex((p) => (p + 1) % imagenes.length); };
   const prevImagen = (e: React.MouseEvent) => { e.stopPropagation(); setImagenIndex((p) => (p - 1 + imagenes.length) % imagenes.length); };
@@ -544,29 +549,38 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
                 </h3>
               </div>
 
-              <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-black/30 shadow-xl h-[380px] sm:h-[450px]">
-                {/* Mapa Embed Satelital (t=k) */}
-                <iframe
-                  title="Ubicación de la propiedad"
-                  width="100%"
-                  height="100%"
-                  className="w-full h-full border-0 transition-all duration-500"
-                  loading="lazy"
-                  allowFullScreen
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=k&z=16&ie=UTF8&iwloc=&output=embed`}
-                />
+              <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-black/30 shadow-xl h-[400px] sm:h-[480px]">
+                {/* Contenedor recortado para eliminar la caja blanca superior de Google Maps */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <iframe
+                    title="Ubicación de la propiedad"
+                    width="100%"
+                    height="100%"
+                    className="absolute -top-24 -left-8 w-[calc(100%+64px)] h-[calc(100%+140px)] border-0 transition-all duration-500"
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=k&z=16&ie=UTF8&iwloc=near&output=embed`}
+                  />
+                </div>
 
-                {/* Tarjeta Flotante Superpuesta con Colores de Roma */}
-                <div className="absolute bottom-4 left-4 right-4 sm:right-auto max-w-sm bg-[#122313]/90 backdrop-blur-md border border-white/20 p-4 sm:p-5 rounded-2xl shadow-2xl z-20 space-y-3">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-white/50 font-mono">Dirección / Zona</div>
-                    <div className="text-sm font-bold text-white line-clamp-1">{propiedad.ubicacion}</div>
+                {/* Tarjeta Flotante Minimalista */}
+                <div className="absolute bottom-4 left-4 right-4 sm:right-auto max-w-sm sm:max-w-md bg-[#122313]/90 backdrop-blur-md border border-white/15 p-4 sm:p-5 rounded-2xl shadow-xl z-20 space-y-3.5">
+                  <div className="space-y-1">
+                    <div className="text-[11px] uppercase tracking-wider text-white/50 font-mono flex items-center gap-1.5">
+                      <span>Dirección</span>
+                      <MapPin size={14} weight="fill" className="text-white/70 shrink-0" />
+                    </div>
+
+                    <div className="text-sm sm:text-base font-bold text-white leading-snug break-words">
+                      {propiedad.coordenadas || propiedad.ubicacion}
+                    </div>
                   </div>
+
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-white/15 hover:bg-white/25 text-white py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border border-white/20 active:scale-95 cursor-pointer"
+                    className="w-full bg-white/10 hover:bg-white/20 text-white/90 hover:text-white py-2.5 px-4 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-all border border-white/15 active:scale-95 cursor-pointer shadow-sm"
                   >
                     <span>Abrir en Google Maps</span>
                     <ArrowSquareOut size={15} weight="light" />

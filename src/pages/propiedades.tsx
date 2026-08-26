@@ -1150,9 +1150,9 @@ export default function Catalogo() {
 
                       {/* Especificaciones en la parte inferior de la tarjeta con m² para Casas, Deptos, Terrenos y Campos */}
                       {(() => {
-                        const tipoLower = prop.tipo_propiedad?.toLowerCase() || '';
-                        const isCampo = tipoLower === 'campo';
-                        const isTerreno = tipoLower === 'terreno' || tipoLower === 'lote';
+                        const tipoLower = (prop.tipo_propiedad || '').toLowerCase().trim();
+                        const isCampo = tipoLower.includes('campo');
+                        const isTerreno = tipoLower.includes('terreno') || tipoLower.includes('lote');
                         const isCasaODepto = ['casa', 'departamento', 'depto', 'duplex', 'ph'].some(t => tipoLower.includes(t));
 
                         const sup = prop.superficie || prop.dimensiones || prop.atributos_especificos?.dimensiones || prop.mts2;
@@ -1165,6 +1165,20 @@ export default function Catalogo() {
                           : null;
 
                         if (isCampo) {
+                          let attrs = prop.atributos_especificos;
+                          if (typeof attrs === 'string') {
+                            try { attrs = JSON.parse(attrs); } catch { attrs = {}; }
+                          }
+                          let actividad = attrs?.tipo_campo || attrs?.actividad || attrs?.aptitud || (prop as any).tipo_campo || (prop as any).actividad || (prop as any).aptitud;
+                          if (!actividad || String(actividad).trim() === '' || String(actividad).toLowerCase() === 'campo') {
+                            const text = `${prop.titulo || ''} ${prop.descripcion || ''}`.toLowerCase();
+                            if (text.includes('ganader') || text.includes('vaca') || text.includes('hacienda')) actividad = 'Ganadero';
+                            else if (text.includes('agricol') || text.includes('agrícol') || text.includes('siembra') || text.includes('cosecha')) actividad = 'Agrícola';
+                            else if (text.includes('mixt')) actividad = 'Mixto';
+                            else if (text.includes('forest')) actividad = 'Forestal';
+                            else actividad = 'Agrícola';
+                          }
+
                           return (
                             <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
                               <div className="flex items-center gap-1 col-span-2">
@@ -1174,8 +1188,8 @@ export default function Catalogo() {
                                 </span>
                               </div>
                               <div className="text-right">
-                                <span className="text-xs font-medium text-white/60 capitalize truncate block">
-                                  Campo
+                                <span className="text-xs font-medium text-white/60 capitalize truncate block" title={String(actividad)}>
+                                  {actividad}
                                 </span>
                               </div>
                             </div>
