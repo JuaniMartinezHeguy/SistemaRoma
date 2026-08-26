@@ -87,6 +87,8 @@ export default function Catalogo() {
   // UI
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [destacadaIndex, setDestacadaIndex] = useState(0);
+  const [modalPropiedadId, setModalPropiedadId] = useState<number | null>(null);
+  const [selectedPropiedadObj, setSelectedPropiedadObj] = useState<Propiedad | null>(null);
 
   const cantidadFiltrosActivos = [
     filtroTipo !== 'Todos',
@@ -146,13 +148,13 @@ export default function Catalogo() {
 
   // ─── 3. EFECTO: Bloqueo Maestro de Scroll ───
   useEffect(() => {
-    if (showScreenLoader || !heroDismissed) {
+    if (showScreenLoader || !heroDismissed || modalPropiedadId !== null) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     return () => { document.body.style.overflow = ''; };
-  }, [showScreenLoader, heroDismissed]);
+  }, [showScreenLoader, heroDismissed, modalPropiedadId]);
 
   // ─── Fetch ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -258,9 +260,6 @@ export default function Catalogo() {
     }, 6000);
     return () => clearInterval(interval);
   }, [propiedadesDestacadas.length, heroDismissed]);
-
-  const [modalPropiedadId, setModalPropiedadId] = useState<number | null>(null);
-  const [selectedPropiedadObj, setSelectedPropiedadObj] = useState<Propiedad | null>(null);
 
   useEffect(() => {
     if (!modalPropiedadId) return;
@@ -1287,7 +1286,7 @@ export default function Catalogo() {
         </motion.button>
       )}
 
-      {/* ── MODAL SOBRE EL CATÁLOGO CON FONDO BORROSO SIN SOMBREADO OSCURO ── */}
+      {/* ── MODAL SOBRE EL CATÁLOGO ── */}
       <AnimatePresence>
         {modalPropiedadId !== null && (
           <motion.div
@@ -1295,7 +1294,7 @@ export default function Catalogo() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-start sm:items-center"
+            className="fixed inset-0 z-[100] bg-[#182b19] sm:bg-black/70 backdrop-blur-md overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-start sm:items-center"
             onClick={() => {
               setModalPropiedadId(null);
               setSelectedPropiedadObj(null);
@@ -1306,7 +1305,7 @@ export default function Catalogo() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-6xl relative my-auto"
+              className="w-full max-w-6xl relative min-h-full sm:min-h-0 sm:my-auto flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <PropiedadDetalle

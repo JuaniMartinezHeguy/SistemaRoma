@@ -105,7 +105,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
   if (loading) {
     return (
-      <div className={onClose ? "bg-[#182b19] p-12 rounded-3xl border border-white/15 text-center text-white" : "min-h-screen bg-[#182b19] text-white flex flex-col items-center justify-center p-6"}>
+      <div className={onClose ? "bg-[#182b19] min-h-screen sm:min-h-0 p-6 sm:p-12 rounded-none sm:rounded-3xl border-0 sm:border border-white/15 text-center text-white flex items-center justify-center" : "min-h-screen bg-[#182b19] text-white flex flex-col items-center justify-center p-6"}>
         <div className="bg-roma-leaf/30 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-white/15 shadow-2xl text-center max-w-sm mx-auto flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           <p className="text-white/80 text-sm font-medium">Cargando propiedad...</p>
@@ -116,7 +116,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
   if (!propiedad) {
     return (
-      <div className={onClose ? "bg-[#182b19] p-8 rounded-3xl text-center text-white" : "min-h-screen bg-[#182b19] text-white flex flex-col items-center justify-center p-6"}>
+      <div className={onClose ? "bg-[#182b19] min-h-screen sm:min-h-0 p-6 sm:p-12 rounded-none sm:rounded-3xl border-0 sm:border border-white/15 text-center text-white flex items-center justify-center" : "min-h-screen bg-[#182b19] text-white flex flex-col items-center justify-center p-6"}>
         <div className="bg-roma-leaf/30 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-white/15 shadow-2xl text-center max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-4">Propiedad no encontrada</h2>
           <p className="text-white/70 text-sm mb-6">El inmueble solicitado no existe o fue despublicado.</p>
@@ -231,7 +231,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
   }
 
   const cardElement = (
-    <div className="w-full max-w-6xl mx-auto bg-[#182b19] rounded-none sm:rounded-[32px] md:rounded-[40px] border-0 sm:border border-white/15 shadow-none sm:shadow-[0_25px_70px_rgba(0,0,0,0.6)] overflow-hidden relative min-h-screen sm:min-h-0">
+    <div className="w-full max-w-6xl mx-auto bg-[#182b19] rounded-none sm:rounded-[32px] md:rounded-[40px] border-0 sm:border border-white/15 shadow-none sm:shadow-[0_25px_70px_rgba(0,0,0,0.6)] overflow-hidden relative min-h-full sm:min-h-0 flex-1 flex flex-col">
 
       {/* ── 1. HERO CON IMAGEN NÍTIDA Y DEGRADÉ DESDE MÁS ABAJO ── */}
       <div className="relative min-h-[60vh] sm:min-h-[75vh] md:min-h-[82vh] flex flex-col justify-between p-4 sm:p-7 lg:p-10 overflow-hidden">
