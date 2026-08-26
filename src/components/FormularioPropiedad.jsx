@@ -18,6 +18,7 @@ const ESTADO_INICIAL = {
   coordenadas: '',
   habitaciones: '',
   banos: '',
+  superficie: '',
   dimensiones: '',
   tipo_campo: 'Agricola',
   dimensiones_terreno: '',
@@ -33,6 +34,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
 
   useEffect(() => {
     if (propiedadInicial) {
+      const valSuperficie = propiedadInicial.superficie || propiedadInicial.dimensiones || propiedadInicial.atributos_especificos?.dimensiones || propiedadInicial.mts2 || '';
       setForm({
         tipo_propiedad: propiedadInicial.tipo_propiedad || '',
         titulo: propiedadInicial.titulo || '',
@@ -44,9 +46,10 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
         coordenadas: propiedadInicial.coordenadas || propiedadInicial.atributos_especificos?.coordenadas || '',
         habitaciones: propiedadInicial.atributos_especificos?.habitaciones || propiedadInicial.habitaciones || '',
         banos: propiedadInicial.atributos_especificos?.banos || propiedadInicial.banos || '',
-        dimensiones: propiedadInicial.atributos_especificos?.dimensiones || propiedadInicial.dimensiones || '',
+        superficie: valSuperficie,
+        dimensiones: valSuperficie,
         tipo_campo: propiedadInicial.atributos_especificos?.tipo_campo || 'Agricola',
-        dimensiones_terreno: propiedadInicial.atributos_especificos?.dimensiones || '',
+        dimensiones_terreno: valSuperficie,
         estado: propiedadInicial.estado || 'publicado',
       });
     }
@@ -59,19 +62,22 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
     const { tipo_propiedad } = form;
     let atributos_especificos = {};
 
+    const supValor = form.superficie || form.dimensiones || form.dimensiones_terreno || null;
+
     if (tipo_propiedad === 'Casa' || tipo_propiedad === 'Departamento' || tipo_propiedad === 'Local') {
       atributos_especificos = {
         habitaciones: Number(form.habitaciones) || null,
         banos: Number(form.banos) || null,
+        dimensiones: supValor,
       };
     } else if (tipo_propiedad === 'Campo') {
       atributos_especificos = {
-        dimensiones: form.dimensiones || null,
+        dimensiones: supValor,
         tipo_campo: form.tipo_campo,
       };
     } else if (tipo_propiedad === 'Terreno') {
       atributos_especificos = {
-        dimensiones: form.dimensiones_terreno || null,
+        dimensiones: supValor,
       };
     }
 
@@ -84,6 +90,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
       operacion: form.operacion,
       ubicacion: form.ubicacion,
       coordenadas: form.coordenadas,
+      superficie: supValor,
       atributos_especificos,
       media_urls: mediaUrls,
       estado: form.estado,
@@ -235,7 +242,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
 
                 {/* Fila 4: Campos condicionales */}
                 {esCasaDeptoLocal && (
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-black/20 rounded-2xl border border-white/10">
+                  <div className="grid grid-cols-3 gap-3 p-4 bg-black/20 rounded-2xl border border-white/10">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><BedDouble className="h-3.5 w-3.5" /> Habitaciones</Label>
                       <Input type="number" min="0" value={form.habitaciones} onChange={(e) => setField('habitaciones', e.target.value)} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="0" />
@@ -244,13 +251,17 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                       <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Bath className="h-3.5 w-3.5" /> Baños</Label>
                       <Input type="number" min="0" value={form.banos} onChange={(e) => setField('banos', e.target.value)} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="0" />
                     </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5" /> Superficie (m²)</Label>
+                      <Input type="text" value={form.superficie} onChange={(e) => { setField('superficie', e.target.value); setField('dimensiones', e.target.value); }} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="Ej: 150" />
+                    </div>
                   </div>
                 )}
                 {esCampo && (
                   <div className="grid grid-cols-2 gap-4 p-4 bg-black/20 rounded-2xl border border-white/10">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5" /> Hectáreas</Label>
-                      <Input type="text" value={form.dimensiones} onChange={(e) => setField('dimensiones', e.target.value)} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="Ej: 250" />
+                      <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5" /> Hectáreas / Superficie</Label>
+                      <Input type="text" value={form.dimensiones} onChange={(e) => { setField('dimensiones', e.target.value); setField('superficie', e.target.value); }} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="Ej: 250" />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Tractor className="h-3.5 w-3.5" /> Tipo de Campo</Label>
@@ -268,8 +279,8 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                 {esTerreno && (
                   <div className="p-4 bg-black/20 rounded-2xl border border-white/10">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5" /> Dimensiones (m²)</Label>
-                      <Input type="text" value={form.dimensiones_terreno} onChange={(e) => setField('dimensiones_terreno', e.target.value)} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="Ej: 500 m²" />
+                      <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5" /> Superficie / Dimensiones (m²)</Label>
+                      <Input type="text" value={form.dimensiones_terreno} onChange={(e) => { setField('dimensiones_terreno', e.target.value); setField('superficie', e.target.value); setField('dimensiones', e.target.value); }} className="h-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" placeholder="Ej: 500 m²" />
                     </div>
                   </div>
                 )}

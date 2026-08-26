@@ -50,7 +50,7 @@ export default function TasacionesSection() {
       textMessage += `*Detalles adicionales:* ${encodeURIComponent(formData.detalles)}`;
     }
 
-    const whatsappUrl = `https://wa.me/5492920123456?text=${textMessage}`;
+    const whatsappUrl = `https://wa.me/5492914136535?text=${textMessage}`;
 
     setSubmitted(true);
     window.open(whatsappUrl, '_blank');
@@ -293,7 +293,7 @@ export default function TasacionesSection() {
                       name="telefono"
                       value={formData.telefono}
                       onChange={handleChange}
-                      placeholder="Ej. +54 9 2920 123456"
+                      placeholder="Ej. +54 9 291 413 6535"
                       required
                       className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                     />

@@ -353,7 +353,7 @@ export default function Landing() {
         {[
           { href: 'https://www.facebook.com/romainmobiliaria.arg/?locale=es_LA', icon: 'fa-facebook-f' },
           { href: 'https://www.tiktok.com/@romainmobiliaria', icon: 'fa-tiktok' },
-          { href: 'https://wa.me/5492920123456', icon: 'fa-whatsapp' },
+          { href: 'https://wa.me/5492914136535', icon: 'fa-whatsapp' },
           { href: 'https://www.instagram.com/romainmobiliaria', icon: 'fa-instagram' },
         ].map(({ href, icon }) => (
           <a key={icon} href={href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#1a2c1a]/90 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-roma-olive hover:scale-110 transition-all duration-300 shadow-xl">
@@ -362,7 +362,7 @@ export default function Landing() {
         ))}
       </div>
       <div className="md:hidden fixed bottom-6 right-6 z-50">
-        <a href="https://wa.me/5492920123456" target="_blank" rel="noopener noreferrer" className="w-14 h-14 bg-[#1a2c1a]/95 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white shadow-2xl hover:bg-roma-olive transition-colors duration-300">
+        <a href="https://wa.me/5492914136535" target="_blank" rel="noopener noreferrer" className="w-14 h-14 bg-[#1a2c1a]/95 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white shadow-2xl hover:bg-roma-olive transition-colors duration-300">
           <i className="fab fa-whatsapp text-2xl" />
         </a>
       </div>

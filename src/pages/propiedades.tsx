@@ -6,9 +6,10 @@ import {
   X, Ruler, CaretRight, MagnifyingGlass,
   Bed, Star, Buildings, Tree, Storefront, ArrowLeft, SlidersHorizontal, Bathtub
 } from '@phosphor-icons/react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/ui/PageLoader';
+import PropiedadDetalle from './PropiedadDetalle';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface Propiedad {
@@ -21,7 +22,9 @@ interface Propiedad {
   precio: number;
   habitaciones?: number;
   banos?: number;
+  superficie?: string | number;
   dimensiones?: string;
+  mts2?: string | number;
   descripcion?: string;
   imagen_url?: string;
   imagenes?: string[];
@@ -60,8 +63,6 @@ export default function Catalogo() {
       behavior: 'instant'
     });
   }, []);
-
-  const navigate = useNavigate();
 
   const [showScreenLoader, setShowScreenLoader] = useState(true);
   const [heroDismissed, setHeroDismissed] = useState(false); // ESTADO PARA EL SCROLL-JACK
@@ -258,7 +259,25 @@ export default function Catalogo() {
     return () => clearInterval(interval);
   }, [propiedadesDestacadas.length, heroDismissed]);
 
-  const abrirModal = (p: Propiedad) => { navigate(`/propiedad/${p.id}`); };
+  const [modalPropiedadId, setModalPropiedadId] = useState<number | null>(null);
+  const [selectedPropiedadObj, setSelectedPropiedadObj] = useState<Propiedad | null>(null);
+
+  useEffect(() => {
+    if (!modalPropiedadId) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setModalPropiedadId(null);
+        setSelectedPropiedadObj(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [modalPropiedadId]);
+
+  const abrirModal = (p: Propiedad) => {
+    setSelectedPropiedadObj(p);
+    setModalPropiedadId(p.id);
+  };
   const activeDestacada = propiedadesDestacadas[destacadaIndex];
 
   const limpiarFiltros = () => {
@@ -719,7 +738,7 @@ export default function Catalogo() {
                           Ver detalles
                         </button>
                         <a
-                          href={`https://wa.me/5492920123456?text=Me interesa esta propiedad: *${activeDestacada.titulo}* (ID: ${activeDestacada.id})`}
+                          href={`https://wa.me/5492914136535?text=Me interesa esta propiedad: *${activeDestacada.titulo}* (ID: ${activeDestacada.id})`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-12 h-12 flex items-center justify-center rounded-none bg-white/10 hover:bg-white/20 text-white transition-all shadow-md shrink-0 border border-white/20"
@@ -1130,32 +1149,52 @@ export default function Catalogo() {
                       {/* Línea de separación */}
                       <div className="my-4 border-t border-white/10" />
 
-                      {/* 3 Especificaciones en la parte inferior con íconos limpios y tamaño ajustado */}
+                      {/* Especificaciones en la parte inferior de la tarjeta con m² para Casas, Deptos, Terrenos y Campos */}
                       {(() => {
                         const tipoLower = prop.tipo_propiedad?.toLowerCase() || '';
                         const isCampo = tipoLower === 'campo';
-                        const isCasaODepto = ['casa', 'departamento', 'depto', 'duplex'].some(t => tipoLower.includes(t));
+                        const isTerreno = tipoLower === 'terreno' || tipoLower === 'lote';
+                        const isCasaODepto = ['casa', 'departamento', 'depto', 'duplex', 'ph'].some(t => tipoLower.includes(t));
+
+                        const sup = prop.superficie || prop.dimensiones || prop.atributos_especificos?.dimensiones || prop.mts2;
+                        const habs = prop.habitaciones || prop.atributos_especificos?.habitaciones;
+                        const bns = prop.banos || prop.atributos_especificos?.banos;
+                        const formatSup = sup
+                          ? (String(sup).toLowerCase().includes('ha') || String(sup).toLowerCase().includes('m')
+                              ? String(sup)
+                              : `${sup} ${isCampo ? 'ha' : 'm²'}`)
+                          : null;
 
                         if (isCampo) {
                           return (
                             <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
-                              <div className="flex items-center gap-1.5">
-                                <Ruler size={16} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs md:text-sm font-medium text-white/90 truncate">
-                                  {prop.dimensiones || prop.atributos_especificos?.dimensiones || '-'}
+                              <div className="flex items-center gap-1 col-span-2">
+                                <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs font-medium text-white/90 truncate">
+                                  {formatSup || '-'}
                                 </span>
                               </div>
-
-                              <div className="flex items-center gap-1.5">
-                                <Tree size={16} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs md:text-sm font-medium text-white/90 truncate capitalize">
-                                  {prop.atributos_especificos?.tipo_campo || 'Rural'}
-                                </span>
-                              </div>
-
-                              <div className="text-right sm:text-left">
-                                <span className="text-xs md:text-sm font-medium text-white/60 capitalize truncate block">
+                              <div className="text-right">
+                                <span className="text-xs font-medium text-white/60 capitalize truncate block">
                                   Campo
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        if (isTerreno) {
+                          return (
+                            <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
+                              <div className="flex items-center gap-1 col-span-2">
+                                <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs font-medium text-white/90 truncate">
+                                  {formatSup || '-'}
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-xs font-medium text-white/60 capitalize truncate block">
+                                  {prop.tipo_propiedad || 'Terreno'}
                                 </span>
                               </div>
                             </div>
@@ -1164,24 +1203,25 @@ export default function Catalogo() {
 
                         if (isCasaODepto) {
                           return (
-                            <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
-                              <div className="flex items-center gap-1.5">
-                                <Bed size={16} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs md:text-sm font-medium text-white/90">
-                                  {prop.habitaciones || prop.atributos_especificos?.habitaciones || '-'}
+                            <div className="grid grid-cols-3 gap-1.5 text-left pt-0.5 items-center">
+                              <div className="flex items-center gap-1">
+                                <Bed size={15} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs font-medium text-white/90">
+                                  {habs ? String(habs) : '-'}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-1.5">
-                                <Bathtub size={16} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs md:text-sm font-medium text-white/90">
-                                  {prop.banos || prop.atributos_especificos?.banos || '-'}
+                              <div className="flex items-center gap-1">
+                                <Bathtub size={15} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs font-medium text-white/90">
+                                  {bns ? String(bns) : '-'}
                                 </span>
                               </div>
 
-                              <div className="text-right sm:text-left">
-                                <span className="text-xs md:text-sm font-medium text-white/60 capitalize truncate block">
-                                  {prop.tipo_propiedad || '-'}
+                              <div className="flex items-center gap-1 justify-end">
+                                <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
+                                <span className="text-xs font-medium text-white/90 truncate">
+                                  {formatSup || '-'}
                                 </span>
                               </div>
                             </div>
@@ -1190,22 +1230,14 @@ export default function Catalogo() {
 
                         return (
                           <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
-                            <div className="flex items-center gap-1.5">
-                              <Ruler size={16} weight="light" className="text-roma-leaf shrink-0" />
-                              <span className="text-xs md:text-sm font-medium text-white/90 truncate">
-                                {prop.dimensiones || prop.atributos_especificos?.dimensiones || '-'}
+                            <div className="flex items-center gap-1 col-span-2">
+                              <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
+                              <span className="text-xs font-medium text-white/90 truncate">
+                                {formatSup || '-'}
                               </span>
                             </div>
-
-                            <div className="flex items-center gap-1.5">
-                              <HouseLine size={16} weight="light" className="text-roma-leaf shrink-0" />
-                              <span className="text-xs md:text-sm font-medium text-white/90 truncate">
-                                {prop.habitaciones || prop.banos || '-'}
-                              </span>
-                            </div>
-
-                            <div className="text-right sm:text-left">
-                              <span className="text-xs md:text-sm font-medium text-white/60 capitalize truncate block">
+                            <div className="text-right">
+                              <span className="text-xs font-medium text-white/60 capitalize truncate block">
                                 {prop.tipo_propiedad || '-'}
                               </span>
                             </div>
@@ -1254,6 +1286,41 @@ export default function Catalogo() {
           )}
         </motion.button>
       )}
+
+      {/* ── MODAL SOBRE EL CATÁLOGO CON FONDO BORROSO SIN SOMBREADO OSCURO ── */}
+      <AnimatePresence>
+        {modalPropiedadId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-start sm:items-center"
+            onClick={() => {
+              setModalPropiedadId(null);
+              setSelectedPropiedadObj(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-6xl relative my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <PropiedadDetalle
+                propId={modalPropiedadId}
+                initialPropiedad={selectedPropiedadObj}
+                onClose={() => {
+                  setModalPropiedadId(null);
+                  setSelectedPropiedadObj(null);
+                }}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
