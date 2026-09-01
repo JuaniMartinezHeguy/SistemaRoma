@@ -278,7 +278,6 @@ export default function TasacionesSection() {
                       name="nombre"
                       value={formData.nombre}
                       onChange={handleChange}
-                      placeholder="Ej. Rodrigo Martínez"
                       required
                       className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                     />
@@ -293,7 +292,6 @@ export default function TasacionesSection() {
                       name="telefono"
                       value={formData.telefono}
                       onChange={handleChange}
-                      placeholder="Ej. +54 9 291 413 6535"
                       required
                       className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                     />
@@ -330,7 +328,6 @@ export default function TasacionesSection() {
                             name="ambientes"
                             value={formData.ambientes}
                             onChange={handleChange}
-                            placeholder="Ej. 3 ambientes / 2 hab"
                             className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                           />
                         </div>
@@ -345,7 +342,6 @@ export default function TasacionesSection() {
                           name="ubicacion"
                           value={formData.ubicacion}
                           onChange={handleChange}
-                          placeholder="Ej. Av. San Martín 450, Villalonga"
                           required
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                         />
@@ -360,7 +356,6 @@ export default function TasacionesSection() {
                           value={formData.detalles}
                           onChange={handleChange}
                           rows={2}
-                          placeholder="Ej. Estado de conservación, patio, garage..."
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
                         />
                       </div>
@@ -379,7 +374,6 @@ export default function TasacionesSection() {
                           name="ubicacion"
                           value={formData.ubicacion}
                           onChange={handleChange}
-                          placeholder="Ej. Villalonga, Pedro Luro, Partido de Patagones..."
                           required
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                         />
@@ -394,7 +388,6 @@ export default function TasacionesSection() {
                           value={formData.detalles}
                           onChange={handleChange}
                           rows={3}
-                          placeholder="Ej. 500 ha agrícolas con molino y galpón..."
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
                         />
                       </div>
@@ -413,7 +406,6 @@ export default function TasacionesSection() {
                           name="ubicacion"
                           value={formData.ubicacion}
                           onChange={handleChange}
-                          placeholder="Ej. Barrio Don Bosco, Patagones / Viedma"
                           required
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                         />
@@ -428,7 +420,6 @@ export default function TasacionesSection() {
                           name="superficie"
                           value={formData.superficie}
                           onChange={handleChange}
-                          placeholder="Ej. 12x30m / 360 m²"
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300"
                         />
                       </div>
@@ -442,7 +433,6 @@ export default function TasacionesSection() {
                           value={formData.detalles}
                           onChange={handleChange}
                           rows={2}
-                          placeholder="Ej. Agua, Luz, Cloacas, pilar de luz..."
                           className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-roma-leaf focus:ring-1 focus:ring-roma-leaf transition-all duration-300 resize-none"
                         />
                       </div>

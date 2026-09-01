@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import useOpcionesFiltros from '../hooks/useOpcionesFiltros';
 import {
   MapPin, WhatsappLogo, HouseLine, Tag, MapTrifold, CaretLeft,
-  X, Ruler, CaretRight, MagnifyingGlass,
+  X, Ruler, CaretRight, MagnifyingGlass, CaretDown, Check, CurrencyDollar,
   Bed, Star, Buildings, Tree, Storefront, ArrowLeft, SlidersHorizontal, Bathtub
 } from '@phosphor-icons/react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -83,6 +83,21 @@ export default function Catalogo() {
   const [filtroPrecioMax, setFiltroPrecioMax] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [ordenar, setOrdenar] = useState('recientes');
+
+  // Estado para desplegables "efecto hamburguesa" en PC y Mobile
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [openMobileSections, setOpenMobileSections] = useState<Record<string, boolean>>({
+    tipo: false,
+    operacion: false,
+    zona: false,
+    habs: false,
+    campo: false,
+    precio: false,
+  });
+
+  const toggleMobileSection = (key: string) => {
+    setOpenMobileSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   // UI
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -288,6 +303,7 @@ export default function Catalogo() {
     setFiltroPrecioMin('');
     setFiltroPrecioMax('');
     setBusqueda('');
+    setOpenDropdown(null);
   };
 
   const filtrosActivos = [
@@ -305,12 +321,11 @@ export default function Catalogo() {
 
   const hayFiltros = filtrosActivos.length > 0;
 
-  const precioMinimoCargado = propiedades.length > 0 ? Math.min(...propiedades.map(p => p.precio || 0)) : 0;
-
   // ─── Sidebar content ────────────────────────────────────────────────────────
   const SidebarContent = () => (
-    <div className="flex flex-col gap-0 pb-4">
-      <div className="border-b border-white/10 py-5 px-1">
+    <div className="flex flex-col gap-2 pb-4">
+      {/* Buscador */}
+      <div className="border-b border-white/10 py-4 px-1">
         <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
           <MagnifyingGlass size={14} weight="light" /> Búsqueda rápida
         </p>
@@ -329,175 +344,281 @@ export default function Catalogo() {
         </div>
       </div>
 
-      <div className="border-b border-white/10 py-5 px-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
-          <HouseLine size={14} weight="light" /> Tipo de propiedad
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {['Todos', ...TIPOS].map(t => {
-            const isSelected = filtroTipo === t || (
-              filtroTipo !== 'Todos' &&
-              t !== 'Todos' &&
-              (
-                (t.toLowerCase().includes('campo') && filtroTipo.toLowerCase().includes('campo')) ||
-                ((t.toLowerCase().includes('terreno') || t.toLowerCase().includes('lote')) && (filtroTipo.toLowerCase().includes('terreno') || filtroTipo.toLowerCase().includes('lote')))
-              )
-            );
-            return (
-              <button
-                key={t}
-                onClick={() => { setFiltroTipo(t); if (!t.toLowerCase().includes('campo')) setFiltroTipoCampo('Todos'); }}
-                className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${isSelected
-                  ? 'bg-white border-white text-roma-olive shadow-sm'
-                  : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                  }`}
-              >
-                {t}
-              </button>
-            );
-          })}
-        </div>
+      {/* Acordeón: Tipo de propiedad */}
+      <div className="border-b border-white/10 py-3 px-1">
+        <button
+          type="button"
+          onClick={() => toggleMobileSection('tipo')}
+          className="w-full flex items-center justify-between py-1 text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <HouseLine size={16} className="text-roma-leaf" />
+            <span className="text-xs font-semibold text-white uppercase tracking-wider">Tipo de propiedad</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {filtroTipo !== 'Todos' && (
+              <span className="text-[10px] bg-white text-roma-olive font-bold px-2 py-0.5 rounded-full">
+                {filtroTipo}
+              </span>
+            )}
+            <CaretDown size={14} className={`text-white/70 transition-transform duration-200 ${openMobileSections['tipo'] ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        <AnimatePresence>
+          {openMobileSections['tipo'] && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden pt-3 flex flex-wrap gap-2"
+            >
+              {['Todos', ...TIPOS].map(t => {
+                const isSelected = filtroTipo === t;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { setFiltroTipo(t); if (!t.toLowerCase().includes('campo')) setFiltroTipoCampo('Todos'); }}
+                    className={`px-3.5 py-1.5 rounded-full text-[12px] border transition-all cursor-pointer ${
+                      isSelected ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* Acordeón: Tipo de Campo */}
       {filtroTipo.toLowerCase().includes('campo') && TIPOS_CAMPO.length > 0 && (
-        <div className="border-b border-white/10 py-5 px-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
-            <Tree size={14} weight="light" /> Tipo de Campo
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {['Todos', ...TIPOS_CAMPO].map(tc => (
-              <button
-                key={tc}
-                onClick={() => setFiltroTipoCampo(tc)}
-                className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${filtroTipoCampo === tc
-                  ? 'bg-white border-white text-roma-olive shadow-sm'
-                  : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                  }`}
+        <div className="border-b border-white/10 py-3 px-1">
+          <button
+            type="button"
+            onClick={() => toggleMobileSection('campo')}
+            className="w-full flex items-center justify-between py-1 text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Tree size={16} className="text-roma-leaf" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wider">Tipo de Campo</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {filtroTipoCampo !== 'Todos' && (
+                <span className="text-[10px] bg-white text-roma-olive font-bold px-2 py-0.5 rounded-full">
+                  {filtroTipoCampo}
+                </span>
+              )}
+              <CaretDown size={14} className={`text-white/70 transition-transform duration-200 ${openMobileSections['campo'] ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+          <AnimatePresence>
+            {openMobileSections['campo'] && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden pt-3 flex flex-wrap gap-2"
               >
-                {tc}
-              </button>
-            ))}
-          </div>
+                {['Todos', ...TIPOS_CAMPO].map(tc => (
+                  <button
+                    key={tc}
+                    type="button"
+                    onClick={() => setFiltroTipoCampo(tc)}
+                    className={`px-3.5 py-1.5 rounded-full text-[12px] border transition-all cursor-pointer ${
+                      filtroTipoCampo === tc ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                    }`}
+                  >
+                    {tc}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
-      <div className="border-b border-white/10 py-5 px-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
-          <Tag size={14} weight="light" /> Operación
-        </p>
-        <div className="flex gap-2">
-          {['Todas', ...OPERACIONES].map(o => (
-            <button
-              key={o}
-              onClick={() => setFiltroOperacion(o)}
-              className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${filtroOperacion === o
-                ? 'bg-white border-white text-roma-olive shadow-sm'
-                : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                }`}
-            >
-              {o}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-b border-white/10 py-5 px-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
-          <MapTrifold size={14} weight="light" /> Ciudad / Zona
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {['Todas', ...UBICACIONES].map(u => (
-            <button
-              key={u}
-              onClick={() => setFiltroUbicacion(u)}
-              className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 ${filtroUbicacion === u
-                ? 'bg-white border-white text-roma-olive shadow-sm'
-                : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                }`}
-            >
-              {u}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-b border-white/10 py-5 px-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 flex items-center gap-1.5 opacity-90">
-          <Bed size={14} weight="light" /> Habitaciones
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFiltroHabs(null)}
-            className={`min-w-[44px] h-9 rounded-xl text-[12px] font-normal border transition-all duration-300 px-3 ${filtroHabs === null
-              ? 'bg-white border-white text-roma-olive shadow-sm'
-              : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-              }`}
-          >
-            Todas
-          </button>
-          {HABITACIONES.map(n => (
-            <button
-              key={n}
-              onClick={() => setFiltroHabs(n)}
-              className={`w-9 h-9 rounded-xl text-[12px] font-normal border transition-all duration-300 flex items-center justify-center ${filtroHabs === n
-                ? 'bg-white border-white text-roma-olive shadow-sm'
-                : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                }`}
-            >
-              {n === 4 ? '4+' : n}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-b border-white/10 py-5 px-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 opacity-90">
-          Precio (USD)
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-light text-white/70 block mb-1">Mínimo</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={filtroPrecioMin}
-              onChange={e => {
-                const val = e.target.value;
-                if (val === '') {
-                  setFiltroPrecioMin('');
-                  return;
-                }
-                if (/^\d+$/.test(val)) setFiltroPrecioMin(val);
-              }}
-              placeholder={precioMinimoCargado > 0 ? precioMinimoCargado.toString() : "0"}
-              className="w-full bg-black/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
-            />
+      {/* Acordeón: Operación */}
+      <div className="border-b border-white/10 py-3 px-1">
+        <button
+          type="button"
+          onClick={() => toggleMobileSection('operacion')}
+          className="w-full flex items-center justify-between py-1 text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <Tag size={16} className="text-roma-leaf" />
+            <span className="text-xs font-semibold text-white uppercase tracking-wider">Operación</span>
           </div>
-          <div>
-            <label className="text-[10px] font-light text-white/70 block mb-1">Máximo</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={filtroPrecioMax}
-              onChange={e => {
-                const val = e.target.value;
-                if (val === '') {
-                  setFiltroPrecioMax('');
-                  return;
-                }
-                if (/^\d+$/.test(val)) setFiltroPrecioMax(val);
-              }}
-              placeholder="Sin límite"
-              className="w-full bg-black/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
-            />
+          <div className="flex items-center gap-2">
+            {filtroOperacion !== 'Todas' && (
+              <span className="text-[10px] bg-white text-roma-olive font-bold px-2 py-0.5 rounded-full">
+                {filtroOperacion}
+              </span>
+            )}
+            <CaretDown size={14} className={`text-white/70 transition-transform duration-200 ${openMobileSections['operacion'] ? 'rotate-180' : ''}`} />
           </div>
+        </button>
+        <AnimatePresence>
+          {openMobileSections['operacion'] && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden pt-3 flex gap-2"
+            >
+              {['Todas', ...OPERACIONES].map(o => (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => setFiltroOperacion(o)}
+                  className={`px-3.5 py-1.5 rounded-full text-[12px] border transition-all cursor-pointer ${
+                    filtroOperacion === o ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                  }`}
+                >
+                  {o}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Acordeón: Ciudad / Zona */}
+      <div className="border-b border-white/10 py-3 px-1">
+        <button
+          type="button"
+          onClick={() => toggleMobileSection('zona')}
+          className="w-full flex items-center justify-between py-1 text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <MapTrifold size={16} className="text-roma-leaf" />
+            <span className="text-xs font-semibold text-white uppercase tracking-wider">Ciudad / Zona</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {filtroUbicacion !== 'Todas' && (
+              <span className="text-[10px] bg-white text-roma-olive font-bold px-2 py-0.5 rounded-full">
+                {filtroUbicacion}
+              </span>
+            )}
+            <CaretDown size={14} className={`text-white/70 transition-transform duration-200 ${openMobileSections['zona'] ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        <AnimatePresence>
+          {openMobileSections['zona'] && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden pt-3 flex flex-wrap gap-2 max-h-[220px] overflow-y-auto"
+            >
+              {['Todas', ...UBICACIONES].map(u => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => setFiltroUbicacion(u)}
+                  className={`px-3.5 py-1.5 rounded-full text-[12px] border transition-all cursor-pointer ${
+                    filtroUbicacion === u ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                  }`}
+                >
+                  {u}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Acordeón: Habitaciones */}
+      <div className="border-b border-white/10 py-3 px-1">
+        <button
+          type="button"
+          onClick={() => toggleMobileSection('habs')}
+          className="w-full flex items-center justify-between py-1 text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <Bed size={16} className="text-roma-leaf" />
+            <span className="text-xs font-semibold text-white uppercase tracking-wider">Habitaciones</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {filtroHabs !== null && (
+              <span className="text-[10px] bg-white text-roma-olive font-bold px-2 py-0.5 rounded-full">
+                {filtroHabs === 4 ? '4+' : filtroHabs} hab
+              </span>
+            )}
+            <CaretDown size={14} className={`text-white/70 transition-transform duration-200 ${openMobileSections['habs'] ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        <AnimatePresence>
+          {openMobileSections['habs'] && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden pt-3 flex gap-2"
+            >
+              <button
+                type="button"
+                onClick={() => setFiltroHabs(null)}
+                className={`min-w-[44px] h-9 rounded-xl text-[12px] border transition-all px-3 cursor-pointer ${
+                  filtroHabs === null ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                }`}
+              >
+                Todas
+              </button>
+              {HABITACIONES.map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setFiltroHabs(n)}
+                  className={`w-9 h-9 rounded-xl text-[12px] border transition-all flex items-center justify-center cursor-pointer ${
+                    filtroHabs === n ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                  }`}
+                >
+                  {n === 4 ? '4+' : n}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+    {/* Precio (USD) siempre visible */}
+    <div className="border-b border-white/10 py-5 px-1">
+      <p className="text-[10px] font-medium tracking-[0.2em] text-white uppercase mb-3 opacity-90 flex items-center gap-1.5">
+        <CurrencyDollar size={14} weight="light" /> Precio (USD)
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[10px] font-light text-white/70 block mb-1">Mínimo</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={filtroPrecioMin}
+            onChange={e => setFiltroPrecioMin(e.target.value.replace(/\D/g, ''))}
+            placeholder="0"
+            className="w-full bg-black/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-light text-white/70 block mb-1">Máximo</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={filtroPrecioMax}
+            onChange={e => setFiltroPrecioMax(e.target.value.replace(/\D/g, ''))}
+            placeholder="Sin límite"
+            className="w-full bg-black/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
+          />
         </div>
       </div>
+    </div>
 
       {hayFiltros && (
         <button
+          type="button"
           onClick={limpiarFiltros}
-          className="w-full py-3 rounded-xl border border-white/30 text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-white hover:text-roma-olive transition-all duration-300 mt-2"
+          className="w-full py-3 rounded-xl border border-white/30 text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-white hover:text-roma-olive transition-all duration-300 mt-2 cursor-pointer"
         >
           Limpiar todos los filtros
         </button>
@@ -778,12 +899,16 @@ export default function Catalogo() {
           </h2>
         </div>
 
-        {/* ── FILTRO HORIZONTAL VISTA PC (Entre título y grilla) ── */}
-        <div className="hidden lg:block w-full bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl mb-8 text-left">
-          {/* FILA 1: BÚSQUEDA + TIPO DE PROPIEDAD + OPERACIÓN */}
-          <div className="flex items-center gap-4 flex-wrap mb-5 pb-5 border-b border-white/10 justify-between">
-            {/* Buscador libre */}
-            <div className="relative min-w-[240px] flex-1 max-w-xs">
+        {/* ── FILTRO HORIZONTAL VISTA PC (Desplegables efecto hamburguesa) ── */}
+        <div className="hidden lg:block w-full bg-roma-olive/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl mb-8 text-left relative z-50">
+          {/* Overlay transparente para cerrar el menú desplegable activo al hacer clic afuera */}
+          {openDropdown !== null && (
+            <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
+          )}
+
+          <div className="flex items-center gap-3 flex-wrap relative z-50 justify-between">
+            {/* 1. Buscador libre */}
+            <div className="relative min-w-[200px] flex-1 max-w-xs">
               <MagnifyingGlass
                 size={16}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none"
@@ -793,166 +918,305 @@ export default function Catalogo() {
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar por título, ubicación..."
-                className="w-full bg-black/10 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
+                className="w-full bg-black/20 border border-white/15 rounded-xl pl-9 pr-3 py-2 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
               />
             </div>
 
-            {/* Tipos de propiedad */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
-                <HouseLine size={14} /> Tipo:
-              </span>
-              {['Todos', ...TIPOS].map(t => {
-                const isSelected = filtroTipo === t || (
-                  filtroTipo !== 'Todos' &&
-                  t !== 'Todos' &&
-                  (
-                    (t.toLowerCase().includes('campo') && filtroTipo.toLowerCase().includes('campo')) ||
-                    ((t.toLowerCase().includes('terreno') || t.toLowerCase().includes('lote')) && (filtroTipo.toLowerCase().includes('terreno') || filtroTipo.toLowerCase().includes('lote')))
-                  )
-                );
-                return (
-                  <button
-                    key={t}
-                    onClick={() => { setFiltroTipo(t); if (!t.toLowerCase().includes('campo')) setFiltroTipoCampo('Todos'); }}
-                    className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer whitespace-nowrap ${
-                      isSelected
-                        ? 'bg-white border-white text-roma-olive shadow-sm'
-                        : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Operación */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
-                <Tag size={14} /> Operación:
-              </span>
-              {['Todas', ...OPERACIONES].map(o => (
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* 2. DROPDOWN TIPO DE PROPIEDAD */}
+              <div className="relative">
                 <button
-                  key={o}
-                  onClick={() => setFiltroOperacion(o)}
-                  className={`px-4 py-1.5 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer ${
-                    filtroOperacion === o
-                      ? 'bg-white border-white text-roma-olive shadow-sm'
-                      : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'tipo' ? null : 'tipo')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium border transition-all duration-200 cursor-pointer ${
+                    filtroTipo !== 'Todos'
+                      ? 'bg-white border-white text-roma-olive shadow-sm font-semibold'
+                      : 'bg-black/20 border-white/15 text-white/90 hover:border-white/40'
                   }`}
                 >
-                  {o}
+                  <HouseLine size={15} />
+                  <span>{filtroTipo === 'Todos' ? 'Tipo' : `Tipo: ${filtroTipo}`}</span>
+                  <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'tipo' ? 'rotate-180' : ''}`} />
                 </button>
-              ))}
-            </div>
-          </div>
 
-          {/* FILA 2: ZONA + HABITACIONES + PRECIOS */}
-          <div className="flex items-center gap-5 flex-wrap justify-between">
-            {/* Ubicaciones / Zona */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
-                <MapTrifold size={14} /> Zona:
-              </span>
-              {['Todas', ...UBICACIONES].map(u => (
-                <button
-                  key={u}
-                  onClick={() => setFiltroUbicacion(u)}
-                  className={`px-3.5 py-1 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer ${
-                    filtroUbicacion === u
-                      ? 'bg-white border-white text-roma-olive shadow-sm'
-                      : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                  }`}
-                >
-                  {u}
-                </button>
-              ))}
-            </div>
-
-            {/* Subfiltro de Campo */}
-            {filtroTipo.toLowerCase().includes('campo') && TIPOS_CAMPO.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
-                  <Tree size={14} /> Campo:
-                </span>
-                {['Todos', ...TIPOS_CAMPO].map(tc => (
-                  <button
-                    key={tc}
-                    onClick={() => setFiltroTipoCampo(tc)}
-                    className={`px-3.5 py-1 rounded-full text-[12px] font-normal tracking-wide border transition-all duration-300 cursor-pointer ${
-                      filtroTipoCampo === tc
-                        ? 'bg-white border-white text-roma-olive shadow-sm'
-                        : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                    }`}
-                  >
-                    {tc}
-                  </button>
-                ))}
+                <AnimatePresence>
+                  {openDropdown === 'tipo' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-2 z-50 min-w-[200px] max-h-[300px] overflow-y-auto bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
+                    >
+                      {['Todos', ...TIPOS].map(t => {
+                        const isSelected = filtroTipo === t;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => {
+                              setFiltroTipo(t);
+                              if (!t.toLowerCase().includes('campo')) setFiltroTipoCampo('Todos');
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                              isSelected ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <span>{t}</span>
+                            {isSelected && <Check size={14} weight="bold" />}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            )}
 
-            {/* Habitaciones */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase mr-1 flex items-center gap-1 shrink-0">
-                <Bed size={14} /> Habs:
-              </span>
-              <button
-                onClick={() => setFiltroHabs(null)}
-                className={`px-3 py-1 rounded-xl text-[12px] font-normal border transition-all duration-300 cursor-pointer ${
-                  filtroHabs === null
-                    ? 'bg-white border-white text-roma-olive shadow-sm'
-                    : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
-                }`}
-              >
-                Todas
-              </button>
-              {HABITACIONES.map(n => (
+              {/* 3. DROPDOWN OPERACIÓN */}
+              <div className="relative">
                 <button
-                  key={n}
-                  onClick={() => setFiltroHabs(n)}
-                  className={`w-8 h-8 rounded-xl text-[12px] font-normal border transition-all duration-300 flex items-center justify-center cursor-pointer ${
-                    filtroHabs === n
-                      ? 'bg-white border-white text-roma-olive shadow-sm'
-                      : 'bg-transparent border-white/30 text-white/90 hover:border-white/60'
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'operacion' ? null : 'operacion')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium border transition-all duration-200 cursor-pointer ${
+                    filtroOperacion !== 'Todas'
+                      ? 'bg-white border-white text-roma-olive shadow-sm font-semibold'
+                      : 'bg-black/20 border-white/15 text-white/90 hover:border-white/40'
                   }`}
                 >
-                  {n === 4 ? '4+' : n}
+                  <Tag size={15} />
+                  <span>{filtroOperacion === 'Todas' ? 'Operación' : `Operación: ${filtroOperacion}`}</span>
+                  <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'operacion' ? 'rotate-180' : ''}`} />
                 </button>
-              ))}
-            </div>
 
-            {/* Precios */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase shrink-0">USD:</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={filtroPrecioMin}
-                onChange={e => setFiltroPrecioMin(e.target.value.replace(/\D/g, ''))}
-                placeholder="Mín"
-                className="w-20 bg-black/10 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
-              />
-              <span className="text-white/40 text-xs">-</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={filtroPrecioMax}
-                onChange={e => setFiltroPrecioMax(e.target.value.replace(/\D/g, ''))}
-                placeholder="Máx"
-                className="w-20 bg-black/10 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
-              />
-            </div>
+                <AnimatePresence>
+                  {openDropdown === 'operacion' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-2 z-50 min-w-[180px] bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
+                    >
+                      {['Todas', ...OPERACIONES].map(o => {
+                        const isSelected = filtroOperacion === o;
+                        return (
+                          <button
+                            key={o}
+                            type="button"
+                            onClick={() => {
+                              setFiltroOperacion(o);
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                              isSelected ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <span>{o}</span>
+                            {isSelected && <Check size={14} weight="bold" />}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
-            {hayFiltros && (
-              <button
-                type="button"
-                onClick={limpiarFiltros}
-                className="text-white/70 hover:text-white text-xs font-medium tracking-wide underline underline-offset-4 transition-colors cursor-pointer"
-              >
-                Limpiar todo
-              </button>
-            )}
+              {/* 4. DROPDOWN ZONA / CIUDAD */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'zona' ? null : 'zona')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium border transition-all duration-200 cursor-pointer ${
+                    filtroUbicacion !== 'Todas'
+                      ? 'bg-white border-white text-roma-olive shadow-sm font-semibold'
+                      : 'bg-black/20 border-white/15 text-white/90 hover:border-white/40'
+                  }`}
+                >
+                  <MapTrifold size={15} />
+                  <span>{filtroUbicacion === 'Todas' ? 'Zona / Ciudad' : `Zona: ${filtroUbicacion}`}</span>
+                  <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'zona' ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {openDropdown === 'zona' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-2 z-50 min-w-[220px] max-h-[300px] overflow-y-auto bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
+                    >
+                      {['Todas', ...UBICACIONES].map(u => {
+                        const isSelected = filtroUbicacion === u;
+                        return (
+                          <button
+                            key={u}
+                            type="button"
+                            onClick={() => {
+                              setFiltroUbicacion(u);
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                              isSelected ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <span>{u}</span>
+                            {isSelected && <Check size={14} weight="bold" />}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* 5. DROPDOWN HABITACIONES */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'habs' ? null : 'habs')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium border transition-all duration-200 cursor-pointer ${
+                    filtroHabs !== null
+                      ? 'bg-white border-white text-roma-olive shadow-sm font-semibold'
+                      : 'bg-black/20 border-white/15 text-white/90 hover:border-white/40'
+                  }`}
+                >
+                  <Bed size={15} />
+                  <span>{filtroHabs === null ? 'Habitaciones' : `Habs: ${filtroHabs}${filtroHabs === 4 ? '+' : ''}`}</span>
+                  <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'habs' ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {openDropdown === 'habs' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-2 z-50 min-w-[180px] bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFiltroHabs(null);
+                          setOpenDropdown(null);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                          filtroHabs === null ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <span>Todas</span>
+                        {filtroHabs === null && <Check size={14} weight="bold" />}
+                      </button>
+                      {HABITACIONES.map(n => {
+                        const isSelected = filtroHabs === n;
+                        return (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => {
+                              setFiltroHabs(n);
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                              isSelected ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <span>{n === 4 ? '4+ habitaciones' : `${n} ${n === 1 ? 'habitación' : 'habitaciones'}`}</span>
+                            {isSelected && <Check size={14} weight="bold" />}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* 6. DROPDOWN SUBTIPO DE CAMPO (SI APLICA) */}
+              {filtroTipo.toLowerCase().includes('campo') && TIPOS_CAMPO.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown(openDropdown === 'campo' ? null : 'campo')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium border transition-all duration-200 cursor-pointer ${
+                      filtroTipoCampo !== 'Todos'
+                        ? 'bg-white border-white text-roma-olive shadow-sm font-semibold'
+                        : 'bg-black/20 border-white/15 text-white/90 hover:border-white/40'
+                    }`}
+                  >
+                    <Tree size={15} />
+                    <span>{filtroTipoCampo === 'Todos' ? 'Tipo de Campo' : `Campo: ${filtroTipoCampo}`}</span>
+                    <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'campo' ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {openDropdown === 'campo' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 mt-2 z-50 min-w-[180px] bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
+                      >
+                        {['Todos', ...TIPOS_CAMPO].map(tc => {
+                          const isSelected = filtroTipoCampo === tc;
+                          return (
+                            <button
+                              key={tc}
+                              type="button"
+                              onClick={() => {
+                                setFiltroTipoCampo(tc);
+                                setOpenDropdown(null);
+                              }}
+                              className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                                isSelected ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                              }`}
+                            >
+                              <span>{tc}</span>
+                              {isSelected && <Check size={14} weight="bold" />}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* 7. PRECIO USD INLINE */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold tracking-wider text-white/80 uppercase shrink-0">USD:</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={filtroPrecioMin}
+                  onChange={e => setFiltroPrecioMin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Mín"
+                  className="w-20 bg-black/20 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
+                />
+                <span className="text-white/40 text-xs">-</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={filtroPrecioMax}
+                  onChange={e => setFiltroPrecioMax(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Máx"
+                  className="w-20 bg-black/20 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
+                />
+              </div>
+
+              {/* 8. BOTÓN LIMPIAR TODO */}
+              {hayFiltros && (
+                <button
+                  type="button"
+                  onClick={limpiarFiltros}
+                  className="text-white/70 hover:text-white text-xs font-medium tracking-wide underline underline-offset-4 transition-colors cursor-pointer ml-auto"
+                >
+                  Limpiar todo
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
