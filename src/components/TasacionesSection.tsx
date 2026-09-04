@@ -33,27 +33,27 @@ export default function TasacionesSection() {
     e.preventDefault();
     if (!formData.nombre || !formData.ubicacion) return;
 
-    let textMessage = `Hola Roma Inmobiliaria, deseo solicitar la tasación de un/a *${tipoTasacion}*.%0A%0A` +
-      `*Tipo:* ${encodeURIComponent(tipoTasacion)}%0A` +
-      `*Nombre:* ${encodeURIComponent(formData.nombre)}%0A` +
-      `*Teléfono:* ${encodeURIComponent(formData.telefono || 'No especificado')}%0A` +
-      `*Ubicación:* ${encodeURIComponent(formData.ubicacion)}%0A`;
+    const tipo = tipoTasacion === 'Propiedad' && formData.tipoInmueble
+      ? formData.tipoInmueble
+      : tipoTasacion;
 
-    if (tipoTasacion === 'Propiedad') {
-      if (formData.tipoInmueble) textMessage += `*Subtipo:* ${encodeURIComponent(formData.tipoInmueble)}%0A`;
-      if (formData.ambientes) textMessage += `*Ambientes:* ${encodeURIComponent(formData.ambientes)}%0A`;
-    } else if (tipoTasacion === 'Terreno') {
-      if (formData.superficie) textMessage += `*Superficie:* ${encodeURIComponent(formData.superficie)}%0A`;
+    let detallesExtra = formData.detalles ? formData.detalles.trim() : '';
+    if (tipoTasacion === 'Propiedad' && formData.ambientes) {
+      detallesExtra = detallesExtra ? `${formData.ambientes} ambientes. ${detallesExtra}` : `${formData.ambientes} ambientes`;
+    } else if (tipoTasacion === 'Terreno' && formData.superficie) {
+      detallesExtra = detallesExtra ? `${formData.superficie}. ${detallesExtra}` : formData.superficie;
     }
 
-    if (formData.detalles) {
-      textMessage += `*Detalles adicionales:* ${encodeURIComponent(formData.detalles)}`;
-    }
+    const mensaje = 
+      `Nombre y apellido: ${formData.nombre.trim()}\n` +
+      `Teléfono: ${formData.telefono ? formData.telefono.trim() : 'No especificado'}\n` +
+      `Ubicación (${tipo}): ${formData.ubicacion.trim()}\n` +
+      `Detalles: ${detallesExtra || 'Sin detalles adicionales'}`;
 
-    const whatsappUrl = `https://wa.me/5492914136535?text=${textMessage}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=5492914136535&text=${encodeURIComponent(mensaje)}`;
 
     setSubmitted(true);
-    window.open(whatsappUrl, '_blank');
+    window.location.href = whatsappUrl;
 
     setTimeout(() => {
       setSubmitted(false);

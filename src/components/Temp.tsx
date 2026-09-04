@@ -235,13 +235,13 @@ export default function Landing() {
           transition={navTransition}
         >
           {/* LOGO (IZQUIERDA) */}
-          <motion.a layout href="#inicio" className="flex-shrink-0">
+          <motion.a layout href="#inicio" className="flex-shrink-0 flex items-center">
             <motion.img
-              src="/logo-blanco.png"
+              src="/logoblanco.png"
               alt="Roma"
-              className="h-auto"
-              initial={{ width: "5.5rem" }}
-              animate={{ width: isScrolled ? "4.5rem" : "5.5rem" }}
+              className="h-auto object-contain"
+              initial={{ width: "6.8rem" }}
+              animate={{ width: isScrolled ? "5.6rem" : "6.8rem" }}
               transition={navTransition}
             />
           </motion.a>
@@ -295,8 +295,8 @@ export default function Landing() {
 
       {/* ── NAVBAR MÓVIL: FILA SUPERIOR QUE SE QUEDA ARRIBA EN INICIO (ABSOLUTE) ── */}
       <div className="md:hidden absolute top-4 left-0 right-0 z-40 w-[92%] max-w-xl mx-auto flex items-center justify-between pointer-events-auto">
-        <a href="#inicio" className="flex-shrink-0">
-          <img src="/logo-blanco.png" alt="Roma" className="h-8 w-auto drop-shadow-md" />
+        <a href="#inicio" className="flex-shrink-0 flex items-center">
+          <img src="/logoblanco.png" alt="Roma" className="h-9 sm:h-10 w-auto drop-shadow-md object-contain" />
         </a>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <a
@@ -386,9 +386,13 @@ export default function Landing() {
           <span className="text-[clamp(80px,18vw,240px)] font-bold uppercase leading-none tracking-tighter text-white/10 drop-shadow-xl">ROMA</span>
         </motion.div>
 
-        <motion.div className="relative z-[2] max-w-7xl mx-auto w-full flex flex-col items-center text-center" variants={stagger} initial="hidden" animate="visible">
+        <motion.div className="relative z-[2] max-w-7xl mx-auto w-full flex flex-col items-center text-center -translate-y-4 sm:-translate-y-6 md:-translate-y-8" variants={stagger} initial="hidden" animate="visible">
           <motion.h1 variants={fadeUp} className="w-full flex justify-center mb-8">
-            <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-full max-w-[280px] md:max-w-[500px] h-auto object-contain drop-shadow-[0_4px_15px_rgba(0,0,0,0.8)]" />
+            <img 
+              src="/logoblanco.png" 
+              alt="Roma Inmobiliaria" 
+              className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[480px] h-auto object-contain drop-shadow-[0_4px_15px_rgba(0,0,0,0.8)]" 
+            />
           </motion.h1>
         </motion.div>
 
@@ -730,7 +734,7 @@ export default function Landing() {
       <footer className="bg-roma-dark text-white py-14 sm:py-20 px-4 sm:px-6 border-t border-white/5 relative z-20">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
           <div className="col-span-1 sm:col-span-2">
-            <img src="/logo-blanco.png" alt="Logo Roma" className="w-44 h-auto mb-6" />
+            <img src="/logoblanco.png" alt="Logo Roma" className="w-44 h-auto mb-6" />
             <p className="text-white/50 text-[13px] font-light max-w-md leading-relaxed">
               En Roma Inmobiliaria, nos especializamos en la venta, alquiler y gestión de propiedades urbanas y rurales en la Patagonia, ofreciendo un trato cercano y profesional.
             </p>

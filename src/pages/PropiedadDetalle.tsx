@@ -268,7 +268,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
           </button>
 
           <div className="flex items-center gap-3">
-            <img src="/roma-logo.png" alt="Roma Servicios Inmobiliarios" className="h-9 sm:h-12 w-auto object-contain filter drop-shadow-lg" />
+            <img src="/logoblanco.png" alt="Roma Servicios Inmobiliarios" className="h-10 sm:h-12 w-auto object-contain filter drop-shadow-lg" />
           </div>
         </header>
 
@@ -592,7 +592,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
           {/* ══ CIERRE FINAL CON CTA CENTRADO Y LOGO ══ */}
           <section className="text-center py-8 sm:py-12 border-t border-white/15 max-w-2xl mx-auto space-y-6">
-            <img src="/roma-logo.png" alt="Roma Servicios Inmobiliarios" className="h-10 sm:h-12 w-auto mx-auto object-contain opacity-95" />
+            <img src="/logoblanco.png" alt="Roma Servicios Inmobiliarios" className="h-11 sm:h-13 w-auto mx-auto object-contain opacity-95" />
             
             <div className="space-y-2">
               <h3 className="text-2xl sm:text-3xl font-black text-white">

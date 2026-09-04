@@ -651,7 +651,7 @@ export default function Catalogo() {
             </Link>
           </div>
 
-          <img src="/roma-logo.png" alt="Roma Inmobiliaria" className="w-[5.5rem] sm:w-[7rem] h-auto object-contain opacity-90" />
+          <img src="/logoblanco.png" alt="Roma Inmobiliaria" className="w-[6.5rem] sm:w-[8rem] h-auto object-contain opacity-95" />
         </div>
       </header>
 

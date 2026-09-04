@@ -252,7 +252,7 @@ export default function Admin() {
             >
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <img src="/logo-blanco.png" alt="Roma Inmobiliaria" className="h-9 object-contain" />
+            <img src="/logoblanco.png" alt="Roma Inmobiliaria" className="h-9 object-contain" />
           </div>
 
           <div className="flex items-center gap-2">
@@ -288,11 +288,11 @@ export default function Admin() {
       <aside className={`fixed md:relative w-72 h-full bg-roma-olive flex flex-col z-40 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} shadow-2xl border-r border-white/10`}>
         
         {/* Contenedor del Logo */}
-        <div className="py-2 border-b border-white/10 flex items-center justify-center overflow-hidden h-32">
+        <div className="py-6 px-6 border-b border-white/10 flex items-center justify-center">
           <img 
-            src="/logo-blanco.png" 
+            src="/logoblanco.png" 
             alt="Roma Servicios Inmobiliarios" 
-            className="w-56 -my-12 drop-shadow-md hover:scale-105 transition-transform duration-500" 
+            className="w-48 h-auto drop-shadow-md hover:scale-105 transition-transform duration-500" 
           />
         </div>
         
