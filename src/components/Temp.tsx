@@ -73,28 +73,43 @@ export default function Landing() {
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('loop', '');
 
     const iniciarVideo = () => {
       if (video) {
         video.muted = true;
-        video.play().catch(() => {
-          const activarEnGesto = () => {
-            if (video) {
-              video.muted = true;
-              video.play().catch(() => {});
-            }
-            window.removeEventListener('touchstart', activarEnGesto);
-            window.removeEventListener('scroll', activarEnGesto);
-            window.removeEventListener('click', activarEnGesto);
-          };
-          window.addEventListener('touchstart', activarEnGesto, { passive: true, once: true });
-          window.addEventListener('scroll', activarEnGesto, { passive: true, once: true });
-          window.addEventListener('click', activarEnGesto, { passive: true, once: true });
-        });
+        const promise = video.play();
+        if (promise !== undefined) {
+          promise.catch(() => {});
+        }
       }
     };
 
     iniciarVideo();
+    const t1 = setTimeout(iniciarVideo, 400);
+    const t2 = setTimeout(iniciarVideo, 1200);
+    const t3 = setTimeout(iniciarVideo, 2400);
+
+    const activarEnGesto = () => {
+      iniciarVideo();
+    };
+
+    window.addEventListener('touchstart', activarEnGesto, { passive: true, once: true });
+    window.addEventListener('scroll', activarEnGesto, { passive: true, once: true });
+    window.addEventListener('click', activarEnGesto, { passive: true, once: true });
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      window.removeEventListener('touchstart', activarEnGesto);
+      window.removeEventListener('scroll', activarEnGesto);
+      window.removeEventListener('click', activarEnGesto);
+    };
   }, []);
 
   // Bloqueo de Scroll al cargar
@@ -405,6 +420,7 @@ export default function Landing() {
         <motion.div className="absolute inset-0 z-0 bg-roma-dark" style={{ y: heroImgY, opacity: heroOpacity }}>
           <video
             ref={heroVideoRef}
+            src="/video_final.mp4"
             autoPlay
             loop
             muted
@@ -412,6 +428,7 @@ export default function Landing() {
             preload="auto"
             poster="/hero_poster.jpg"
             disablePictureInPicture
+            controls={false}
             onLoadedData={(e) => {
               const v = e.currentTarget;
               v.muted = true;
@@ -425,7 +442,6 @@ export default function Landing() {
             className="w-full h-full object-cover pointer-events-none"
           >
             <source src="/video_final.mp4" type="video/mp4" />
-            <source src="/video_final.webm" type="video/webm" />
           </video>
           <div className="absolute inset-0 bg-black/15 pointer-events-none" />
         </motion.div>
