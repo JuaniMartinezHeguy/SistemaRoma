@@ -109,3 +109,16 @@
     animation: marqueeFast 40s linear infinite;
   }
 }
+
+/* Ocultar botones de reproducción y controles nativos de video en iOS Safari y Android */
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

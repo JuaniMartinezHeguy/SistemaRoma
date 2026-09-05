@@ -412,6 +412,16 @@ export default function Landing() {
             preload="auto"
             poster="/hero_poster.jpg"
             disablePictureInPicture
+            onLoadedData={(e) => {
+              const v = e.currentTarget;
+              v.muted = true;
+              v.play().catch(() => {});
+            }}
+            onCanPlay={(e) => {
+              const v = e.currentTarget;
+              v.muted = true;
+              v.play().catch(() => {});
+            }}
             className="w-full h-full object-cover pointer-events-none"
           >
             <source src="/video_final.mp4" type="video/mp4" />
