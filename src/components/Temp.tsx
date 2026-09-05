@@ -59,10 +59,43 @@ export default function Landing() {
 
   // Referencias para animaciones y videos
   const { scrollY } = useScroll();
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
   const videoIgRef = useRef<HTMLVideoElement>(null);
   const videoTkRef = useRef<HTMLVideoElement>(null);
   const videoIgMobileRef = useRef<HTMLVideoElement>(null);
   const videoTkMobileRef = useRef<HTMLVideoElement>(null);
+
+  // Asegurar reproducción automática y continua del video del Hero en móviles (iOS Safari / Android)
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    const iniciarVideo = () => {
+      if (video) {
+        video.muted = true;
+        video.play().catch(() => {
+          const activarEnGesto = () => {
+            if (video) {
+              video.muted = true;
+              video.play().catch(() => {});
+            }
+            window.removeEventListener('touchstart', activarEnGesto);
+            window.removeEventListener('scroll', activarEnGesto);
+            window.removeEventListener('click', activarEnGesto);
+          };
+          window.addEventListener('touchstart', activarEnGesto, { passive: true, once: true });
+          window.addEventListener('scroll', activarEnGesto, { passive: true, once: true });
+          window.addEventListener('click', activarEnGesto, { passive: true, once: true });
+        });
+      }
+    };
+
+    iniciarVideo();
+  }, []);
 
   // Bloqueo de Scroll al cargar
   useEffect(() => {
@@ -371,12 +404,17 @@ export default function Landing() {
       <section id="inicio" className="relative min-h-screen flex flex-col justify-center pb-20 sm:pb-32 pt-24 sm:pt-32 px-4 sm:px-8 md:px-16 overflow-hidden">
         <motion.div className="absolute inset-0 z-0 bg-roma-dark" style={{ y: heroImgY, opacity: heroOpacity }}>
           <video
+            ref={heroVideoRef}
             autoPlay
             loop
             muted
             playsInline
-            className="w-full h-full object-cover"
+            preload="auto"
+            poster="/hero_poster.jpg"
+            disablePictureInPicture
+            className="w-full h-full object-cover pointer-events-none"
           >
+            <source src="/video_final.mp4" type="video/mp4" />
             <source src="/video_final.webm" type="video/webm" />
           </video>
           <div className="absolute inset-0 bg-black/15 pointer-events-none" />
