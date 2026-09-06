@@ -113,7 +113,6 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
       superficie: supValor,
       atributos_especificos,
       media_urls: fotosExistentes,
-      imagen_url: fotosExistentes[0] || null,
       estado: form.estado,
     };
   };

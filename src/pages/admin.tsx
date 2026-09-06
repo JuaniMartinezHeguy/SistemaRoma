@@ -85,7 +85,6 @@ export default function Admin() {
       const datosFinales = { 
         ...payload, 
         media_urls: mediaUrls,
-        imagen_url: mediaUrls[0] || null 
       };
       
       let error;
