@@ -111,7 +111,6 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
       ubicacion: form.ubicacion,
       coordenadas: form.coordenadas,
       superficie: supValor,
-      dimensiones: supValor,
       atributos_especificos,
       media_urls: fotosExistentes,
       imagen_url: fotosExistentes[0] || null,
