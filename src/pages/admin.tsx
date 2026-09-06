@@ -70,7 +70,10 @@ export default function Admin() {
 
   const handleSubmit = async (payload: any, archivos: File[]) => {
     try {
-      const mediaUrls: string[] = propiedadEditando?.media_urls ? [...propiedadEditando.media_urls] : [];
+      const mediaUrls: string[] = Array.isArray(payload?.media_urls)
+        ? [...payload.media_urls]
+        : (propiedadEditando?.media_urls ? [...propiedadEditando.media_urls] : []);
+
       for (const archivo of archivos) {
         const ext = archivo.name.split(".").pop();
         const nombre = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -79,7 +82,11 @@ export default function Admin() {
         const { data: { publicUrl } } = supabase.storage.from("propiedades").getPublicUrl(nombre);
         mediaUrls.push(publicUrl);
       }
-      const datosFinales = { ...payload, media_urls: mediaUrls };
+      const datosFinales = { 
+        ...payload, 
+        media_urls: mediaUrls,
+        imagen_url: mediaUrls[0] || null 
+      };
       
       let error;
       if (propiedadEditando) {

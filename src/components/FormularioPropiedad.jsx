@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Loader2, Save, Upload, MapPin, Type, DollarSign, Home, BedDouble, Bath, Ruler, Tractor, Map } from 'lucide-react';
+import { X, Loader2, Save, Upload, MapPin, Type, DollarSign, Home, BedDouble, Bath, Ruler, Tractor, Map, CheckCircle2 } from 'lucide-react';
 import useOpcionesFiltros from '@/hooks/useOpcionesFiltros';
+import { esCiudadRioNegro } from '@/lib/filtrosHelper';
 
 // ─── ESTADO INICIAL ────────────────────────────────────────────────────────────
 
@@ -31,38 +32,52 @@ const ESTADO_INICIAL = {
 
 export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCancelar, propiedadInicial = null }) {
   const [form, setForm] = useState(ESTADO_INICIAL);
+  const [fotosExistentes, setFotosExistentes] = useState([]);
   const [archivos, setArchivos] = useState([]);
   const [loading, setLoading] = useState(false);
   const { ubicacionesBuenosAires = [], ubicacionesRioNegro = [] } = useOpcionesFiltros();
 
   useEffect(() => {
     if (propiedadInicial) {
-      const valSuperficie = propiedadInicial.superficie || propiedadInicial.dimensiones || propiedadInicial.atributos_especificos?.dimensiones || propiedadInicial.mts2 || '';
+      const valSuperficie = propiedadInicial.superficie ?? propiedadInicial.dimensiones ?? propiedadInicial.atributos_especificos?.dimensiones ?? propiedadInicial.mts2 ?? '';
+      const provDetectada = propiedadInicial.provincia || (esCiudadRioNegro(propiedadInicial.ubicacion) ? 'Río Negro' : 'Buenos Aires');
+
       setForm({
-        tipo_propiedad: propiedadInicial.tipo_propiedad || '',
+        tipo_propiedad: propiedadInicial.tipo_propiedad || 'Casa',
         titulo: propiedadInicial.titulo || '',
         descripcion: propiedadInicial.descripcion || '',
-        precio: propiedadInicial.precio || '',
+        precio: propiedadInicial.precio ?? '',
         moneda: propiedadInicial.moneda || 'USD',
         operacion: propiedadInicial.operacion || 'Venta',
-        provincia: propiedadInicial.provincia || 'Buenos Aires',
+        provincia: provDetectada,
         ubicacion: propiedadInicial.ubicacion || '',
         coordenadas: propiedadInicial.coordenadas || propiedadInicial.atributos_especificos?.coordenadas || '',
-        habitaciones: propiedadInicial.atributos_especificos?.habitaciones || propiedadInicial.habitaciones || '',
-        banos: propiedadInicial.atributos_especificos?.banos || propiedadInicial.banos || '',
+        habitaciones: propiedadInicial.atributos_especificos?.habitaciones ?? propiedadInicial.habitaciones ?? '',
+        banos: propiedadInicial.atributos_especificos?.banos ?? propiedadInicial.banos ?? '',
         superficie: valSuperficie,
         dimensiones: valSuperficie,
-        tipo_campo: propiedadInicial.atributos_especificos?.tipo_campo || 'Agricola',
+        tipo_campo: propiedadInicial.atributos_especificos?.tipo_campo || propiedadInicial.tipo_campo || 'Agricola',
         dimensiones_terreno: valSuperficie,
         estado: propiedadInicial.estado || 'publicado',
       });
+
+      const initialMedia = Array.isArray(propiedadInicial.media_urls) && propiedadInicial.media_urls.length > 0
+        ? [...propiedadInicial.media_urls]
+        : (propiedadInicial.imagen_url ? [propiedadInicial.imagen_url] : (Array.isArray(propiedadInicial.imagenes) ? [...propiedadInicial.imagenes] : []));
+      
+      setFotosExistentes(initialMedia);
+      setArchivos([]);
+    } else {
+      setForm(ESTADO_INICIAL);
+      setFotosExistentes([]);
+      setArchivos([]);
     }
   }, [propiedadInicial]);
 
   const setField = (campo, valor) =>
     setForm((prev) => ({ ...prev, [campo]: valor }));
 
-  const construirPayload = (mediaUrls = []) => {
+  const construirPayload = () => {
     const { tipo_propiedad } = form;
     let atributos_especificos = {};
 
@@ -96,8 +111,10 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
       ubicacion: form.ubicacion,
       coordenadas: form.coordenadas,
       superficie: supValor,
+      dimensiones: supValor,
       atributos_especificos,
-      media_urls: mediaUrls,
+      media_urls: fotosExistentes,
+      imagen_url: fotosExistentes[0] || null,
       estado: form.estado,
     };
   };
@@ -133,7 +150,14 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Nueva Propiedad</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                {propiedadInicial ? "Editar Propiedad" : "Nueva Propiedad"}
+              </h1>
+              {propiedadInicial && (
+                <p className="text-xs text-white/60 mt-0.5 font-medium">Modificá los datos del inmueble y guardá los cambios.</p>
+              )}
+            </div>
             <Button type="button" variant="ghost" size="icon" className="text-white/50 hover:text-white hover:bg-white/10" onClick={onCancelar}>
               <X className="h-5 w-5" />
             </Button>
@@ -372,22 +396,55 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
 
               {/* COLUMNA DERECHA: Fotos */}
               <div className="flex flex-col h-full">
-                <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider mb-1.5">Fotos de la propiedad</Label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">
+                    Fotos de la propiedad ({fotosExistentes.length + archivos.length})
+                  </Label>
+                  {fotosExistentes.length > 0 && (
+                    <span className="text-[10px] text-white/40">{fotosExistentes.length} guardada{fotosExistentes.length > 1 ? 's' : ''}</span>
+                  )}
+                </div>
                 <div className="flex-1 flex flex-col gap-3 p-4 border-2 border-dashed border-white/20 rounded-2xl bg-black/20 hover:bg-white/5 transition-all text-center overflow-hidden">
 
-                  {archivos.length > 0 ? (
-                    <div className="flex-1 overflow-y-auto pr-1">
+                  {(fotosExistentes.length > 0 || archivos.length > 0) ? (
+                    <div className="flex-1 overflow-y-auto pr-1 max-h-[300px]">
                       <div className="grid grid-cols-3 gap-2 w-full">
+                        {/* Fotos existentes previamente guardadas */}
+                        {fotosExistentes.map((url, i) => (
+                          <div key={`existente-${i}`} className="relative group rounded-lg overflow-hidden border border-white/10 aspect-square shadow-sm bg-black/30">
+                            <img src={url} alt={`Foto guardada ${i + 1}`} className="w-full h-full object-cover" />
+                            <span className="absolute bottom-1 left-1 bg-black/70 backdrop-blur-xs text-[9px] font-bold text-white px-1.5 py-0.5 rounded border border-white/10">
+                              Guardada
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setFotosExistentes(prev => prev.filter((_, index) => index !== i));
+                              }}
+                              className="absolute top-1 right-1 bg-red-500/90 hover:bg-red-600 text-white p-1 rounded-full shadow-md transition-all scale-95 hover:scale-105 z-10 cursor-pointer"
+                              title="Eliminar foto guardada"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Nuevos archivos por subir */}
                         {archivos.map((f, i) => (
-                          <div key={i} className="relative group rounded-lg overflow-hidden border border-white/10 aspect-square shadow-sm">
+                          <div key={`nuevo-${i}`} className="relative group rounded-lg overflow-hidden border border-emerald-500/40 aspect-square shadow-sm bg-black/30">
                             <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
+                            <span className="absolute bottom-1 left-1 bg-emerald-600/90 backdrop-blur-xs text-[9px] font-bold text-white px-1.5 py-0.5 rounded border border-white/10">
+                              Nueva
+                            </span>
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault();
                                 setArchivos(prev => prev.filter((_, index) => index !== i));
                               }}
-                              className="absolute top-1 right-1 bg-red-500/90 hover:bg-red-600 text-white p-1 rounded-full shadow-md transition-all scale-95 hover:scale-105 z-10"
+                              className="absolute top-1 right-1 bg-red-500/90 hover:bg-red-600 text-white p-1 rounded-full shadow-md transition-all scale-95 hover:scale-105 z-10 cursor-pointer"
+                              title="Eliminar foto nueva"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -396,7 +453,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                       </div>
                     </div>
                   ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center opacity-60 pointer-events-none">
+                    <div className="flex-1 flex flex-col items-center justify-center opacity-60 pointer-events-none py-8">
                       <Upload className="h-10 w-10 text-white/40 mb-3" />
                       <p className="text-sm font-semibold text-white/60">Ninguna foto seleccionada</p>
                     </div>
@@ -405,7 +462,7 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                   <label className="flex flex-col items-center justify-center gap-2 cursor-pointer bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 w-full py-4 rounded-xl transition-all shadow-sm mt-auto">
                     <Upload className="h-5 w-5 text-white/70" />
                     <p className="text-xs text-white/70 font-bold uppercase tracking-tight">
-                      {archivos.length > 0 ? 'Agregar más fotos' : 'Hacé clic acá para subir fotos'}
+                      {(fotosExistentes.length > 0 || archivos.length > 0) ? 'Agregar más fotos' : 'Hacé clic acá para subir fotos'}
                     </p>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setArchivos(prev => [...prev, ...Array.from(e.target.files || [])])} />
                   </label>
@@ -416,9 +473,15 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
 
             {/* Botón submit */}
             <div className="pt-4 border-t border-white/10">
-              <Button type="submit" disabled={loading} className="w-full bg-white hover:bg-white/90 text-roma-dark font-black h-12 rounded-xl shadow-lg transition-all text-sm tracking-wide">
-                {loading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <Save className="mr-2 h-5 w-5" />}
-                {loading ? 'PUBLICANDO...' : 'PUBLICAR INMUEBLE'}
+              <Button type="submit" disabled={loading} className="w-full bg-white hover:bg-white/90 text-roma-dark font-black h-12 rounded-xl shadow-lg transition-all text-sm tracking-wide cursor-pointer">
+                {loading ? (
+                  <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                ) : (
+                  <Save className="mr-2 h-5 w-5" />
+                )}
+                {loading 
+                  ? (propiedadInicial ? 'GUARDANDO CAMBIOS...' : 'PUBLICANDO...') 
+                  : (propiedadInicial ? 'GUARDAR CAMBIOS' : 'PUBLICAR INMUEBLE')}
               </Button>
             </div>
           </form>
