@@ -35,7 +35,8 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
   const [fotosExistentes, setFotosExistentes] = useState([]);
   const [archivos, setArchivos] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { ubicacionesBuenosAires = [], ubicacionesRioNegro = [] } = useOpcionesFiltros();
+  const [modoManualCiudad, setModoManualCiudad] = useState(false);
+  const { ubicacionesBuenosAires = [], ubicacionesRioNegro = [], provincias = ['Buenos Aires', 'Río Negro'] } = useOpcionesFiltros();
 
   useEffect(() => {
     if (propiedadInicial) {
@@ -61,6 +62,13 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
         estado: propiedadInicial.estado || 'publicado',
       });
 
+      const currentCiudades = (provDetectada === 'Río Negro' || provDetectada === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires;
+      if (propiedadInicial.ubicacion && currentCiudades.length > 0 && !currentCiudades.includes(propiedadInicial.ubicacion)) {
+        setModoManualCiudad(true);
+      } else {
+        setModoManualCiudad(false);
+      }
+
       const initialMedia = Array.isArray(propiedadInicial.media_urls) && propiedadInicial.media_urls.length > 0
         ? [...propiedadInicial.media_urls]
         : (propiedadInicial.imagen_url ? [propiedadInicial.imagen_url] : (Array.isArray(propiedadInicial.imagenes) ? [...propiedadInicial.imagenes] : []));
@@ -68,11 +76,15 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
       setFotosExistentes(initialMedia);
       setArchivos([]);
     } else {
-      setForm(ESTADO_INICIAL);
+      setForm({
+        ...ESTADO_INICIAL,
+        provincia: provincias[0] || 'Buenos Aires',
+      });
       setFotosExistentes([]);
       setArchivos([]);
+      setModoManualCiudad(false);
     }
-  }, [propiedadInicial]);
+  }, [propiedadInicial, ubicacionesBuenosAires, ubicacionesRioNegro, provincias]);
 
   const setField = (campo, valor) =>
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -209,41 +221,85 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                       value={form.provincia} 
                       onValueChange={(v) => {
                         setField('provincia', v);
+                        const ciudadesNueva = (v === 'Río Negro' || v === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires;
+                        if (!modoManualCiudad && ciudadesNueva.length > 0 && !ciudadesNueva.includes(form.ubicacion)) {
+                          setField('ubicacion', '');
+                        }
                       }}
                     >
-                      <SelectTrigger className="h-10 rounded-xl border-white/10 bg-black/20 text-white"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                      <SelectTrigger className="h-10 rounded-xl border-white/10 bg-black/20 text-white">
+                        <SelectValue placeholder="Seleccionar provincia..." />
+                      </SelectTrigger>
                       <SelectContent className="bg-roma-olive text-white border-white/10">
-                        <SelectItem value="Buenos Aires">Buenos Aires</SelectItem>
-                        <SelectItem value="Río Negro">Río Negro</SelectItem>
+                        {provincias.map((prov) => (
+                          <SelectItem key={prov} value={prov}>{prov}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                {/* Fila 3: Ubicación / Ciudad (con sugerencias dinámicas según la provincia) */}
+                {/* Fila 3: Ubicación / Ciudad (con las ciudades cargadas de esa provincia) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">Ciudad / Zona ({form.provincia}) *</Label>
+                    <Label className="text-xs font-bold text-white/60 ml-1 uppercase tracking-wider">
+                      Ciudad / Zona ({form.provincia}) *
+                    </Label>
                     {((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).length > 0 && (
-                      <span className="text-[10px] text-white/40">Sugerencias disponibles</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModoManualCiudad(prev => !prev);
+                        }}
+                        className="text-[11px] text-white/70 hover:text-white underline cursor-pointer"
+                      >
+                        {modoManualCiudad ? 'Elegir de la lista' : '+ Ingresar otra ciudad'}
+                      </button>
                     )}
                   </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-white/40" />
-                    <Input 
-                      list="ciudades-sugeridas-list"
-                      value={form.ubicacion} 
-                      onChange={(e) => setField('ubicacion', e.target.value)} 
-                      className="h-10 pl-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" 
-                      placeholder={form.provincia === 'Río Negro' ? "Ej: Viedma, Las Grutas..." : "Ej: Villalonga, Pedro Luro..."} 
-                      required 
-                    />
-                    <datalist id="ciudades-sugeridas-list">
-                      {((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).map((c) => (
-                        <option key={c} value={c} />
-                      ))}
-                    </datalist>
-                  </div>
+
+                  {!modoManualCiudad && ((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).length > 0 ? (
+                    <Select
+                      value={((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).includes(form.ubicacion) ? form.ubicacion : ''}
+                      onValueChange={(v) => {
+                        if (v === '__OTRA__') {
+                          setModoManualCiudad(true);
+                          setField('ubicacion', '');
+                        } else {
+                          setField('ubicacion', v);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-10 rounded-xl border-white/10 bg-black/20 text-white">
+                        <SelectValue placeholder={`Seleccionar ciudad de ${form.provincia}...`} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-roma-olive text-white border-white/10 max-h-60">
+                        {((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                        <SelectItem value="__OTRA__" className="text-white/70 italic border-t border-white/10 mt-1">
+                          + Escribir otra ciudad...
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-white/40" />
+                      <Input 
+                        list="ciudades-sugeridas-list"
+                        value={form.ubicacion} 
+                        onChange={(e) => setField('ubicacion', e.target.value)} 
+                        className="h-10 pl-10 rounded-xl border-white/10 bg-black/20 text-white placeholder:text-white/30 focus-visible:ring-white/30" 
+                        placeholder={form.provincia === 'Río Negro' ? "Ej: Viedma, Las Grutas..." : "Ej: Villalonga, Pedro Luro..."} 
+                        required 
+                      />
+                      <datalist id="ciudades-sugeridas-list">
+                        {((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).map((c) => (
+                          <option key={c} value={c} />
+                        ))}
+                      </datalist>
+                    </div>
+                  )}
 
                   {/* Chips de selección rápida si hay opciones configuradas */}
                   {((form.provincia === 'Río Negro' || form.provincia === 'Rio Negro') ? ubicacionesRioNegro : ubicacionesBuenosAires).length > 0 && (
@@ -252,8 +308,11 @@ export default function FormularioPropiedad({ onSubmit: onSubmitExterno, onCance
                         <button
                           key={c}
                           type="button"
-                          onClick={() => setField('ubicacion', c)}
-                          className={`text-[11px] px-2.5 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                          onClick={() => {
+                            setModoManualCiudad(false);
+                            setField('ubicacion', c);
+                          }}
+                          className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                             form.ubicacion === c 
                               ? 'bg-white text-roma-olive font-bold border-white shadow-xs' 
                               : 'bg-black/20 text-white/70 hover:text-white border-white/10 hover:border-white/25'

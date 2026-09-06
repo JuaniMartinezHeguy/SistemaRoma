@@ -54,8 +54,6 @@ function IconoTipo({ tipo, size = 20 }: { tipo: string; size?: number }) {
   }
 }
 
-const PROVINCIAS = ['Todas', 'Buenos Aires', 'Río Negro'];
-
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Catalogo() {
   // 1. ESTO OBLIGA AL NAVEGADOR A IR AL TOPE DE LA PÁGINA AL ENTRAR
@@ -73,16 +71,19 @@ export default function Catalogo() {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Opciones dinámicas de filtros (leídas de propiedades publicadas)
+  // Opciones dinámicas de filtros (leídas de propiedades publicadas y configuración)
   const { 
     tipos: TIPOS, 
     ubicaciones: UBICACIONES, 
     ubicacionesBuenosAires: UBICACIONES_BSAS, 
     ubicacionesRioNegro: UBICACIONES_RN, 
+    provincias: PROVINCIAS_BASE,
     operaciones: OPERACIONES, 
     habitaciones: HABITACIONES, 
     tiposCampo: TIPOS_CAMPO 
   } = useOpcionesFiltros();
+
+  const PROVINCIAS = useMemo(() => ['Todas', ...(PROVINCIAS_BASE || ['Buenos Aires', 'Río Negro'])], [PROVINCIAS_BASE]);
 
   // Filtros
   const [filtroProvincia, setFiltroProvincia] = useState('Todas');

@@ -7,6 +7,7 @@ interface OpcionesFiltros {
   ubicaciones: string[];
   ubicacionesBuenosAires: string[];
   ubicacionesRioNegro: string[];
+  provincias: string[];
   operaciones: string[];
   habitaciones: number[];
   tiposCampo: string[];
@@ -19,6 +20,7 @@ export default function useOpcionesFiltros(): OpcionesFiltros {
     ubicaciones: [],
     ubicacionesBuenosAires: [],
     ubicacionesRioNegro: [],
+    provincias: ['Buenos Aires', 'Río Negro'],
     operaciones: [],
     habitaciones: [],
     tiposCampo: [],
@@ -84,11 +86,17 @@ export default function useOpcionesFiltros(): OpcionesFiltros {
 
       const allUbicaciones = Array.from(new Set([...bsAs, ...rNegro]));
 
+      const provs: string[] = [];
+      if (bsAs.length > 0) provs.push('Buenos Aires');
+      if (rNegro.length > 0) provs.push('Río Negro');
+      if (provs.length === 0) provs.push('Buenos Aires', 'Río Negro');
+
       setOpciones({
         tipos: raw.tipos || [],
         ubicaciones: allUbicaciones,
         ubicacionesBuenosAires: bsAs,
         ubicacionesRioNegro: rNegro,
+        provincias: provs,
         operaciones: raw.operaciones || [],
         habitaciones: raw.habitaciones || [],
         tiposCampo: raw.tiposCampo || [],
