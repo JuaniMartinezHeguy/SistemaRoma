@@ -16,6 +16,7 @@ import ConfigFiltros from "@/components/ConfigFiltros";
 import ClientesAdmin from "@/components/ClientesAdmin";
 import FormularioClienteModal from "@/components/FormularioClienteModal";
 import { supabase } from "@/lib/supabase"; 
+import { sincronizarCiudadEnFiltros } from "@/lib/filtrosHelper"; 
 
 export default function Admin() {
   // ─ Hooks ─────────────────────────────────────────────────────────────
@@ -90,6 +91,10 @@ export default function Admin() {
       }
 
       if (error) throw error;
+      
+      // Sincronizar automáticamente la ciudad con la configuración de filtros si no estaba cargada
+      await sincronizarCiudadEnFiltros(datosFinales.ubicacion, datosFinales.provincia);
+
       mostrarToast(propiedadEditando ? "¡Propiedad actualizada!" : "¡Propiedad publicada!");
       fetchPropiedades();
       setIsFormOpen(false);
@@ -207,7 +212,9 @@ export default function Admin() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-white/70 font-medium whitespace-nowrap">{prop.ubicacion}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-white/70 font-medium whitespace-nowrap">
+                    {prop.ubicacion}{prop.provincia ? `, ${prop.provincia}` : ''}
+                  </td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 font-black text-white whitespace-nowrap">USD {prop.precio.toLocaleString("es-AR")}</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                     <span className="bg-white/10 text-white py-1 px-2.5 sm:py-1.5 sm:px-3 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-white/20">

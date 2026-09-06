@@ -16,6 +16,7 @@ interface Propiedad {
   titulo: string;
   tipo_propiedad: string;
   operacion: string;
+  provincia?: string;
   ubicacion: string;
   coordenadas?: string;
   precio: number;
@@ -290,7 +291,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
             <div className="flex items-center gap-2 text-white/90 text-xs sm:text-sm font-medium drop-shadow">
               <MapPin size={16} weight="fill" className="text-white shrink-0" />
-              <span>{propiedad.ubicacion}</span>
+              <span>{propiedad.ubicacion}{propiedad.provincia ? `, ${propiedad.provincia}` : ''}</span>
             </div>
           </div>
 

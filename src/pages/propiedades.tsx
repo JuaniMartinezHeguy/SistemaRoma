@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import useOpcionesFiltros from '../hooks/useOpcionesFiltros';
 import {
@@ -17,6 +17,7 @@ interface Propiedad {
   titulo: string;
   tipo_propiedad: string;
   operacion: string;
+  provincia?: string;
   ubicacion: string;
   coordenadas?: string;
   precio: number;
@@ -53,6 +54,8 @@ function IconoTipo({ tipo, size = 20 }: { tipo: string; size?: number }) {
   }
 }
 
+const PROVINCIAS = ['Todas', 'Buenos Aires', 'Río Negro'];
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Catalogo() {
   // 1. ESTO OBLIGA AL NAVEGADOR A IR AL TOPE DE LA PÁGINA AL ENTRAR
@@ -71,9 +74,18 @@ export default function Catalogo() {
   const [loading, setLoading] = useState(true);
 
   // Opciones dinámicas de filtros (leídas de propiedades publicadas)
-  const { tipos: TIPOS, ubicaciones: UBICACIONES, operaciones: OPERACIONES, habitaciones: HABITACIONES, tiposCampo: TIPOS_CAMPO } = useOpcionesFiltros();
+  const { 
+    tipos: TIPOS, 
+    ubicaciones: UBICACIONES, 
+    ubicacionesBuenosAires: UBICACIONES_BSAS, 
+    ubicacionesRioNegro: UBICACIONES_RN, 
+    operaciones: OPERACIONES, 
+    habitaciones: HABITACIONES, 
+    tiposCampo: TIPOS_CAMPO 
+  } = useOpcionesFiltros();
 
   // Filtros
+  const [filtroProvincia, setFiltroProvincia] = useState('Todas');
   const [filtroTipo, setFiltroTipo] = useState('Todos');
   const [filtroUbicacion, setFiltroUbicacion] = useState('Todas');
   const [filtroOperacion, setFiltroOperacion] = useState('Todas');
@@ -84,9 +96,26 @@ export default function Catalogo() {
   const [busqueda, setBusqueda] = useState('');
   const [ordenar, setOrdenar] = useState('recientes');
 
+  // Ciudades a mostrar según la provincia seleccionada
+  const ubicacionesFiltradasPorProvincia = useMemo(() => {
+    if (filtroProvincia === 'Buenos Aires') {
+      return UBICACIONES_BSAS.length > 0 ? UBICACIONES_BSAS : UBICACIONES;
+    }
+    if (filtroProvincia === 'Río Negro' || filtroProvincia === 'Rio Negro') {
+      return UBICACIONES_RN.length > 0 ? UBICACIONES_RN : UBICACIONES;
+    }
+    return UBICACIONES;
+  }, [filtroProvincia, UBICACIONES_BSAS, UBICACIONES_RN, UBICACIONES]);
+
+  const cambiarProvincia = (prov: string) => {
+    setFiltroProvincia(prov);
+    setFiltroUbicacion('Todas');
+  };
+
   // Estado para desplegables "efecto hamburguesa" en PC y Mobile
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileSections, setOpenMobileSections] = useState<Record<string, boolean>>({
+    provincia: false,
     tipo: false,
     operacion: false,
     zona: false,
@@ -106,6 +135,7 @@ export default function Catalogo() {
   const [selectedPropiedadObj, setSelectedPropiedadObj] = useState<Propiedad | null>(null);
 
   const cantidadFiltrosActivos = [
+    filtroProvincia !== 'Todas',
     filtroTipo !== 'Todos',
     filtroUbicacion !== 'Todas',
     filtroOperacion !== 'Todas',
@@ -188,7 +218,25 @@ export default function Catalogo() {
 
       let result: Propiedad[] = (data ?? []).filter(p => !p.estado || p.estado === 'publicado');
 
-      // 1. Filtro por Tipo de Propiedad
+      // 1. Filtro por Provincia
+      if (filtroProvincia !== 'Todas') {
+        const fProvLower = filtroProvincia.toLowerCase();
+        result = result.filter(p => {
+          if (p.provincia) {
+            return p.provincia.toLowerCase() === fProvLower;
+          }
+          // Fallback por si la propiedad antigua no tiene provincia guardada todavía:
+          if (fProvLower.includes('buenos')) {
+            return UBICACIONES_BSAS.some(u => u.toLowerCase() === p.ubicacion?.toLowerCase());
+          }
+          if (fProvLower.includes('rio') || fProvLower.includes('río')) {
+            return UBICACIONES_RN.some(u => u.toLowerCase() === p.ubicacion?.toLowerCase());
+          }
+          return true;
+        });
+      }
+
+      // 2. Filtro por Tipo de Propiedad
       if (filtroTipo !== 'Todos') {
         const fLower = filtroTipo.toLowerCase();
         result = result.filter(p => {
@@ -207,17 +255,17 @@ export default function Catalogo() {
         });
       }
 
-      // 2. Filtro por Ubicación
+      // 3. Filtro por Ubicación
       if (filtroUbicacion !== 'Todas') {
         result = result.filter(p => p.ubicacion?.toLowerCase() === filtroUbicacion.toLowerCase());
       }
 
-      // 3. Filtro por Operación (Venta / Alquiler)
+      // 4. Filtro por Operación (Venta / Alquiler)
       if (filtroOperacion !== 'Todas') {
         result = result.filter(p => p.operacion?.toLowerCase() === filtroOperacion.toLowerCase());
       }
 
-      // 4. Filtro por Tipo de Campo
+      // 5. Filtro por Tipo de Campo
       if (filtroTipoCampo !== 'Todos') {
         result = result.filter(p => 
           p.atributos_especificos && 
@@ -225,7 +273,7 @@ export default function Catalogo() {
         );
       }
 
-      // 5. Filtro por Habitaciones
+      // 6. Filtro por Habitaciones
       if (filtroHabs !== null) {
         result = result.filter(p => {
           const habs = p.habitaciones ?? p.atributos_especificos?.habitaciones ?? 0;
@@ -234,7 +282,7 @@ export default function Catalogo() {
         });
       }
 
-      // 6. Filtro por Rango de Precios
+      // 7. Filtro por Rango de Precios
       if (filtroPrecioMin) {
         const min = parseFloat(filtroPrecioMin);
         if (!isNaN(min)) result = result.filter(p => (p.precio || 0) >= min);
@@ -244,7 +292,7 @@ export default function Catalogo() {
         if (!isNaN(max)) result = result.filter(p => (p.precio || 0) <= max);
       }
 
-      // 7. Búsqueda libre
+      // 8. Búsqueda libre
       if (busqueda.trim()) {
         const q = busqueda.toLowerCase();
         result = result.filter(
@@ -252,7 +300,7 @@ export default function Catalogo() {
         );
       }
 
-      // 8. Ordenamiento
+      // 9. Ordenamiento
       if (ordenar === 'asc') result.sort((a, b) => (a.precio || 0) - (b.precio || 0));
       else if (ordenar === 'desc') result.sort((a, b) => (b.precio || 0) - (a.precio || 0));
       else if (ordenar === 'destacadas') result.sort((a, b) => (b.destacada ? 1 : 0) - (a.destacada ? 1 : 0));
@@ -262,7 +310,7 @@ export default function Catalogo() {
     };
 
     fetchPropiedades();
-  }, [filtroTipo, filtroUbicacion, filtroOperacion, filtroTipoCampo, filtroHabs, filtroPrecioMin, filtroPrecioMax, busqueda, ordenar]);
+  }, [filtroProvincia, filtroTipo, filtroUbicacion, filtroOperacion, filtroTipoCampo, filtroHabs, filtroPrecioMin, filtroPrecioMax, busqueda, ordenar, UBICACIONES_BSAS, UBICACIONES_RN]);
 
   const propiedadesDestacadas = propiedades.filter(p => p.destacada);
 
@@ -295,6 +343,7 @@ export default function Catalogo() {
   const activeDestacada = propiedadesDestacadas[destacadaIndex];
 
   const limpiarFiltros = () => {
+    setFiltroProvincia('Todas');
     setFiltroTipo('Todos');
     setFiltroUbicacion('Todas');
     setFiltroOperacion('Todas');
@@ -307,6 +356,10 @@ export default function Catalogo() {
   };
 
   const filtrosActivos = [
+    filtroProvincia !== 'Todas' && { 
+      label: `Provincia: ${filtroProvincia}`, 
+      clear: () => { setFiltroProvincia('Todas'); setFiltroUbicacion('Todas'); } 
+    },
     filtroTipo !== 'Todos' && { label: filtroTipo, clear: () => { setFiltroTipo('Todos'); setFiltroTipoCampo('Todos'); } },
     filtroUbicacion !== 'Todas' && { label: filtroUbicacion, clear: () => setFiltroUbicacion('Todas') },
     filtroOperacion !== 'Todas' && { label: filtroOperacion, clear: () => setFiltroOperacion('Todas') },
@@ -484,6 +537,54 @@ export default function Catalogo() {
         </AnimatePresence>
       </div>
 
+      {/* Acordeón: Provincia */}
+      <div className="border-b border-white/10 py-3 px-1">
+        <button
+          type="button"
+          onClick={() => toggleMobileSection('provincia')}
+          className="w-full flex items-center justify-between py-1 text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <MapPin size={16} className="text-roma-leaf" />
+            <span className="text-xs font-semibold text-white uppercase tracking-wider">Provincia</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {filtroProvincia !== 'Todas' && (
+              <span className="text-[10px] bg-white text-roma-olive font-bold px-2 py-0.5 rounded-full">
+                {filtroProvincia}
+              </span>
+            )}
+            <CaretDown size={14} className={`text-white/70 transition-transform duration-200 ${openMobileSections['provincia'] ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        <AnimatePresence>
+          {openMobileSections['provincia'] && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden pt-3 flex flex-wrap gap-2"
+            >
+              {PROVINCIAS.map(p => {
+                const isSelected = filtroProvincia === p;
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => cambiarProvincia(p)}
+                    className={`px-3.5 py-1.5 rounded-full text-[12px] border transition-all cursor-pointer ${
+                      isSelected ? 'bg-white border-white text-roma-olive font-semibold' : 'bg-transparent border-white/30 text-white/90'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Acordeón: Ciudad / Zona */}
       <div className="border-b border-white/10 py-3 px-1">
         <button
@@ -493,7 +594,9 @@ export default function Catalogo() {
         >
           <div className="flex items-center gap-2">
             <MapTrifold size={16} className="text-roma-leaf" />
-            <span className="text-xs font-semibold text-white uppercase tracking-wider">Ciudad / Zona</span>
+            <span className="text-xs font-semibold text-white uppercase tracking-wider">
+              Ciudad / Zona {filtroProvincia !== 'Todas' ? `(${filtroProvincia === 'Buenos Aires' ? 'Bs.As' : 'Río Negro'})` : ''}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             {filtroUbicacion !== 'Todas' && (
@@ -512,7 +615,7 @@ export default function Catalogo() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden pt-3 flex flex-wrap gap-2 max-h-[220px] overflow-y-auto"
             >
-              {['Todas', ...UBICACIONES].map(u => (
+              {['Todas', ...ubicacionesFiltradasPorProvincia].map(u => (
                 <button
                   key={u}
                   type="button"
@@ -1022,7 +1125,56 @@ export default function Catalogo() {
                 </AnimatePresence>
               </div>
 
-              {/* 4. DROPDOWN ZONA / CIUDAD */}
+              {/* 4. DROPDOWN PROVINCIA */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'provincia' ? null : 'provincia')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium border transition-all duration-200 cursor-pointer ${
+                    filtroProvincia !== 'Todas'
+                      ? 'bg-white border-white text-roma-olive shadow-sm font-semibold'
+                      : 'bg-black/20 border-white/15 text-white/90 hover:border-white/40'
+                  }`}
+                >
+                  <MapPin size={15} />
+                  <span>{filtroProvincia === 'Todas' ? 'Provincia' : filtroProvincia}</span>
+                  <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'provincia' ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {openDropdown === 'provincia' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-2 z-50 min-w-[180px] bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
+                    >
+                      {PROVINCIAS.map(p => {
+                        const isSelected = filtroProvincia === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => {
+                              cambiarProvincia(p);
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 rounded-xl text-[12px] transition-colors flex items-center justify-between cursor-pointer ${
+                              isSelected ? 'bg-white text-roma-olive font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <span>{p}</span>
+                            {isSelected && <Check size={14} weight="bold" />}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* 5. DROPDOWN ZONA / CIUDAD */}
               <div className="relative">
                 <button
                   type="button"
@@ -1034,7 +1186,11 @@ export default function Catalogo() {
                   }`}
                 >
                   <MapTrifold size={15} />
-                  <span>{filtroUbicacion === 'Todas' ? 'Zona / Ciudad' : `Zona: ${filtroUbicacion}`}</span>
+                  <span>
+                    {filtroUbicacion === 'Todas' 
+                      ? (filtroProvincia === 'Todas' ? 'Zona / Ciudad' : `Ciudades (${filtroProvincia === 'Buenos Aires' ? 'Bs.As' : 'Río Negro'})`) 
+                      : `Zona: ${filtroUbicacion}`}
+                  </span>
                   <CaretDown size={12} className={`transition-transform duration-200 ${openDropdown === 'zona' ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -1047,7 +1203,7 @@ export default function Catalogo() {
                       transition={{ duration: 0.15 }}
                       className="absolute top-full left-0 mt-2 z-50 min-w-[220px] max-h-[300px] overflow-y-auto bg-[#182a1a] border border-white/20 rounded-2xl p-2 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
                     >
-                      {['Todas', ...UBICACIONES].map(u => {
+                      {['Todas', ...ubicacionesFiltradasPorProvincia].map(u => {
                         const isSelected = filtroUbicacion === u;
                         return (
                           <button
@@ -1404,7 +1560,7 @@ export default function Catalogo() {
                         {prop.ubicacion && (
                           <div className="text-xs text-white/50 font-light flex items-center gap-1.5">
                             <span className="text-[6px] text-white/40">⚪</span>
-                            <span>{prop.ubicacion}</span>
+                            <span>{prop.ubicacion}{prop.provincia ? `, ${prop.provincia}` : ''}</span>
                           </div>
                         )}
                       </div>

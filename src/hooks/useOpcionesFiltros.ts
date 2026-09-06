@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { separarUbicacionesPorProvincia, esCiudadRioNegro } from '@/lib/filtrosHelper';
 
 interface OpcionesFiltros {
   tipos: string[];
   ubicaciones: string[];
+  ubicacionesBuenosAires: string[];
+  ubicacionesRioNegro: string[];
   operaciones: string[];
   habitaciones: number[];
   tiposCampo: string[];
@@ -14,6 +17,8 @@ export default function useOpcionesFiltros(): OpcionesFiltros {
   const [opciones, setOpciones] = useState<OpcionesFiltros>({
     tipos: [],
     ubicaciones: [],
+    ubicacionesBuenosAires: [],
+    ubicacionesRioNegro: [],
     operaciones: [],
     habitaciones: [],
     tiposCampo: [],
@@ -34,12 +39,59 @@ export default function useOpcionesFiltros(): OpcionesFiltros {
         return;
       }
 
+      const raw = data.opciones || {};
+      const separated = separarUbicacionesPorProvincia(
+        raw.ubicaciones || [],
+        raw.ubicacionesBuenosAires || raw.ubicaciones_buenos_aires || [],
+        raw.ubicacionesRioNegro || raw.ubicaciones_rio_negro || []
+      );
+
+      const bsAs = [...separated.buenosAires];
+      const rNegro = [...separated.rioNegro];
+
+      // Incluir también ciudades de propiedades existentes que no hayan sido agregadas manualmente
+      try {
+        const { data: propsData } = await supabase
+          .from('propiedades')
+          .select('ubicacion, provincia')
+          .not('ubicacion', 'is', null);
+
+        if (propsData) {
+          propsData.forEach((p: any) => {
+            if (!p.ubicacion || !p.ubicacion.trim()) return;
+            const u = p.ubicacion.trim();
+            const esRN = (p.provincia?.toLowerCase().includes('rio') || p.provincia?.toLowerCase().includes('río')) || esCiudadRioNegro(u);
+            
+            if (esRN) {
+              if (!rNegro.some(x => x.toLowerCase() === u.toLowerCase())) {
+                rNegro.push(u);
+              }
+              // Quitar de Buenos Aires si por error estaba ahí
+              const idxBA = bsAs.findIndex(x => x.toLowerCase() === u.toLowerCase());
+              if (idxBA !== -1) {
+                bsAs.splice(idxBA, 1);
+              }
+            } else {
+              if (!bsAs.some(x => x.toLowerCase() === u.toLowerCase())) {
+                bsAs.push(u);
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Error obteniendo ubicaciones de propiedades:', err);
+      }
+
+      const allUbicaciones = Array.from(new Set([...bsAs, ...rNegro]));
+
       setOpciones({
-        tipos: data.opciones.tipos || [],
-        ubicaciones: data.opciones.ubicaciones || [],
-        operaciones: data.opciones.operaciones || [],
-        habitaciones: data.opciones.habitaciones || [],
-        tiposCampo: data.opciones.tiposCampo || [],
+        tipos: raw.tipos || [],
+        ubicaciones: allUbicaciones,
+        ubicacionesBuenosAires: bsAs,
+        ubicacionesRioNegro: rNegro,
+        operaciones: raw.operaciones || [],
+        habitaciones: raw.habitaciones || [],
+        tiposCampo: raw.tiposCampo || [],
         loading: false,
       });
     };

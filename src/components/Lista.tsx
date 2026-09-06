@@ -7,7 +7,7 @@ import { Pencil, Trash2, Star, MapPin, Ruler, Search, AlertCircle, PlusCircle, H
 
 interface Propiedad {
   id: number; titulo: string; descripcion: string; precio: number;
-  tipo_propiedad: string; operacion: string; ubicacion: string;
+  tipo_propiedad: string; operacion: string; provincia?: string; ubicacion: string;
   dimensiones: string; imagen_url?: string; imagenes?: string[]; media_urls?: string[]; destacada: boolean;
 }
 
@@ -26,7 +26,8 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
 
   const propiedadesFiltradas = propiedades.filter((prop) => 
     prop.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
-    prop.ubicacion.toLowerCase().includes(busqueda.toLowerCase())
+    prop.ubicacion.toLowerCase().includes(busqueda.toLowerCase()) ||
+    (prop.provincia && prop.provincia.toLowerCase().includes(busqueda.toLowerCase()))
   );
 
   return (
@@ -143,7 +144,9 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-white/70 font-medium">{prop.ubicacion}</td>
+                    <td className="px-6 py-4 text-white/70 font-medium">
+                      {prop.ubicacion}{prop.provincia ? `, ${prop.provincia}` : ''}
+                    </td>
                     <td className="px-6 py-4 font-black text-white text-base">USD {prop.precio.toLocaleString("es-AR")}</td>
                     <td className="px-6 py-4">
                       <span className="bg-white/10 text-white py-1.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/20">
@@ -215,7 +218,8 @@ export default function Lista({ propiedades, onEditar, onBorrar, onAgregarNuevo 
               
               <div className="flex items-center gap-5 text-white/50 text-xs font-bold uppercase pt-2">
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 text-white/40" /> {propiedadSeleccionada.ubicacion}
+                  <MapPin className="h-4 w-4 text-white/40" /> 
+                  {propiedadSeleccionada.ubicacion}{propiedadSeleccionada.provincia ? `, ${propiedadSeleccionada.provincia}` : ''}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Ruler className="h-4 w-4 text-white/40" /> {propiedadSeleccionada.dimensiones}
