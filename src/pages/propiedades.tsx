@@ -1547,15 +1547,18 @@ export default function Catalogo() {
                     {/* Contenido del Card */}
                     <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-[#141d15]">
                       <div>
-                        {/* Precio en la fuente principal limpia */}
-                        <div className="text-xl md:text-2xl font-bold text-white tracking-tight mb-1.5">
-                          US$ {prop.precio ? prop.precio.toLocaleString('es-AR') : 'Consultar'}
-                        </div>
+                        {/* Fila con Precio a la izquierda y Título vistoso a la derecha */}
+                        <div className="flex items-baseline justify-between gap-3 mb-2">
+                          {/* Precio en la fuente principal limpia */}
+                          <div className="text-xl md:text-2xl font-bold text-white tracking-tight shrink-0">
+                            US$ {prop.precio ? prop.precio.toLocaleString('es-AR') : 'Consultar'}
+                          </div>
 
-                        {/* Título de la propiedad */}
-                        <h3 className="text-sm md:text-base font-medium text-white/90 leading-snug tracking-tight mb-1">
-                          {prop.titulo}
-                        </h3>
+                          {/* Título de la propiedad */}
+                          <h3 className="text-lg md:text-xl font-bold text-white text-right leading-tight tracking-tight line-clamp-2">
+                            {prop.titulo}
+                          </h3>
+                        </div>
 
                         {/* Ubicación con punto */}
                         {prop.ubicacion && (
