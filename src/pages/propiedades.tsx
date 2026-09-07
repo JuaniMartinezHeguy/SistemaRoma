@@ -1477,7 +1477,7 @@ export default function Catalogo() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="bg-black/20 backdrop-blur-md rounded-[20px] sm:rounded-[24px] h-[400px] sm:h-[480px] animate-pulse border border-white/10" />
+                  <div key={i} className="bg-roma-olive/40 backdrop-blur-md rounded-[20px] sm:rounded-[24px] h-[400px] sm:h-[480px] animate-pulse border border-roma-leaf/20" />
                 ))}
               </div>
             ) : propiedades.length > 0 ? (
@@ -1492,10 +1492,10 @@ export default function Catalogo() {
                     key={prop.id}
                     variants={fadeUp}
                     onClick={() => abrirModal(prop)}
-                    className="group bg-[#141d15] border border-white/10 hover:border-roma-leaf/40 rounded-[20px] sm:rounded-[24px] overflow-hidden cursor-pointer transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between"
+                    className="group bg-roma-olive border border-roma-leaf/30 hover:border-roma-leaf/70 rounded-[20px] sm:rounded-[24px] overflow-hidden cursor-pointer transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between"
                   >
                     {/* Imagen */}
-                    <div className="relative w-full h-[200px] sm:h-[250px] md:h-[260px] overflow-hidden bg-black/40 shrink-0">
+                    <div className="relative w-full h-[200px] sm:h-[250px] md:h-[260px] overflow-hidden bg-[#1A241A] shrink-0">
                       {prop.imagen_url || (prop.media_urls && prop.media_urls.length > 0) ? (
                         <img
                           src={(prop.media_urls && prop.media_urls[0]) || prop.imagen_url}
@@ -1513,11 +1513,11 @@ export default function Catalogo() {
 
                       {/* Badges superiores izquierda */}
                       <div className="absolute top-3.5 left-3.5 flex items-center gap-2 z-10 flex-wrap max-w-[70%]">
-                        <span className="bg-[#2a2a2a]/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl border border-white/10 shadow-sm">
+                        <span className="bg-[#1A241A]/85 backdrop-blur-md text-emerald-100 text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl border border-roma-leaf/40 shadow-sm">
                           {prop.operacion || 'COMPRAR'}
                         </span>
                         {prop.destacada && (
-                          <span className="bg-roma-leaf/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border border-roma-leaf/40 shadow-sm flex items-center gap-1">
+                          <span className="bg-roma-leaf/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl border border-roma-leaf/40 shadow-sm flex items-center gap-1">
                             <Star size={11} weight="fill" className="text-amber-300" /> DESTACADA
                           </span>
                         )}
@@ -1525,15 +1525,15 @@ export default function Catalogo() {
 
                       {/* Badge tipo propiedad superior derecha */}
                       <div className="absolute top-3.5 right-3.5 z-10">
-                        <span className="bg-white/90 backdrop-blur-md text-roma-dark text-[11px] font-semibold tracking-wide px-3.5 py-1.5 rounded-xl shadow-md capitalize">
+                        <span className="bg-[#1A241A]/85 backdrop-blur-md text-emerald-100 text-[11px] font-semibold tracking-wide px-3.5 py-1.5 rounded-xl border border-roma-leaf/40 shadow-md capitalize">
                           {prop.tipo_propiedad}
                         </span>
                       </div>
 
                       {/* Badge contador de fotos inferior derecha */}
                       {((prop.media_urls && prop.media_urls.length > 0) || (prop.imagenes && prop.imagenes.length > 0)) && (
-                        <div className="absolute bottom-3.5 right-3.5 z-10 bg-black/60 backdrop-blur-md text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-xl flex items-center gap-1.5 border border-white/15 shadow-sm">
-                          <svg className="w-3.5 h-3.5 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <div className="absolute bottom-3.5 right-3.5 z-10 bg-[#1A241A]/80 backdrop-blur-md text-emerald-100 text-[11px] font-medium px-2.5 py-1 rounded-xl flex items-center gap-1.5 border border-roma-leaf/30 shadow-sm">
+                          <svg className="w-3.5 h-3.5 text-emerald-200/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <rect x="3" y="3" width="7" height="7" rx="1.5" />
                             <rect x="14" y="3" width="7" height="7" rx="1.5" />
                             <rect x="14" y="14" width="7" height="7" rx="1.5" />
@@ -1545,7 +1545,7 @@ export default function Catalogo() {
                     </div>
 
                     {/* Contenido del Card */}
-                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-[#141d15]">
+                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-roma-olive">
                       <div>
                         {/* Fila con Precio a la izquierda y Título vistoso a la derecha */}
                         <div className="flex items-baseline justify-between gap-3 mb-2">
@@ -1562,15 +1562,15 @@ export default function Catalogo() {
 
                         {/* Ubicación con punto */}
                         {prop.ubicacion && (
-                          <div className="text-xs text-white/50 font-light flex items-center gap-1.5">
-                            <span className="text-[6px] text-white/40">⚪</span>
+                          <div className="text-xs text-emerald-100/80 font-normal flex items-center gap-1.5">
+                            <span className="text-[8px] text-emerald-300">●</span>
                             <span>{prop.ubicacion}{prop.provincia ? `, ${prop.provincia}` : ''}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Línea de separación */}
-                      <div className="my-4 border-t border-white/10" />
+                      <div className="my-4 border-t border-emerald-900/40" />
 
                       {/* Especificaciones en la parte inferior de la tarjeta con m² para Casas, Deptos, Terrenos y Campos */}
                       {(() => {
@@ -1605,14 +1605,14 @@ export default function Catalogo() {
 
                           return (
                             <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
-                              <div className="flex items-center gap-1 col-span-2">
-                                <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs font-medium text-white/90 truncate">
+                              <div className="flex items-center gap-1.5 col-span-2">
+                                <Ruler size={15} weight="bold" className="text-emerald-300 shrink-0" />
+                                <span className="text-xs font-semibold text-white truncate">
                                   {formatSup || '-'}
                                 </span>
                               </div>
                               <div className="text-right">
-                                <span className="text-xs font-medium text-white/60 capitalize truncate block" title={String(actividad)}>
+                                <span className="text-xs font-medium text-emerald-100/80 capitalize truncate block" title={String(actividad)}>
                                   {actividad}
                                 </span>
                               </div>
@@ -1623,14 +1623,14 @@ export default function Catalogo() {
                         if (isTerreno) {
                           return (
                             <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
-                              <div className="flex items-center gap-1 col-span-2">
-                                <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs font-medium text-white/90 truncate">
+                              <div className="flex items-center gap-1.5 col-span-2">
+                                <Ruler size={15} weight="bold" className="text-emerald-300 shrink-0" />
+                                <span className="text-xs font-semibold text-white truncate">
                                   {formatSup || '-'}
                                 </span>
                               </div>
                               <div className="text-right">
-                                <span className="text-xs font-medium text-white/60 capitalize truncate block">
+                                <span className="text-xs font-medium text-emerald-100/80 capitalize truncate block">
                                   {prop.tipo_propiedad || 'Terreno'}
                                 </span>
                               </div>
@@ -1641,23 +1641,23 @@ export default function Catalogo() {
                         if (isCasaODepto) {
                           return (
                             <div className="grid grid-cols-3 gap-1.5 text-left pt-0.5 items-center">
-                              <div className="flex items-center gap-1">
-                                <Bed size={15} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs font-medium text-white/90">
+                              <div className="flex items-center gap-1.5">
+                                <Bed size={15} weight="bold" className="text-emerald-300 shrink-0" />
+                                <span className="text-xs font-semibold text-white">
                                   {habs ? String(habs) : '-'}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-1">
-                                <Bathtub size={15} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs font-medium text-white/90">
+                              <div className="flex items-center gap-1.5">
+                                <Bathtub size={15} weight="bold" className="text-emerald-300 shrink-0" />
+                                <span className="text-xs font-semibold text-white">
                                   {bns ? String(bns) : '-'}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-1 justify-end">
-                                <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
-                                <span className="text-xs font-medium text-white/90 truncate">
+                              <div className="flex items-center gap-1.5 justify-end">
+                                <Ruler size={15} weight="bold" className="text-emerald-300 shrink-0" />
+                                <span className="text-xs font-semibold text-white truncate">
                                   {formatSup || '-'}
                                 </span>
                               </div>
@@ -1667,14 +1667,14 @@ export default function Catalogo() {
 
                         return (
                           <div className="grid grid-cols-3 gap-2 text-left pt-0.5 items-center">
-                            <div className="flex items-center gap-1 col-span-2">
-                              <Ruler size={15} weight="light" className="text-roma-leaf shrink-0" />
-                              <span className="text-xs font-medium text-white/90 truncate">
+                            <div className="flex items-center gap-1.5 col-span-2">
+                              <Ruler size={15} weight="bold" className="text-emerald-300 shrink-0" />
+                              <span className="text-xs font-semibold text-white truncate">
                                 {formatSup || '-'}
                               </span>
                             </div>
                             <div className="text-right">
-                              <span className="text-xs font-medium text-white/60 capitalize truncate block">
+                              <span className="text-xs font-medium text-emerald-100/80 capitalize truncate block">
                                 {prop.tipo_propiedad || '-'}
                               </span>
                             </div>
