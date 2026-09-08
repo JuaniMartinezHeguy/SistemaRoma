@@ -6,7 +6,8 @@ import {
   MapPin, WhatsappLogo, HouseLine, Ruler,
   Bed, Buildings, Tree, Storefront, ArrowLeft, Bathtub,
   CaretLeft, CaretRight, X, ArrowSquareOut,
-  CheckCircle, Tag, Info
+  CheckCircle, Tag, Info, ShareNetwork, InstagramLogo, FacebookLogo,
+  LinkSimple, Check
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -73,6 +74,94 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
   const [loading, setLoading] = useState(!initialPropiedad && Boolean(effectiveId));
   const [imagenModalIndex, setImagenModalIndex] = useState<number | null>(null);
   const [imagenIndex, setImagenIndex] = useState(0);
+  const [mostrarCompartir, setMostrarCompartir] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const shareContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareContainerRef.current && !shareContainerRef.current.contains(event.target as Node)) {
+        setMostrarCompartir(false);
+      }
+    };
+    if (mostrarCompartir) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mostrarCompartir]);
+
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/propiedades/${propiedad?.id || ''}`;
+  };
+
+  const handleShareWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!propiedad) return;
+    const url = getShareUrl();
+    // Abre directamente WhatsApp con solo el link de la propiedad
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(url)}`, '_blank');
+    setMostrarCompartir(false);
+  };
+
+  const handleShareFacebook = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!propiedad) return;
+    const url = getShareUrl();
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Abre directamente la app de Messenger con solo el link para seleccionar destinatarios
+      window.location.href = `fb-messenger://share/?link=${encodeURIComponent(url)}`;
+      setTimeout(() => {
+        window.open(`https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=2914944191910609&redirect_uri=${encodeURIComponent(url)}`, '_blank');
+      }, 500);
+    } else {
+      // Diálogo oficial de envío de Messenger / Facebook con solo el link
+      window.open(`https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=2914944191910609&redirect_uri=${encodeURIComponent(url)}`, '_blank', 'width=650,height=600');
+    }
+    setMostrarCompartir(false);
+  };
+
+  const handleShareInstagram = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!propiedad) return;
+    const url = getShareUrl();
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 3000);
+    } catch (_) {}
+
+    if (isMobile) {
+      // Abre directamente la app de Instagram en la bandeja de DMs
+      window.location.href = 'instagram://direct-inbox';
+      setTimeout(() => {
+        window.open('https://www.instagram.com/direct/inbox/', '_blank');
+      }, 500);
+    } else {
+      // Abre directamente la bandeja de entrada de mensajes de Instagram
+      window.open('https://www.instagram.com/direct/inbox/', '_blank');
+    }
+    setMostrarCompartir(false);
+  };
+
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!propiedad) return;
+    const url = getShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 3000);
+    } catch (err) {
+      console.error('Error al copiar al portapapeles:', err);
+    }
+  };
 
   useEffect(() => {
     if (initialPropiedad) {
@@ -240,10 +329,10 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
     <div className="w-full max-w-6xl mx-auto bg-[#182b19] rounded-none sm:rounded-[32px] md:rounded-[40px] border-0 sm:border border-white/15 shadow-none sm:shadow-[0_25px_70px_rgba(0,0,0,0.6)] overflow-hidden relative min-h-full sm:min-h-0 flex-1 flex flex-col">
 
       {/* ── 1. HERO CON IMAGEN NÍTIDA Y DEGRADÉ DESDE MÁS ABAJO ── */}
-      <div className="relative min-h-[60vh] sm:min-h-[75vh] md:min-h-[82vh] flex flex-col justify-between p-4 sm:p-7 lg:p-10 overflow-hidden">
+      <div className="relative min-h-[60vh] sm:min-h-[75vh] md:min-h-[82vh] flex flex-col justify-between p-4 sm:p-7 lg:p-10">
 
         {/* Imagen Principal Nítida de Fondo */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 overflow-hidden rounded-none sm:rounded-t-[32px] md:rounded-t-[40px]">
           {imagenes.length > 0 ? (
             <img
               src={imagenes[0]}
@@ -318,16 +407,112 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
               </div>
 
-              {/* Botón de Acción Principal (Verde con letras blancas) */}
-              <a
-                href={`https://wa.me/5492914136535?text=Hola, me interesa la propiedad: *${propiedad.titulo}* (ID: ${propiedad.id}). ¿Podrían darme más información?`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-2xl font-bold uppercase tracking-wider text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-2.5 shrink-0 active:scale-95 cursor-pointer border border-emerald-400/30"
-              >
-                <WhatsappLogo size={20} weight="fill" className="text-white" />
-                <span>Contactar Asesor</span>
-              </a>
+              {/* Botones de Acción: Contactar Asesor + Compartir Propiedad */}
+              <div className="flex flex-col gap-2 shrink-0 relative" ref={shareContainerRef}>
+                {/* Botón de Acción Principal (Verde con letras blancas) */}
+                <a
+                  href={`https://wa.me/5492914136535?text=Hola, me interesa la propiedad: *${propiedad.titulo}* (ID: ${propiedad.id}). ¿Podrían darme más información?`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-2xl font-bold uppercase tracking-wider text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-2.5 active:scale-95 cursor-pointer border border-emerald-400/30"
+                >
+                  <WhatsappLogo size={20} weight="fill" className="text-white" />
+                  <span>Contactar Asesor</span>
+                </a>
+
+                {/* Botón Compartir Propiedad */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarCompartir(!mostrarCompartir)}
+                    className="w-full bg-[#162a18]/90 hover:bg-[#1c351e] text-emerald-100 hover:text-white px-4 py-2.5 rounded-xl font-medium tracking-wide text-xs transition-all flex items-center justify-center gap-2 border border-roma-leaf/35 cursor-pointer active:scale-95 shadow-md"
+                  >
+                    <ShareNetwork size={16} weight="bold" className="text-emerald-300" />
+                    <span>Compartir propiedad</span>
+                  </button>
+
+                  {/* Menú flotante de opciones de compartir (abierto hacia arriba) */}
+                  <AnimatePresence>
+                    {mostrarCompartir && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                        transition={{ duration: 0.16 }}
+                        className="absolute right-0 bottom-full mb-2.5 w-full sm:w-72 bg-[#112012]/98 backdrop-blur-2xl border border-roma-leaf/50 rounded-2xl p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] z-[100] flex flex-col gap-1 text-left"
+                      >
+                        <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300/80 border-b border-white/10 mb-1">
+                          Compartir enlace
+                        </div>
+
+                        {/* WhatsApp */}
+                        <button
+                          type="button"
+                          onClick={handleShareWhatsApp}
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-emerald-600/30 hover:border-emerald-500/40 border border-transparent transition-all cursor-pointer text-left w-full group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-[#25D366] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                            <WhatsappLogo size={18} weight="fill" className="text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-white">WhatsApp</div>
+                            <div className="text-[10px] text-white/60 truncate">Seleccionar contacto o grupo</div>
+                          </div>
+                        </button>
+
+                        {/* Instagram */}
+                        <button
+                          type="button"
+                          onClick={handleShareInstagram}
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-pink-600/20 hover:border-pink-500/40 border border-transparent transition-all cursor-pointer text-left w-full group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                            <InstagramLogo size={18} weight="bold" className="text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-white">Instagram</div>
+                            <div className="text-[10px] text-white/60 truncate">Seleccionar destinatario</div>
+                          </div>
+                        </button>
+
+                        {/* Facebook */}
+                        <button
+                          type="button"
+                          onClick={handleShareFacebook}
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-blue-600/20 hover:border-blue-500/40 border border-transparent transition-all cursor-pointer text-left w-full group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-[#1877F2] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                            <FacebookLogo size={18} weight="fill" className="text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-white">Messenger / Facebook</div>
+                            <div className="text-[10px] text-white/60 truncate">Seleccionar destinatario</div>
+                          </div>
+                        </button>
+
+                        {/* Copiar Enlace Directo */}
+                        <button
+                          type="button"
+                          onClick={handleCopyLink}
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-white/10 hover:border-white/20 border border-transparent transition-all cursor-pointer text-left w-full group mt-0.5 border-t border-white/5 pt-1.5"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform text-emerald-300">
+                            {copiado ? <Check size={16} weight="bold" className="text-emerald-300" /> : <LinkSimple size={16} weight="bold" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-white">
+                              {copiado ? '¡Enlace copiado!' : 'Copiar enlace'}
+                            </div>
+                            <div className="text-[10px] text-emerald-200/80 truncate">
+                              {copiado ? 'Listo para pegar y enviar' : 'Copiar link al portapapeles'}
+                            </div>
+                          </div>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
 
             </div>
           </div>
