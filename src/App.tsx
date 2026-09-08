@@ -17,8 +17,10 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/propiedades" element={<Catalogo />} />
         <Route path="/propiedad/:id" element={<PropiedadDetalle />} />
+        <Route path="/propiedades/:id" element={<PropiedadDetalle />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Landing />} />
       </Routes>
     </BrowserRouter>
   );

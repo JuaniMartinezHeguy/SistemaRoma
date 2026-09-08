@@ -6,8 +6,7 @@ import {
   MapPin, WhatsappLogo, HouseLine, Ruler,
   Bed, Buildings, Tree, Storefront, ArrowLeft, Bathtub,
   CaretLeft, CaretRight, X, ArrowSquareOut,
-  CheckCircle, Tag, Info, ShareNetwork, InstagramLogo, FacebookLogo,
-  LinkSimple, Check
+  CheckCircle, Tag, Info, ShareNetwork
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -94,7 +93,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
   const getShareUrl = () => {
     if (typeof window === 'undefined') return '';
-    return `${window.location.origin}/propiedades/${propiedad?.id || ''}`;
+    return `${window.location.origin}/propiedad/${propiedad?.id || ''}`;
   };
 
   const handleShareWhatsApp = (e: React.MouseEvent) => {
@@ -129,7 +128,6 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
     e.stopPropagation();
     if (!propiedad) return;
     const url = getShareUrl();
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     try {
       await navigator.clipboard.writeText(url);
@@ -137,16 +135,8 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
       setTimeout(() => setCopiado(false), 3000);
     } catch (_) {}
 
-    if (isMobile) {
-      // Abre directamente la app de Instagram en la bandeja de DMs
-      window.location.href = 'instagram://direct-inbox';
-      setTimeout(() => {
-        window.open('https://www.instagram.com/direct/inbox/', '_blank');
-      }, 500);
-    } else {
-      // Abre directamente la bandeja de entrada de mensajes de Instagram
-      window.open('https://www.instagram.com/direct/inbox/', '_blank');
-    }
+    // Abre directamente el modal de 'Nuevo mensaje' (seleccionar usuarios) de Instagram
+    window.open('https://www.instagram.com/direct/new/', '_blank');
     setMostrarCompartir(false);
   };
 
@@ -329,7 +319,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
     <div className="w-full max-w-6xl mx-auto bg-[#182b19] rounded-none sm:rounded-[32px] md:rounded-[40px] border-0 sm:border border-white/15 shadow-none sm:shadow-[0_25px_70px_rgba(0,0,0,0.6)] overflow-hidden relative min-h-full sm:min-h-0 flex-1 flex flex-col">
 
       {/* ── 1. HERO CON IMAGEN NÍTIDA Y DEGRADÉ DESDE MÁS ABAJO ── */}
-      <div className="relative min-h-[60vh] sm:min-h-[75vh] md:min-h-[82vh] flex flex-col justify-between p-4 sm:p-7 lg:p-10">
+      <div className="relative z-30 min-h-[60vh] sm:min-h-[75vh] md:min-h-[82vh] flex flex-col justify-between p-4 sm:p-7 lg:p-10">
 
         {/* Imagen Principal Nítida de Fondo */}
         <div className="absolute inset-0 z-0 overflow-hidden rounded-none sm:rounded-t-[32px] md:rounded-t-[40px]">
@@ -431,82 +421,58 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
                     <span>Compartir propiedad</span>
                   </button>
 
-                  {/* Menú flotante de opciones de compartir (abierto hacia arriba) */}
+                  {/* Contenedor horizontal de iconos de compartir */}
                   <AnimatePresence>
                     {mostrarCompartir && (
                       <motion.div
-                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                        initial={{ opacity: 0, y: -6, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.95 }}
                         transition={{ duration: 0.16 }}
-                        className="absolute right-0 bottom-full mb-2.5 w-full sm:w-72 bg-[#112012]/98 backdrop-blur-2xl border border-roma-leaf/50 rounded-2xl p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] z-[100] flex flex-col gap-1 text-left"
+                        className="absolute right-0 top-full mt-3 bg-[#112313] border border-roma-leaf/40 rounded-full px-3 py-2 shadow-[0_25px_60px_rgba(0,0,0,0.95)] z-[100] flex items-center justify-center gap-3"
                       >
-                        <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300/80 border-b border-white/10 mb-1">
-                          Compartir enlace
-                        </div>
-
                         {/* WhatsApp */}
                         <button
                           type="button"
                           onClick={handleShareWhatsApp}
-                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-emerald-600/30 hover:border-emerald-500/40 border border-transparent transition-all cursor-pointer text-left w-full group"
+                          title="Compartir por WhatsApp"
+                          className="w-10 h-10 rounded-full bg-[#1c3620] hover:bg-roma-olive text-white flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg cursor-pointer shrink-0"
                         >
-                          <div className="w-7 h-7 rounded-lg bg-[#25D366] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                            <WhatsappLogo size={18} weight="fill" className="text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white">WhatsApp</div>
-                            <div className="text-[10px] text-white/60 truncate">Seleccionar contacto o grupo</div>
-                          </div>
+                          <i className="fab fa-whatsapp text-[18px]" />
                         </button>
 
                         {/* Instagram */}
                         <button
                           type="button"
                           onClick={handleShareInstagram}
-                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-pink-600/20 hover:border-pink-500/40 border border-transparent transition-all cursor-pointer text-left w-full group"
+                          title="Compartir por Instagram"
+                          className="w-10 h-10 rounded-full bg-[#1c3620] hover:bg-roma-olive text-white flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg cursor-pointer shrink-0"
                         >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                            <InstagramLogo size={18} weight="bold" className="text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white">Instagram</div>
-                            <div className="text-[10px] text-white/60 truncate">Seleccionar destinatario</div>
-                          </div>
+                          <i className="fab fa-instagram text-[18px]" />
                         </button>
 
                         {/* Facebook */}
                         <button
                           type="button"
                           onClick={handleShareFacebook}
-                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-blue-600/20 hover:border-blue-500/40 border border-transparent transition-all cursor-pointer text-left w-full group"
+                          title="Compartir por Messenger / Facebook"
+                          className="w-10 h-10 rounded-full bg-[#1c3620] hover:bg-roma-olive text-white flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg cursor-pointer shrink-0"
                         >
-                          <div className="w-7 h-7 rounded-lg bg-[#1877F2] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                            <FacebookLogo size={18} weight="fill" className="text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white">Messenger / Facebook</div>
-                            <div className="text-[10px] text-white/60 truncate">Seleccionar destinatario</div>
-                          </div>
+                          <i className="fab fa-facebook-f text-[17px]" />
                         </button>
 
                         {/* Copiar Enlace Directo */}
                         <button
                           type="button"
                           onClick={handleCopyLink}
-                          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:bg-white/10 hover:border-white/20 border border-transparent transition-all cursor-pointer text-left w-full group mt-0.5 border-t border-white/5 pt-1.5"
+                          title={copiado ? '¡Enlace copiado!' : 'Copiar enlace'}
+                          className={`w-10 h-10 rounded-full transition-all duration-300 shadow-lg cursor-pointer active:scale-95 shrink-0 flex items-center justify-center ${
+                            copiado
+                              ? 'bg-roma-olive text-white'
+                              : 'bg-[#1c3620] hover:bg-roma-olive text-white hover:scale-110'
+                          }`}
                         >
-                          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform text-emerald-300">
-                            {copiado ? <Check size={16} weight="bold" className="text-emerald-300" /> : <LinkSimple size={16} weight="bold" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white">
-                              {copiado ? '¡Enlace copiado!' : 'Copiar enlace'}
-                            </div>
-                            <div className="text-[10px] text-emerald-200/80 truncate">
-                              {copiado ? 'Listo para pegar y enviar' : 'Copiar link al portapapeles'}
-                            </div>
-                          </div>
+                          <i className={`fas ${copiado ? 'fa-check text-emerald-300' : 'fa-link'} text-[15px]`} />
                         </button>
                       </motion.div>
                     )}
