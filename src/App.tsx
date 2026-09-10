@@ -8,6 +8,7 @@ import Catalogo from './pages/propiedades';
 import Admin from './pages/admin';
 import Login from './pages/login';
 import PropiedadDetalle from './pages/PropiedadDetalle';
+import PlantillaView from './pages/PlantillaView';
 
 export default function App() {
 
@@ -20,6 +21,8 @@ export default function App() {
         <Route path="/propiedades/:id" element={<PropiedadDetalle />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/login" element={<Login />} />
+        {/* Plantilla por slug — debe ir ANTES del catch-all */}
+        <Route path="/:slug" element={<PlantillaView />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </BrowserRouter>

@@ -6,7 +6,7 @@ import {
   LogOut, LayoutDashboard, Building2, PlusCircle, 
   CheckCircle, AlertCircle, Home, LayoutGrid, 
   Tractor, Map, Pencil, ArrowRight, SlidersHorizontal,
-  Users, Menu, X
+  Users, Menu, X, Image
 } from "lucide-react";
 
 import Lista from "@/components/Lista";
@@ -14,6 +14,7 @@ import Lista from "@/components/Lista";
 import FormularioPropiedad from "@/components/FormularioPropiedad";
 import ConfigFiltros from "@/components/ConfigFiltros";
 import ClientesAdmin from "@/components/ClientesAdmin";
+import PlantillasAdmin from "@/components/PlantillasAdmin";
 import FormularioClienteModal from "@/components/FormularioClienteModal";
 import { supabase } from "@/lib/supabase"; 
 import { sincronizarCiudadEnFiltros } from "@/lib/filtrosHelper"; 
@@ -339,6 +340,13 @@ export default function Admin() {
             <Users size={20} className={activeTab === "clientes" ? "text-roma-olive" : "text-white/60"} /> 
             Clientes
           </button>
+          <button 
+            onClick={() => { setActiveTab("plantillas"); setSidebarOpen(false); }} 
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold cursor-pointer ${activeTab === "plantillas" ? "bg-white text-roma-olive shadow-lg" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+          >
+            <Image size={20} className={activeTab === "plantillas" ? "text-roma-olive" : "text-white/60"} /> 
+            Plantillas
+          </button>
         </nav>
 
         {/* Botón Salir */}
@@ -366,6 +374,7 @@ export default function Admin() {
         )}
         {activeTab === "filtros" && <ConfigFiltros mostrarToast={mostrarToast} />}
         {activeTab === "clientes" && <ClientesAdmin mostrarToast={mostrarToast} />}
+        {activeTab === "plantillas" && <PlantillasAdmin mostrarToast={mostrarToast} />}
       </main>
 
       {/* BARRA DE NAVEGACIÓN INFERIOR PARA MOBILE */}
@@ -408,6 +417,16 @@ export default function Admin() {
         >
           <SlidersHorizontal size={18} />
           <span>Filtros</span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab("plantillas"); setSidebarOpen(false); }}
+          className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+            activeTab === "plantillas" ? "text-white bg-white/15 shadow-sm" : "text-white/50 hover:text-white"
+          }`}
+        >
+          <Image size={18} />
+          <span>Plantillas</span>
         </button>
       </div>
 
