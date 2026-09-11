@@ -9,6 +9,7 @@ import {
   CheckCircle, Tag, Info, ShareNetwork
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageLoader from '../components/ui/PageLoader';
 
 
 interface Propiedad {
@@ -137,6 +138,24 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
     }
   };
 
+  // Bloquear totalmente el scroll del body, html y touch cuando la imagen está ampliada
+  useEffect(() => {
+    if (imagenModalIndex !== null) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [imagenModalIndex]);
+
   useEffect(() => {
     if (initialPropiedad) {
       setPropiedad(initialPropiedad);
@@ -169,14 +188,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
   };
 
   if (loading) {
-    return (
-      <div className={onClose ? "bg-[#182b19] min-h-screen sm:min-h-0 p-6 sm:p-12 rounded-none sm:rounded-3xl border-0 sm:border border-white/15 text-center text-white flex items-center justify-center" : "min-h-screen bg-[#182b19] text-white flex flex-col items-center justify-center p-6"}>
-        <div className="bg-roma-leaf/30 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-white/15 shadow-2xl text-center max-w-sm mx-auto flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <p className="text-white/80 text-sm font-medium">Cargando propiedad...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!propiedad) {
@@ -750,24 +762,6 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
 
       </div>
     );
-
-  // Bloquear totalmente el scroll del body, html y touch cuando la imagen está ampliada
-  useEffect(() => {
-    if (imagenModalIndex !== null) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      document.body.style.touchAction = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
-  }, [imagenModalIndex]);
 
   const fullContent = (
     <>

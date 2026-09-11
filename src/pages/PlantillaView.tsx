@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { X, ExternalLink } from 'lucide-react';
+import PageLoader from '@/components/ui/PageLoader';
 
 interface Plantilla {
   id: number;
@@ -65,14 +66,7 @@ export default function PlantillaView() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-roma-olive flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-3 border-white/20 border-t-white rounded-full animate-spin" />
-          <p className="text-white/60 text-sm font-medium">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!plantilla) return null;
