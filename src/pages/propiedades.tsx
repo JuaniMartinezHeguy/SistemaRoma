@@ -147,7 +147,7 @@ export default function Catalogo() {
     Boolean(busqueda),
   ].filter(Boolean).length;
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Sincronizar filtro desde parámetros de la URL (?tipo=Campo, ?tipo=Terreno, etc.)
   useEffect(() => {
@@ -157,6 +157,26 @@ export default function Catalogo() {
       setHeroDismissed(true);
     }
   }, [searchParams]);
+
+  // Sincronizar propiedad seleccionada desde parámetros de la URL (?id=17)
+  useEffect(() => {
+    const idQuery = searchParams.get('id');
+    if (idQuery) {
+      const parsedId = Number(idQuery);
+      if (!isNaN(parsedId)) {
+        setModalPropiedadId(parsedId);
+        const found = propiedades.find((p) => p.id === parsedId);
+        if (found) {
+          setSelectedPropiedadObj(found);
+        }
+      }
+    } else {
+      if (modalPropiedadId !== null) {
+        setModalPropiedadId(null);
+        setSelectedPropiedadObj(null);
+      }
+    }
+  }, [searchParams, propiedades]);
 
   // ─── 1. EFECTO: Screen Loader Inicial ───
   useEffect(() => {
@@ -325,21 +345,31 @@ export default function Catalogo() {
     return () => clearInterval(interval);
   }, [propiedadesDestacadas.length, heroDismissed]);
 
+  const cerrarModal = () => {
+    setModalPropiedadId(null);
+    setSelectedPropiedadObj(null);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('id');
+    setSearchParams(newParams, { replace: true });
+  };
+
   useEffect(() => {
     if (!modalPropiedadId) return;
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setModalPropiedadId(null);
-        setSelectedPropiedadObj(null);
+        cerrarModal();
       }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [modalPropiedadId]);
+  }, [modalPropiedadId, searchParams]);
 
   const abrirModal = (p: Propiedad) => {
     setSelectedPropiedadObj(p);
     setModalPropiedadId(p.id);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('id', String(p.id));
+    setSearchParams(newParams);
   };
   const activeDestacada = propiedadesDestacadas[destacadaIndex];
 
@@ -1733,10 +1763,7 @@ export default function Catalogo() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="fixed inset-0 z-[100] bg-[#182b19] sm:bg-black/70 backdrop-blur-md overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-start sm:items-center"
-            onClick={() => {
-              setModalPropiedadId(null);
-              setSelectedPropiedadObj(null);
-            }}
+            onClick={cerrarModal}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -1749,10 +1776,7 @@ export default function Catalogo() {
               <PropiedadDetalle
                 propId={modalPropiedadId}
                 initialPropiedad={selectedPropiedadObj}
-                onClose={() => {
-                  setModalPropiedadId(null);
-                  setSelectedPropiedadObj(null);
-                }}
+                onClose={cerrarModal}
               />
             </motion.div>
           </motion.div>

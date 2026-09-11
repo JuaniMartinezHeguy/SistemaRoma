@@ -124,22 +124,6 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
     setMostrarCompartir(false);
   };
 
-  const handleShareInstagram = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!propiedad) return;
-    const url = getShareUrl();
-
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 3000);
-    } catch (_) {}
-
-    // Abre directamente el modal de 'Nuevo mensaje' (seleccionar usuarios) de Instagram
-    window.open('https://www.instagram.com/direct/new/', '_blank');
-    setMostrarCompartir(false);
-  };
-
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!propiedad) return;
@@ -162,11 +146,12 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
     if (!propId) window.scrollTo(0, 0);
     const fetchPropiedad = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('propiedades')
-        .select('*')
-        .eq('id', effectiveId)
-        .single();
+      const parsedId = Number(effectiveId);
+      const query = supabase.from('propiedades').select('*');
+      const { data, error } = isNaN(parsedId)
+        ? await query.eq('id', effectiveId).maybeSingle()
+        : await query.eq('id', parsedId).maybeSingle();
+
       if (error) console.error('Error fetching property:', error);
       else setPropiedad(data);
       setLoading(false);
@@ -327,7 +312,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
             <img
               src={imagenes[0]}
               alt={propiedad.titulo}
-              className="w-full h-full object-cover opacity-95 transition-transform duration-700 hover:scale-105"
+              className="w-full h-full object-cover opacity-95"
             />
           ) : (
             <div className="w-full h-full bg-[#182b19]" />
@@ -439,16 +424,6 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
                           className="w-10 h-10 rounded-full bg-[#1c3620] hover:bg-roma-olive text-white flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg cursor-pointer shrink-0"
                         >
                           <i className="fab fa-whatsapp text-[18px]" />
-                        </button>
-
-                        {/* Instagram */}
-                        <button
-                          type="button"
-                          onClick={handleShareInstagram}
-                          title="Compartir por Instagram"
-                          className="w-10 h-10 rounded-full bg-[#1c3620] hover:bg-roma-olive text-white flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg cursor-pointer shrink-0"
-                        >
-                          <i className="fab fa-instagram text-[18px]" />
                         </button>
 
                         {/* Facebook */}
