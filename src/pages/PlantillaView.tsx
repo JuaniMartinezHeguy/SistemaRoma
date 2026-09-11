@@ -113,6 +113,8 @@ export default function PlantillaView() {
             className={`w-full h-auto rounded-2xl sm:rounded-3xl shadow-2xl transition-opacity duration-500 ${
               imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
             }`}
+            loading="eager"
+            decoding="async"
             onLoad={() => setImageLoaded(true)}
           />
         </div>

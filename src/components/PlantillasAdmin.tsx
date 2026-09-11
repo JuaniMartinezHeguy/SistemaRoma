@@ -4,6 +4,7 @@ import {
   Upload, Trash2, Copy, CheckCircle, 
   Image as ImageIcon, Link2, Loader2, ExternalLink 
 } from 'lucide-react';
+import { optimizarImagen } from '@/utils/imageOptimizer';
 
 interface Plantilla {
   id: number;
@@ -113,12 +114,14 @@ export default function PlantillasAdmin({ mostrarToast }: PlantillasAdminProps) 
     setUploading(true);
 
     try {
+      const archivoOptimizado = await optimizarImagen(archivo);
+
       // Subir imagen al bucket 'plantillas'
-      const ext = archivo.name.split('.').pop();
+      const ext = archivoOptimizado.name.split('.').pop();
       const nombre = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('plantillas')
-        .upload(nombre, archivo);
+        .upload(nombre, archivoOptimizado);
 
       if (uploadError) throw uploadError;
 

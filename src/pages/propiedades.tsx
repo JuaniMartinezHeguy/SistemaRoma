@@ -1761,16 +1761,19 @@ export default function Catalogo() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] bg-[#182b19] sm:bg-black/70 backdrop-blur-md overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-start sm:items-center"
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[100] bg-[#182b19] sm:bg-black/75 backdrop-blur-md overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-start"
             onClick={cerrarModal}
+            ref={(node) => {
+              if (node) node.scrollTop = 0;
+            }}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              initial={{ scale: 0.98, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-6xl relative min-h-full sm:min-h-0 sm:my-auto flex flex-col"
+              exit={{ scale: 0.98, opacity: 0, y: 12 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-6xl relative min-h-full sm:min-h-0 my-0 sm:my-4 flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <PropiedadDetalle

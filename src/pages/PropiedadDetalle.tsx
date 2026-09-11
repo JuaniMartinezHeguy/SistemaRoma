@@ -313,6 +313,8 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
               src={imagenes[0]}
               alt={propiedad.titulo}
               className="w-full h-full object-cover opacity-95"
+              loading="eager"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full bg-[#182b19]" />
@@ -500,6 +502,7 @@ export default function PropiedadDetalle({ propId, initialPropiedad, onClose }: 
                         src={imagenes[imagenIndex]}
                         alt={propiedad.titulo}
                         className="absolute inset-0 w-full h-full object-cover"
+                        decoding="async"
                       />
                     </AnimatePresence>
 
@@ -888,15 +891,24 @@ function ThumbnailList({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const container = containerRef.current;
     const el = itemsRef.current[imagenIndex];
-    if (el) {
-      el.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
-      });
+    if (container && el) {
+      const isVertical = window.innerWidth >= 1024;
+      if (isVertical) {
+        const topOffset = el.offsetTop - container.offsetTop;
+        container.scrollTo({ top: topOffset, behavior: 'smooth' });
+      } else {
+        const leftOffset = el.offsetLeft - container.offsetLeft;
+        container.scrollTo({ left: leftOffset, behavior: 'smooth' });
+      }
     }
   }, [imagenIndex]);
 
@@ -921,7 +933,7 @@ function ThumbnailList({
             }`}
             aria-label={`Foto ${idx + 1}`}
           >
-            <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
+            <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
           </button>
         ))}
       </div>

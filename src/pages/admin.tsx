@@ -18,6 +18,7 @@ import PlantillasAdmin from "@/components/PlantillasAdmin";
 import FormularioClienteModal from "@/components/FormularioClienteModal";
 import { supabase } from "@/lib/supabase"; 
 import { sincronizarCiudadEnFiltros } from "@/lib/filtrosHelper"; 
+import { optimizarImagenes } from "@/utils/imageOptimizer"; 
 
 export default function Admin() {
   // ─ Hooks ─────────────────────────────────────────────────────────────
@@ -75,7 +76,9 @@ export default function Admin() {
         ? [...payload.media_urls]
         : (propiedadEditando?.media_urls ? [...propiedadEditando.media_urls] : []);
 
-      for (const archivo of archivos) {
+      const archivosOptimizados = await optimizarImagenes(archivos);
+
+      for (const archivo of archivosOptimizados) {
         const ext = archivo.name.split(".").pop();
         const nombre = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { error: uploadError } = await supabase.storage.from("propiedades").upload(nombre, archivo);
