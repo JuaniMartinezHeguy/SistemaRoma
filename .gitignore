@@ -1,3 +1,17 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Production Build
+dist/
+dist-ssr/
+*.local
+
+# Environment Variables (Secrets)
+.env
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log
@@ -7,20 +21,25 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Editor & OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-**/.env
-.env
+
+# Temporary / Scratch scripts
+*.mjs.bak
+patch_*.js
+test_*.mjs
+fix_*.mjs

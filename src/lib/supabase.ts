@@ -1,8 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://jeznwwmynpozkjruuzcr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_Ppf8yVnmYIaAiDuMxKCe0Q_s6l3Gw4Y';
-
 // Limpieza estricta de variables de entorno para evitar cabeceras HTTP inválidas en fetch/Headers
 const getEnvVar = (val?: any) => {
   if (!val) return '';
@@ -13,15 +10,16 @@ const getEnvVar = (val?: any) => {
     .trim();
 };
 
-const envUrl = getEnvVar(import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL);
-const envKey = getEnvVar(
+const supabaseUrl = getEnvVar(import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL);
+const supabaseKey = getEnvVar(
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 );
 
-const supabaseUrl = (envUrl.startsWith('http://') || envUrl.startsWith('https://')) ? envUrl : SUPABASE_URL;
-const supabaseKey = (envKey.length > 5) ? envKey : SUPABASE_KEY;
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('[Supabase] Variables de entorno VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY no configuradas.');
+}
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
