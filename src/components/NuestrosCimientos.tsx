@@ -94,10 +94,10 @@ export default function NuestrosCimientos() {
             </h2>
           </div>
 
-          {/* Bloque Desde 2014 a la derecha */}
+          {/* Bloque Desde 2012 a la derecha */}
           <div className="flex flex-col md:items-end text-left md:text-right border-l-2 md:border-l-0 md:border-r-2 border-roma-leaf/40 pl-4 md:pl-0 md:pr-4">
             <span className="font-['Cinzel',serif] text-roma-leaf text-lg font-bold tracking-widest uppercase">
-              DESDE 2014
+              DESDE 2012
             </span>
             <span className="text-white/60 text-xs font-light tracking-wide mt-0.5">
               Villalonga · Sur Bonaerense y Patagonia
@@ -126,7 +126,7 @@ export default function NuestrosCimientos() {
             <div className="absolute top-8 left-8 z-30 bg-[#162719]/90 backdrop-blur-xl border border-roma-leaf/40 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-roma-leaf animate-pulse" />
               <span className="font-['Cinzel',serif] text-xs font-bold uppercase tracking-widest text-roma-leaf">
-                FUNDADO EN VILLALONGA • 2014
+                FUNDADO EN VILLALONGA • 2012
               </span>
             </div>
 
@@ -254,7 +254,7 @@ export default function NuestrosCimientos() {
                 <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
               </svg>
               <div className="font-['Cinzel',serif] font-semibold text-4xl lg:text-5xl text-white tracking-tight leading-none mb-3">
-                <CountUpNumber end={12} duration={2} /> <span className="text-2xl font-light text-white/80">años</span>
+                <CountUpNumber end={14} duration={2} /> <span className="text-2xl font-light text-white/80">años</span>
               </div>
               <div className="text-xs uppercase tracking-wider text-roma-leaf/80 pt-3 border-t border-white/15 font-medium">
                 Trayectoria regional

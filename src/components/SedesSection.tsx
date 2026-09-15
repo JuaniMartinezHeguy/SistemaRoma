@@ -44,7 +44,7 @@ const SEDES: SedeFisica[] = [
     nombre: 'Villalonga',
     partido: 'Pdo. Patagones, BA',
     direccion: 'Los Pozos 31',
-    desde: '2014',
+    desde: '2012',
     descripcion: 'Sede pionera y corazón del desarrollo agrícola de Patagones.',
     mapaUrl: 'https://maps.google.com/maps?q=-39.9161537,-62.6215767&t=k&z=18&ie=UTF8&iwloc=&output=embed',
     coordSvg: { x: 430, y: 410 },
@@ -86,7 +86,7 @@ const LOCALIDADES_RN: Localidad[] = [
 const HITO_TRAYECTORIA = [
   {
     id: 0,
-    year: '2014',
+    year: '2012',
     titulo: 'Origen en Villalonga',
     sub: 'Partido de Patagones',
     desc: 'Fundación de Roma Inmobiliaria y primera sede física en el corazón del sur bonaerense.',
@@ -143,7 +143,7 @@ export default function SedesSection() {
             Nuestras Sedes
           </h2>
           <p className="text-white/80 text-base md:text-lg font-light max-w-3xl mx-auto leading-relaxed">
-            Más de <span className="text-roma-leaf font-semibold">12 años</span> de trayectoria y <span className="text-white font-semibold">+200 propiedades</span> gestionadas avalan nuestra experiencia. Con 3 sedes físicas y cobertura activa en <span className="text-roma-leaf font-semibold">17 localidades</span>, impulsamos el desarrollo inmobiliario y agrícola en los valles productivos del sur bonaerense y la Patagonia.
+            Más de <span className="text-roma-leaf font-semibold">14 años</span> de trayectoria y <span className="text-white font-semibold">+200 propiedades</span> gestionadas avalan nuestra experiencia. Con 3 sedes físicas y cobertura activa en <span className="text-roma-leaf font-semibold">17 localidades</span>, impulsamos el desarrollo inmobiliario y agrícola en los valles productivos del sur bonaerense y la Patagonia.
           </p>
         </div>
 
@@ -558,7 +558,7 @@ export default function SedesSection() {
             Nuestras Sedes
           </h2>
           <p className="text-white/80 text-sm sm:text-base font-light max-w-3xl mx-auto leading-relaxed">
-            Más de <span className="text-roma-leaf font-semibold">12 años</span> de trayectoria y <span className="text-white font-semibold">+200 propiedades</span> gestionadas avalan nuestra experiencia. Con 3 sedes físicas y cobertura activa en <span className="text-roma-leaf font-semibold">17 localidades</span>, impulsamos el desarrollo inmobiliario y agrícola en los valles productivos del sur bonaerense y la Patagonia.
+            Más de <span className="text-roma-leaf font-semibold">14 años</span> de trayectoria y <span className="text-white font-semibold">+200 propiedades</span> gestionadas avalan nuestra experiencia. Con 3 sedes físicas y cobertura activa en <span className="text-roma-leaf font-semibold">17 localidades</span>, impulsamos el desarrollo inmobiliario y agrícola en los valles productivos del sur bonaerense y la Patagonia.
           </p>
         </motion.div>
 

@@ -115,7 +115,7 @@ export default function TasacionesSection() {
             </h2>
 
             <p className="text-white/80 text-base md:text-lg font-light leading-relaxed mb-10 max-w-2xl">
-              Determinamos el verdadero valor de mercado de tu casa, terreno o establecimiento rural combinando rigor técnico, análisis comparativo de operaciones reales y más de 10 años de trayectoria regional.
+              Determinamos el verdadero valor de mercado de tu casa, terreno o establecimiento rural combinando rigor técnico, análisis comparativo de operaciones reales y más de 14 años de trayectoria regional.
             </p>
 
             {/* Subtítulo explicativo */}

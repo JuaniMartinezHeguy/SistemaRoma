@@ -475,7 +475,7 @@ export default function Landing() {
           <div className="flex items-center whitespace-nowrap animate-marquee-responsive">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex items-center">
-                {['10+ Años de experiencia', '3 Sedes en la región', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
+                {['14+ Años de experiencia', '3 Sedes en la región', 'Propiedades', 'Campos', 'Lotes'].map((text, idx) => (
                   <div key={idx} className="flex items-center">
                     <span className="text-[11px] md:text-[12px] text-white/90 font-medium uppercase tracking-[0.18em] px-4 sm:px-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{text}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-roma-leaf/80 shadow-[0_0_5px_rgba(0,0,0,0.8)]" />
